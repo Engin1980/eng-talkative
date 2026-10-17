@@ -139,4 +139,41 @@ class ClientScreenTest {
         composeRule.onNodeWithText("Předchozí").performClick()
         assertEquals(emptyList<ClientEvent>(), events)
     }
+
+    private fun folder(id: String, title: String) = Folder(id, "default", title, null, 0, 0)
+
+    @Test
+    fun inRoot_backAndHomeAreDisabled_andOnlyRootCrumbIsShown() {
+        show(loaded(words(1)))
+
+        composeRule.onNodeWithText("Úvod").assertIsDisplayed()
+        composeRule.onNodeWithText("Zpět").performClick()
+        composeRule.onNodeWithText("Domů").performClick()
+        assertEquals(emptyList<ClientEvent>(), events)
+    }
+
+    @Test
+    fun breadcrumbs_showWholePath_andNavigationButtonsSendEvents() {
+        val path = listOf(folder("a", "Jídlo"), folder("b", "Ovoce"))
+        show(ClientUiState(path = path, items = words(1), isLoading = false))
+
+        composeRule.onNodeWithText("Úvod").assertIsDisplayed()
+        composeRule.onNodeWithText("Jídlo").assertIsDisplayed()
+        composeRule.onNodeWithText("Ovoce").assertIsDisplayed()
+
+        composeRule.onNodeWithText("Zpět").assertHeightIsAtLeast(64.dp).performClick()
+        composeRule.onNodeWithText("Domů").assertHeightIsAtLeast(64.dp).performClick()
+        composeRule.onNodeWithText("Jídlo").assertHeightIsAtLeast(64.dp).performClick()
+        composeRule.onNodeWithText("Úvod").performClick()
+
+        assertEquals(
+            listOf(
+                ClientEvent.NavigateUp,
+                ClientEvent.GoHome,
+                ClientEvent.GoToFolder("a"),
+                ClientEvent.GoToFolder(null),
+            ),
+            events,
+        )
+    }
 }

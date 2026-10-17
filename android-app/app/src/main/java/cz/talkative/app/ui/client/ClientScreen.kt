@@ -2,6 +2,7 @@ package cz.talkative.app.ui.client
 
 import android.content.res.Configuration
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -14,18 +15,23 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
+import androidx.compose.material.icons.filled.Home
 import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
@@ -73,6 +79,8 @@ fun ClientScreen(
             HiddenAdminEntry(onEntered = onOpenAdmin, holdMillis = state.config.adminHoldMillis)
         }
 
+        NavigationRow(path = state.path, onEvent = onEvent)
+
         val grid = if (isLandscape) state.config.gridLandscape else state.config.gridPortrait
         when {
             state.isLoading -> Box(modifier = Modifier.weight(1f))
@@ -101,6 +109,67 @@ fun ClientScreen(
                 }
             }
         }
+    }
+}
+
+/** Velká tlačítka „Zpět“ a „Domů“ a drobečková navigace (kořen › složka › podsložka). */
+@Composable
+private fun NavigationRow(path: List<Folder>, onEvent: (ClientEvent) -> Unit) {
+    val dimens = TalkativeTheme.dimens
+    val atRoot = path.isEmpty()
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(dimens.spaceMedium),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Button(
+            onClick = { onEvent(ClientEvent.NavigateUp) },
+            enabled = !atRoot,
+            modifier = Modifier.heightIn(min = dimens.minTouchTarget),
+        ) {
+            Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = null, modifier = Modifier.size(dimens.iconSize))
+            Text(text = stringResource(R.string.client_back), modifier = Modifier.padding(start = dimens.spaceSmall))
+        }
+        Button(
+            onClick = { onEvent(ClientEvent.GoHome) },
+            enabled = !atRoot,
+            modifier = Modifier.heightIn(min = dimens.minTouchTarget),
+        ) {
+            Icon(Icons.Filled.Home, contentDescription = null, modifier = Modifier.size(dimens.iconSize))
+            Text(text = stringResource(R.string.client_home), modifier = Modifier.padding(start = dimens.spaceSmall))
+        }
+        Breadcrumbs(path = path, onGoToFolder = { onEvent(ClientEvent.GoToFolder(it)) }, modifier = Modifier.weight(1f))
+    }
+}
+
+@Composable
+private fun Breadcrumbs(path: List<Folder>, onGoToFolder: (String?) -> Unit, modifier: Modifier = Modifier) {
+    val dimens = TalkativeTheme.dimens
+    Row(
+        modifier = modifier.horizontalScroll(rememberScrollState()),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Crumb(
+            text = stringResource(R.string.client_breadcrumb_root),
+            isCurrent = path.isEmpty(),
+            onClick = { onGoToFolder(null) },
+        )
+        path.forEachIndexed { index, folder ->
+            Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, contentDescription = null, modifier = Modifier.size(dimens.iconSize))
+            Crumb(text = folder.title, isCurrent = index == path.lastIndex, onClick = { onGoToFolder(folder.id) })
+        }
+    }
+}
+
+@Composable
+private fun Crumb(text: String, isCurrent: Boolean, onClick: () -> Unit) {
+    TextButton(onClick = onClick, modifier = Modifier.heightIn(min = TalkativeTheme.dimens.minTouchTarget)) {
+        Text(
+            text = text,
+            style = MaterialTheme.typography.titleLarge,
+            fontWeight = if (isCurrent) FontWeight.Bold else FontWeight.Normal,
+            maxLines = 1,
+        )
     }
 }
 

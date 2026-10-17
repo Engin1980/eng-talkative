@@ -162,14 +162,14 @@ Plán postupuje po funkcionalitách (vertikální řezy přes UI, doménu i data
 ### 2.3 Navigace ve stromu
 
 **Úkoly:**
-- [ ] Drobečková navigace (breadcrumbs).
-- [ ] Velká tlačítka „Zpět“ a „Domů“.
-- [ ] Klepnutí na složku do ní vstoupí.
+- [x] Drobečková navigace (breadcrumbs).
+- [x] Velká tlačítka „Zpět“ a „Domů“.
+- [x] Klepnutí na složku do ní vstoupí.
 
 **Kritéria splnění:**
-- [ ] Breadcrumbs vždy odpovídají aktuální cestě, „Domů“ vede do kořene, „Zpět“ o úroveň výš.
-- [ ] Dotykové plochy mají minimálně 64 dp.
-- [ ] Unit testy navigace ve view modelu.
+- [x] Breadcrumbs vždy odpovídají aktuální cestě, „Domů“ vede do kořene, „Zpět“ o úroveň výš.
+- [x] Dotykové plochy mají minimálně 64 dp.
+- [x] Unit testy navigace ve view modelu.
 
 ### 2.4 Skládání věty
 

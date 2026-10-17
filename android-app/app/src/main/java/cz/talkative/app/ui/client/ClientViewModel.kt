@@ -2,6 +2,7 @@ package cz.talkative.app.ui.client
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import cz.talkative.app.domain.usecase.GetFolderPathUseCase
 import cz.talkative.app.domain.usecase.ObserveConfigUseCase
 import cz.talkative.app.domain.usecase.ObserveFolderItemsUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -11,13 +12,16 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @OptIn(ExperimentalCoroutinesApi::class)
 @HiltViewModel
 class ClientViewModel @Inject constructor(
     observeItems: ObserveFolderItemsUseCase,
+    private val getPath: GetFolderPathUseCase,
     observeConfig: ObserveConfigUseCase,
 ) : ViewModel() {
 
@@ -26,20 +30,30 @@ class ClientViewModel @Inject constructor(
     private val pageIndex = MutableStateFlow(0)
 
     val uiState: StateFlow<ClientUiState> = combine(
-        currentFolderId.flatMapLatest { observeItems(it) },
+        currentFolderId.flatMapLatest { folderId ->
+            observeItems(folderId).map { items -> getPath(folderId) to items }
+        },
         pageIndex,
         observeConfig(),
-    ) { items, page, config ->
-        ClientUiState(items = items, pageIndex = page, config = config, isLoading = false)
+    ) { (path, items), page, config ->
+        ClientUiState(path = path, items = items, pageIndex = page, config = config, isLoading = false)
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), ClientUiState())
 
     fun onEvent(event: ClientEvent) {
         when (event) {
-            is ClientEvent.OpenFolder -> {
-                currentFolderId.value = event.folderId
-                pageIndex.value = 0
+            is ClientEvent.OpenFolder -> goTo(event.folderId)
+            is ClientEvent.GoToFolder -> goTo(event.folderId)
+            ClientEvent.GoHome -> goTo(null)
+            ClientEvent.NavigateUp -> viewModelScope.launch {
+                val path = getPath(currentFolderId.value)
+                goTo(path.getOrNull(path.size - 2)?.id)
             }
             is ClientEvent.PageChanged -> pageIndex.value = event.pageIndex
         }
+    }
+
+    private fun goTo(folderId: String?) {
+        currentFolderId.value = folderId
+        pageIndex.value = 0
     }
 }

@@ -3,6 +3,7 @@ package cz.talkative.app.ui.client
 import cz.talkative.app.domain.model.AppConfig
 import cz.talkative.app.domain.model.Folder
 import cz.talkative.app.domain.repository.ConfigRepository
+import cz.talkative.app.domain.usecase.GetFolderPathUseCase
 import cz.talkative.app.domain.usecase.ObserveConfigUseCase
 import cz.talkative.app.domain.usecase.ObserveFolderItemsUseCase
 import cz.talkative.app.ui.admin.FakeDictionaryRepository
@@ -38,7 +39,11 @@ class ClientViewModelTest {
     @Before
     fun setUp() {
         Dispatchers.setMain(UnconfinedTestDispatcher())
-        viewModel = ClientViewModel(ObserveFolderItemsUseCase(repository), ObserveConfigUseCase(configRepository))
+        viewModel = ClientViewModel(
+            ObserveFolderItemsUseCase(repository),
+            GetFolderPathUseCase(repository),
+            ObserveConfigUseCase(configRepository),
+        )
     }
 
     @After
@@ -122,5 +127,82 @@ class ClientViewModelTest {
         viewModel.onEvent(ClientEvent.OpenFolder(a.id))
 
         assertTrue(titles().isEmpty())
+    }
+
+    private fun path() = viewModel.uiState.value.path.map { it.title }
+
+    /** Strom: Úvod › A › B › C, v každé složce jedno slovo. */
+    private suspend fun buildTree(): List<Folder> {
+        val a = repository.createFolder(null, "A")
+        val b = repository.createFolder(a.id, "B")
+        val c = repository.createFolder(b.id, "C")
+        repository.createWord(a.id, "slovoA")
+        repository.createWord(c.id, "slovoC")
+        return listOf(a, b, c)
+    }
+
+    @Test
+    fun breadcrumbs_followTheCurrentPath() = runVmTest {
+        val (a, b, c) = buildTree()
+        subscribe()
+        assertTrue(path().isEmpty())
+
+        viewModel.onEvent(ClientEvent.OpenFolder(a.id))
+        assertEquals(listOf("A"), path())
+        viewModel.onEvent(ClientEvent.OpenFolder(b.id))
+        viewModel.onEvent(ClientEvent.OpenFolder(c.id))
+
+        assertEquals(listOf("A", "B", "C"), path())
+        assertEquals(listOf("slovoC"), titles())
+    }
+
+    @Test
+    fun home_goesToRootFromAnyDepth_andResetsPage() = runVmTest {
+        val (a, b, c) = buildTree()
+        subscribe()
+        viewModel.onEvent(ClientEvent.OpenFolder(a.id))
+        viewModel.onEvent(ClientEvent.OpenFolder(b.id))
+        viewModel.onEvent(ClientEvent.OpenFolder(c.id))
+        viewModel.onEvent(ClientEvent.PageChanged(3))
+
+        viewModel.onEvent(ClientEvent.GoHome)
+
+        assertTrue(path().isEmpty())
+        assertEquals(listOf("A"), titles())
+        assertEquals(0, viewModel.uiState.value.pageIndex)
+    }
+
+    @Test
+    fun back_goesUpExactlyOneLevel_andStaysInRoot() = runVmTest {
+        val (a, b, c) = buildTree()
+        subscribe()
+        viewModel.onEvent(ClientEvent.OpenFolder(a.id))
+        viewModel.onEvent(ClientEvent.OpenFolder(b.id))
+        viewModel.onEvent(ClientEvent.OpenFolder(c.id))
+
+        viewModel.onEvent(ClientEvent.NavigateUp)
+        assertEquals(listOf("A", "B"), path())
+        viewModel.onEvent(ClientEvent.NavigateUp)
+        assertEquals(listOf("A"), path())
+        assertEquals(listOf("B", "slovoA"), titles())
+        viewModel.onEvent(ClientEvent.NavigateUp)
+        assertTrue(path().isEmpty())
+        viewModel.onEvent(ClientEvent.NavigateUp)
+        assertTrue(path().isEmpty())
+    }
+
+    @Test
+    fun clickingAncestorCrumb_jumpsThere() = runVmTest {
+        val (a, b, c) = buildTree()
+        subscribe()
+        viewModel.onEvent(ClientEvent.OpenFolder(a.id))
+        viewModel.onEvent(ClientEvent.OpenFolder(b.id))
+        viewModel.onEvent(ClientEvent.OpenFolder(c.id))
+
+        viewModel.onEvent(ClientEvent.GoToFolder(a.id))
+        assertEquals(listOf("A"), path())
+
+        viewModel.onEvent(ClientEvent.GoToFolder(null))
+        assertTrue(path().isEmpty())
     }
 }
