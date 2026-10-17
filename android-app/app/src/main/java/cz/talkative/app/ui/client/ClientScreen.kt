@@ -14,18 +14,24 @@ import androidx.compose.ui.res.stringResource
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import cz.talkative.app.R
+import cz.talkative.app.domain.model.ClientDefaults
 import cz.talkative.app.ui.theme.TalkativeTheme
 
 /** Napojení obrazovky na view model. */
 @Composable
-fun ClientRoute(viewModel: ClientViewModel = hiltViewModel()) {
+fun ClientRoute(onOpenAdmin: () -> Unit, viewModel: ClientViewModel = hiltViewModel()) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
-    ClientScreen(state = state)
+    ClientScreen(state = state, onOpenAdmin = onOpenAdmin)
 }
 
-/** Bezstavová obrazovka klienta; zatím jen ukázka celého řetězce UI → doména → data. */
+/** Bezstavová obrazovka klienta; zatím jen ukázka řetězce UI → doména → data a skrytý vstup do administrace. */
 @Composable
-fun ClientScreen(state: ClientUiState, modifier: Modifier = Modifier) {
+fun ClientScreen(
+    state: ClientUiState,
+    onOpenAdmin: () -> Unit,
+    modifier: Modifier = Modifier,
+    adminHoldMillis: Long = ClientDefaults.ADMIN_HOLD_MILLIS,
+) {
     Box(
         modifier = modifier
             .fillMaxSize()
@@ -38,6 +44,11 @@ fun ClientScreen(state: ClientUiState, modifier: Modifier = Modifier) {
                 ?.let { stringResource(R.string.client_profile, it) }
                 ?: stringResource(R.string.client_loading),
             style = MaterialTheme.typography.headlineMedium,
+        )
+        HiddenAdminEntry(
+            onEntered = onOpenAdmin,
+            holdMillis = adminHoldMillis,
+            modifier = Modifier.align(Alignment.TopEnd),
         )
     }
 }

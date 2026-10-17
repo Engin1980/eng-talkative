@@ -8,6 +8,7 @@ import androidx.compose.ui.unit.dp
 data class Dimens(
     /** Minimální velikost dotykové plochy (přístupnost). */
     val minTouchTarget: Dp = 64.dp,
+    val iconSize: Dp = 32.dp,
     val spaceSmall: Dp = 8.dp,
     val spaceMedium: Dp = 16.dp,
     val spaceLarge: Dp = 24.dp,

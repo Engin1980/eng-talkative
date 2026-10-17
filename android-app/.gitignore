@@ -14,5 +14,21 @@ captures/
 keystore.properties
 
 # IDE
-.idea/
 *.iml
+.kotlin/
+
+# Lokální nastavení IDE a Claude Code
+.idea/
+.vscode/
+.claude/settings.local.json
+
+# Systémové a dočasné soubory
+.DS_Store
+Thumbs.db
+desktop.ini
+*.log
+*.tmp
+*.hprof
+
+# Lint a testovací výstupy
+lint-results*.*

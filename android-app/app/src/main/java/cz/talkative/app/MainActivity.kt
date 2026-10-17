@@ -11,7 +11,8 @@ import dagger.hilt.android.AndroidEntryPoint
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
+        // Po každém startu (i po obnovení procesu) se otevře klientský režim, ne uložená navigace do administrace.
+        super.onCreate(null)
         setContent {
             TalkativeTheme {
                 // Aplikace vždy startuje v klientském režimu (startDestination v navigaci).

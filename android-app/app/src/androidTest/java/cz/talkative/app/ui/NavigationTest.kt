@@ -1,18 +1,21 @@
 package cz.talkative.app.ui
 
-import androidx.compose.material3.Button
-import androidx.compose.material3.Text
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.v2.createComposeRule
 import androidx.compose.ui.test.onNodeWithText
+import androidx.compose.ui.test.onRoot
+import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performTouchInput
 import androidx.navigation.compose.ComposeNavigator
 import androidx.navigation.testing.TestNavHostController
 import androidx.compose.ui.platform.LocalContext
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import cz.talkative.app.ui.admin.AdminScreen
+import cz.talkative.app.ui.admin.AdminUiState
 import cz.talkative.app.ui.client.ClientScreen
 import cz.talkative.app.ui.client.ClientUiState
+import cz.talkative.app.ui.client.HIDDEN_ADMIN_ENTRY_TAG
 import cz.talkative.app.ui.navigation.Routes
 import cz.talkative.app.ui.navigation.TalkativeNavHost
 import cz.talkative.app.ui.theme.TalkativeTheme
@@ -38,10 +41,9 @@ class NavigationTest {
                 TalkativeNavHost(
                     navController = navController,
                     client = { openAdmin ->
-                        ClientScreen(ClientUiState(profileId = "default"))
-                        Button(onClick = openAdmin) { Text("test-open-admin") }
+                        ClientScreen(ClientUiState(profileId = "default"), onOpenAdmin = openAdmin)
                     },
-                    admin = { back -> AdminScreen(onBackToClient = back) },
+                    admin = { back -> AdminScreen(state = AdminUiState(isLoading = false), onEvent = {}, onBackToClient = back) },
                 )
             }
         }
@@ -59,7 +61,11 @@ class NavigationTest {
     fun navigatesToAdminAndBackToClient() {
         setUpNavHost()
 
-        composeRule.onNodeWithText("test-open-admin").performClick()
+        composeRule.mainClock.autoAdvance = false
+        composeRule.onNodeWithTag(HIDDEN_ADMIN_ENTRY_TAG).performTouchInput { down(center) }
+        composeRule.mainClock.advanceTimeBy(10_500)
+        composeRule.mainClock.autoAdvance = true
+        composeRule.onRoot().performTouchInput { up() } // uvolní prst; ovládací prvek už zmizel
         composeRule.onNodeWithText("Administrace").assertIsDisplayed()
         assertEquals(Routes.ADMIN, navController.currentBackStackEntry?.destination?.route)
 

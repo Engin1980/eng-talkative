@@ -33,6 +33,11 @@ android {
     buildFeatures {
         compose = true
     }
+
+    sourceSets {
+        // Exportovaná schémata Room pro testy migrací (MigrationTestHelper).
+        getByName("androidTest").assets.directories.add("$projectDir/schemas")
+    }
 }
 
 ksp {
@@ -52,6 +57,7 @@ dependencies {
     implementation(libs.androidx.compose.ui)
     implementation(libs.androidx.compose.ui.tooling.preview)
     implementation(libs.androidx.compose.material3)
+    implementation(libs.androidx.compose.material.icons.core)
     debugImplementation(libs.androidx.compose.ui.tooling)
 
     implementation(libs.hilt.android)
@@ -62,6 +68,8 @@ dependencies {
     ksp(libs.androidx.room.compiler)
 
     implementation(libs.kotlinx.coroutines.android)
+    // Novější runtime než ten z lifecycle (1.7.3); Room migrační testy ho potřebují (AbstractMethodError).
+    implementation(libs.kotlinx.serialization.core)
 
     testImplementation(libs.junit)
     testImplementation(libs.kotlinx.coroutines.test)

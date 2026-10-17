@@ -7,13 +7,13 @@ Plán postupuje po funkcionalitách (vertikální řezy přes UI, doménu i data
 - Každý krok je rozdělen na **podkroky** (např. 2.1, 2.2), které jsou dostatečně malé na jednu pracovní session. Lze zadat např. „proveď podkrok 2.3 z `plan.md`“.
 - U každého podkroku jsou dva seznamy: **Úkoly** (co udělat) a **Kritéria** (jak ověřit, že je hotovo). Podkrok je hotový, až jsou zaškrtnuté obě části.
 - Po dokončení položky se v tomto souboru změní `- [ ]` na `- [x]`. Souhrnný přehled níže se zaškrtne, až jsou hotové všechny podkroky daného kroku.
-- Po každém dokončeném podkroku: zelené testy, zaškrtnutí v plánu a samostatný commit (pokud si to vlastník přeje). Rozpracovaný podkrok se nenechává v nefunkčním stavu; pokud dojde limit, nechá se v plánu poznámka, co zbývá.
+- Po každém dokončeném podkroku: zelené testy, zaškrtnutí v plánu a **vždy samostatný commit a push** (kód, testy i zaškrtnutí v `plan.md` patří do stejného commitu; zpráva commitu uvádí číslo podkroku, např. „Krok 1.2: Skrytý vstup do administrace“). Při zadání celého kroku se commit dělá po každém jeho podkroku. Rozpracovaný podkrok se nenechává v nefunkčním stavu a necommituje se; pokud dojde limit, nechá se v plánu poznámka, co zbývá.
 - Pokud se při práci objeví nová otázka, postupuje se podle workflow s `guestions.md` popsaného v `CLAUDE.md`.
 
 ## Přehled postupu
 
 - [x] Krok 0: Kostra projektu
-- [ ] Krok 1: Vstup do administrace a základ slovníku
+- [x] Krok 1: Vstup do administrace a základ slovníku
 - [ ] Krok 2: Klient: procházení a skládání věty
 - [ ] Krok 3: Přehrání věty hlasem (TTS)
 - [ ] Krok 4: Obrázky slovíček
@@ -28,6 +28,7 @@ Plán postupuje po funkcionalitách (vertikální řezy přes UI, doménu i data
 ## Obecná pravidla pro všechny kroky
 
 - Každý krok končí zelenými testy (`./gradlew test`, u UI kroků i instrumentované/Compose testy) a ručním ověřením na emulátoru tabletu.
+- Každý dokončený podkrok končí commitem (viz „Jak s plánem pracovat“); do commitu nepatří build výstupy ani lokální soubory (hlídá `.gitignore`).
 - Datový model od začátku obsahuje: ID, `profileId` (`default`), `updatedAt`, příznak smazání (tombstone), aby se synchronizace nemusela dělat zpětně přepisem.
 - Texty jsou v Android resources (čeština), rozměry a barvy z tématu.
 - Pokud nová knihovna vyžaduje minSdk vyšší než 26, krok se zastaví a zeptá se.
@@ -84,50 +85,50 @@ Plán postupuje po funkcionalitách (vertikální řezy přes UI, doménu i data
 ### 1.1 Datový model a repozitář
 
 **Úkoly:**
-- [ ] Doménový model a Room entity pro složku a slovíčko (ID, `profileId`, titulek, rodič, pořadí, `updatedAt`, tombstone); kořen má rodiče `null`.
-- [ ] DAO a repozitář: čtení obsahu složky (Flow), vytvoření, úprava, smazání.
-- [ ] Rekurzivní smazání podstromu a výpočet počtu dotčených položek.
-- [ ] Nové položky se řadí na konec složky (výpočet pořadí).
+- [x] Doménový model a Room entity pro složku a slovíčko (ID, `profileId`, titulek, rodič, pořadí, `updatedAt`, tombstone); kořen má rodiče `null`.
+- [x] DAO a repozitář: čtení obsahu složky (Flow), vytvoření, úprava, smazání.
+- [x] Rekurzivní smazání podstromu a výpočet počtu dotčených položek.
+- [x] Nové položky se řadí na konec složky (výpočet pořadí).
 
 **Kritéria splnění:**
-- [ ] Unit/Room testy: CRUD, strom o 3+ úrovních, rekurzivní mazání, počet dotčených položek.
-- [ ] Smazané položky mají tombstone a nezobrazují se v běžných dotazech.
+- [x] Unit/Room testy: CRUD, strom o 3+ úrovních, rekurzivní mazání, počet dotčených položek.
+- [x] Smazané položky mají tombstone a nezobrazují se v běžných dotazech.
 
 ### 1.2 Skrytý vstup do administrace
 
 **Úkoly:**
-- [ ] Skrytý ovládací prvek v klientském režimu: podržení po dobu intervalu (výchozí 10 s, hodnota zatím konstanta/výchozí z konfigurace) přepne do administrace.
-- [ ] V administraci tlačítko pro návrat do klienta; žádný PIN.
-- [ ] Aplikace po každém startu otevře klientský režim.
+- [x] Skrytý ovládací prvek v klientském režimu: podržení po dobu intervalu (výchozí 10 s, hodnota zatím konstanta/výchozí z konfigurace) přepne do administrace.
+- [x] V administraci tlačítko pro návrat do klienta; žádný PIN.
+- [x] Aplikace po každém startu otevře klientský režim.
 
 **Kritéria splnění:**
-- [ ] Kratší podržení nedělá nic; podržení po celý interval otevře administraci.
-- [ ] Po restartu aplikace je vždy klientský režim.
-- [ ] UI test podržení (krátké vs. dlouhé).
+- [x] Kratší podržení nedělá nic; podržení po celý interval otevře administraci.
+- [x] Po restartu aplikace je vždy klientský režim.
+- [x] UI test podržení (krátké vs. dlouhé).
 
 ### 1.3 Administrace: výpis a navigace ve stromu
 
 **Úkoly:**
-- [ ] Obrazovka administrace s výpisem obsahu aktuální složky (složky a slovíčka).
-- [ ] Vstup do podsložky a návrat o úroveň výš; zobrazení aktuální cesty.
-- [ ] Prázdný stav (složka bez obsahu) s nápovědou.
+- [x] Obrazovka administrace s výpisem obsahu aktuální složky (složky a slovíčka).
+- [x] Vstup do podsložky a návrat o úroveň výš; zobrazení aktuální cesty.
+- [x] Prázdný stav (složka bez obsahu) s nápovědou.
 
 **Kritéria splnění:**
-- [ ] Lze se pohybovat stromem tam a zpět a cesta odpovídá poloze.
-- [ ] Dotykové plochy mají minimálně 64 dp.
+- [x] Lze se pohybovat stromem tam a zpět a cesta odpovídá poloze.
+- [x] Dotykové plochy mají minimálně 64 dp.
 
 ### 1.4 Administrace: vytvoření, úprava, smazání
 
 **Úkoly:**
-- [ ] Dialog/obrazovka pro vytvoření a úpravu složky a slovíčka (titulek, validace prázdného titulku).
-- [ ] Smazání slovíčka a složky.
-- [ ] Potvrzení smazání neprázdné složky s počtem dotčených položek; bez koše.
+- [x] Dialog/obrazovka pro vytvoření a úpravu složky a slovíčka (titulek, validace prázdného titulku).
+- [x] Smazání slovíčka a složky.
+- [x] Potvrzení smazání neprázdné složky s počtem dotčených položek; bez koše.
 
 **Kritéria splnění:**
-- [ ] Lze vytvořit alespoň 3 úrovně zanořených složek, slovíčka v nich, upravit titulky a vše smazat.
-- [ ] Smazání složky s obsahem zobrazí správný počet dotčených položek; po potvrzení zmizí celý podstrom, po zrušení se nic nestane.
-- [ ] Data přežijí restart aplikace.
-- [ ] Titulky nemusí být unikátní (lze vytvořit dvě stejně pojmenovaná slovíčka).
+- [x] Lze vytvořit alespoň 3 úrovně zanořených složek, slovíčka v nich, upravit titulky a vše smazat.
+- [x] Smazání složky s obsahem zobrazí správný počet dotčených položek; po potvrzení zmizí celý podstrom, po zrušení se nic nestane.
+- [x] Data přežijí restart aplikace.
+- [x] Titulky nemusí být unikátní (lze vytvořit dvě stejně pojmenovaná slovíčka).
 
 ---
 

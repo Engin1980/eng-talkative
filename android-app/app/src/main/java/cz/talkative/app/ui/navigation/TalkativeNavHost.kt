@@ -4,7 +4,7 @@ import androidx.compose.runtime.Composable
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
-import cz.talkative.app.ui.admin.AdminScreen
+import cz.talkative.app.ui.admin.AdminRoute
 import cz.talkative.app.ui.client.ClientRoute
 
 object Routes {
@@ -19,8 +19,8 @@ object Routes {
 @Composable
 fun TalkativeNavHost(
     navController: NavHostController,
-    client: @Composable (openAdmin: () -> Unit) -> Unit = { ClientRoute() },
-    admin: @Composable (backToClient: () -> Unit) -> Unit = { AdminScreen(onBackToClient = it) },
+    client: @Composable (openAdmin: () -> Unit) -> Unit = { openAdmin -> ClientRoute(onOpenAdmin = openAdmin) },
+    admin: @Composable (backToClient: () -> Unit) -> Unit = { backToClient -> AdminRoute(onBackToClient = backToClient) },
 ) {
     NavHost(navController = navController, startDestination = Routes.CLIENT) {
         composable(Routes.CLIENT) {

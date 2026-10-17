@@ -7,4 +7,31 @@
 
     <string name="admin_title">Administrace</string>
     <string name="admin_back_to_client">Zpět do klienta</string>
+    <string name="admin_breadcrumb_root">Domů</string>
+    <string name="admin_up">Nahoru</string>
+    <string name="admin_add_folder">Nová složka</string>
+    <string name="admin_add_word">Nové slovíčko</string>
+    <string name="admin_empty_title">Tato složka je prázdná</string>
+    <string name="admin_empty_hint">Přidejte složku nebo slovíčko tlačítky nahoře.</string>
+    <string name="admin_kind_folder">Složka</string>
+    <string name="admin_kind_word">Slovíčko</string>
+    <string name="admin_edit_item">Upravit %1$s</string>
+    <string name="admin_delete_item">Smazat %1$s</string>
+
+    <string name="dialog_folder_new">Nová složka</string>
+    <string name="dialog_folder_edit">Upravit složku</string>
+    <string name="dialog_word_new">Nové slovíčko</string>
+    <string name="dialog_word_edit">Upravit slovíčko</string>
+    <string name="dialog_title_label">Titulek</string>
+    <string name="dialog_title_empty_error">Titulek nesmí být prázdný.</string>
+    <string name="dialog_save">Uložit</string>
+    <string name="dialog_cancel">Zrušit</string>
+
+    <string name="delete_folder_title">Smazat složku?</string>
+    <string name="delete_word_title">Smazat slovíčko?</string>
+    <string name="delete_confirm">Smazat</string>
+    <string name="delete_word_message">Slovíčko „%1$s“ bude smazáno. Nelze to vrátit zpět.</string>
+    <string name="delete_folder_message_empty">Složka „%1$s“ bude smazána. Nelze to vrátit zpět.</string>
+    <!-- Bez plurálu: gramatika by závisela na jazyce zařízení, ne na jazyce aplikace. -->
+    <string name="delete_folder_message_with_items">Složka „%1$s“ není prázdná. Počet položek uvnitř včetně podsložek: %2$d. Smaže se vše a nelze to vrátit zpět.</string>
 </resources>
