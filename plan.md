@@ -156,7 +156,7 @@ Plán postupuje po funkcionalitách (vertikální řezy přes UI, doménu i data
 
 **Kritéria splnění:**
 - [x] 10 položek v mřížce 3×3 jsou 2 stránky; prázdná složka i přesný násobek stránky fungují.
-- [x] Otočení tabletu nezmění aktuální složku a mřížka se přepočítá. _(ověřeno testem přepočtu mřížky a tím, že složka i stránka žijí ve view modelu; skutečné otočení zařízení neověřeno)_
+- [x] Otočení tabletu nezmění aktuální složku a mřížka se přepočítá. _(ověřeno na emulátoru API 35 skutečným otočením: složka i věta zůstaly, přepočet velikosti mřížky pokrývá Compose test)_
 - [x] Unit testy stránkování.
 
 ### 2.3 Navigace ve stromu
@@ -178,7 +178,7 @@ Plán postupuje po funkcionalitách (vertikální řezy přes UI, doménu i data
 - [x] Klepnutí na slovíčko ho přidá do věty (včetně opakování stejného slova).
 - [x] Odebrání slova ze věty podržením (výchozí 1 s); krátké klepnutí nic neodebere.
 - [x] Tlačítko pro smazání celé věty.
-- [x] Věta se po restartu neobnovuje; přežije ale otočení obrazovky. _(věta žije ve view modelu, aktivita se při otočení nerekonstruuje; skutečné otočení zařízení neověřeno)_
+- [x] Věta se po restartu neobnovuje; přežije ale otočení obrazovky. _(ověřeno na emulátoru API 35 skutečným otočením: věta zůstala)_
 - [x] Zachování věty při přechodu do administrace a zpět není nutné. Po návratu do klientského pohledu se to může chovat jako nově spuštěná aplikace.
 
 **Kritéria splnění:**
