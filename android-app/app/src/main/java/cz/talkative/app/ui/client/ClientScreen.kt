@@ -14,7 +14,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import cz.talkative.app.R
-import cz.talkative.app.domain.model.ClientDefaults
+import cz.talkative.app.domain.model.AppConfig
 import cz.talkative.app.ui.theme.TalkativeTheme
 
 /** Napojení obrazovky na view model. */
@@ -30,7 +30,6 @@ fun ClientScreen(
     state: ClientUiState,
     onOpenAdmin: () -> Unit,
     modifier: Modifier = Modifier,
-    adminHoldMillis: Long = ClientDefaults.ADMIN_HOLD_MILLIS,
 ) {
     Box(
         modifier = modifier
@@ -47,7 +46,7 @@ fun ClientScreen(
         )
         HiddenAdminEntry(
             onEntered = onOpenAdmin,
-            holdMillis = adminHoldMillis,
+            holdMillis = state.adminHoldMillis,
             modifier = Modifier.align(Alignment.TopEnd),
         )
     }

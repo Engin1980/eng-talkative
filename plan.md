@@ -139,13 +139,13 @@ Plán postupuje po funkcionalitách (vertikální řezy přes UI, doménu i data
 ### 2.1 Konfigurační úložiště
 
 **Úkoly:**
-- [ ] Lokální konfigurace (DataStore) s výchozími hodnotami z `assignment.md`; zatím bez obrazovky nastavení.
-- [ ] Repozitář konfigurace vystavený jako Flow.
-- [ ] Napojit interval podržení pro vstup do administrace (z kroku 1.2) na konfiguraci.
+- [x] Lokální konfigurace (DataStore) s výchozími hodnotami z `assignment.md`; zatím bez obrazovky nastavení.
+- [x] Repozitář konfigurace vystavený jako Flow.
+- [x] Napojit interval podržení pro vstup do administrace (z kroku 1.2) na konfiguraci.
 
 **Kritéria splnění:**
-- [ ] Výchozí hodnoty odpovídají `assignment.md`.
-- [ ] Unit test: čtení výchozích hodnot a zápisu změny.
+- [x] Výchozí hodnoty odpovídají `assignment.md`.
+- [x] Unit test: čtení výchozích hodnot a zápisu změny.
 
 ### 2.2 Mřížka a stránkování
 

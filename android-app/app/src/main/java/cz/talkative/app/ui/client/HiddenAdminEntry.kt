@@ -11,7 +11,7 @@ import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.testTag
-import cz.talkative.app.domain.model.ClientDefaults
+import cz.talkative.app.domain.model.AppConfig
 import cz.talkative.app.ui.theme.TalkativeTheme
 import kotlinx.coroutines.withTimeoutOrNull
 
@@ -25,7 +25,7 @@ const val HIDDEN_ADMIN_ENTRY_TAG = "hidden-admin-entry"
 fun HiddenAdminEntry(
     onEntered: () -> Unit,
     modifier: Modifier = Modifier,
-    holdMillis: Long = ClientDefaults.ADMIN_HOLD_MILLIS,
+    holdMillis: Long = AppConfig().adminHoldMillis,
 ) {
     val currentOnEntered by rememberUpdatedState(onEntered)
     Box(
