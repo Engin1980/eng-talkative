@@ -5,6 +5,7 @@ import cz.talkative.app.domain.model.DictionaryItem
 import cz.talkative.app.domain.model.Folder
 import cz.talkative.app.domain.model.SentenceEntry
 import cz.talkative.app.domain.model.Word
+import cz.talkative.app.domain.speech.SpeechError
 
 /** Stav klientské obrazovky (MVI: jediný neměnný stav). */
 data class ClientUiState(
@@ -17,6 +18,9 @@ data class ClientUiState(
     /** Rozpracovaná věta; neukládá se přes restart aplikace. */
     val sentence: List<SentenceEntry> = emptyList(),
     val config: AppConfig = AppConfig(),
+    val isSpeaking: Boolean = false,
+    /** Chyba řeči čekající na zobrazení uživateli. */
+    val speechError: SpeechError? = null,
     val isLoading: Boolean = true,
 )
 
@@ -42,4 +46,9 @@ sealed interface ClientEvent {
     data class RemoveFromSentence(val entryId: Int) : ClientEvent
 
     data object ClearSentence : ClientEvent
+
+    /** Tlačítko Přehrát / Zastavit. */
+    data object TogglePlayback : ClientEvent
+
+    data object DismissSpeechError : ClientEvent
 }

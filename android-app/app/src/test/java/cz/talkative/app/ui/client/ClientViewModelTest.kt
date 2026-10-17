@@ -3,6 +3,7 @@ package cz.talkative.app.ui.client
 import cz.talkative.app.domain.model.AppConfig
 import cz.talkative.app.domain.model.Folder
 import cz.talkative.app.domain.repository.ConfigRepository
+import cz.talkative.app.domain.speech.SpeechError
 import cz.talkative.app.domain.usecase.GetFolderPathUseCase
 import cz.talkative.app.domain.usecase.ObserveConfigUseCase
 import cz.talkative.app.domain.usecase.ObserveFolderItemsUseCase
@@ -298,5 +299,86 @@ class ClientViewModelTest {
         onCleared.invoke(viewModel)
 
         assertEquals(true, speech.isShutdown)
+    }
+
+    private suspend fun buildSentence(vararg titles: String) {
+        titles.forEach { viewModel.onEvent(ClientEvent.WordSelected(repository.createWord(null, it))) }
+    }
+
+    @Test
+    fun play_readsWholeSentenceAsOneUtterance() = runVmTest {
+        subscribe()
+        buildSentence("chci", "jablko", "prosím")
+
+        viewModel.onEvent(ClientEvent.TogglePlayback)
+
+        assertEquals(listOf("chci jablko prosím"), speech.spoken)
+        assertTrue(viewModel.uiState.value.isSpeaking)
+    }
+
+    @Test
+    fun playWithEmptySentence_doesNothing() = runVmTest {
+        subscribe()
+
+        viewModel.onEvent(ClientEvent.TogglePlayback)
+
+        assertTrue(speech.spoken.isEmpty())
+        assertEquals(false, viewModel.uiState.value.isSpeaking)
+    }
+
+    @Test
+    fun secondToggleWhileSpeaking_stopsSpeech_andPlayWorksAgain() = runVmTest {
+        subscribe()
+        buildSentence("ahoj")
+        viewModel.onEvent(ClientEvent.TogglePlayback)
+
+        viewModel.onEvent(ClientEvent.TogglePlayback)
+
+        assertEquals(1, speech.stopCount)
+        assertEquals(false, viewModel.uiState.value.isSpeaking)
+        assertEquals(1, speech.spoken.size) // zastavení nespustilo novou řeč
+
+        viewModel.onEvent(ClientEvent.TogglePlayback)
+        assertEquals(listOf("ahoj", "ahoj"), speech.spoken)
+        assertTrue(viewModel.uiState.value.isSpeaking)
+    }
+
+    @Test
+    fun speechThatFinishesOnItsOwn_returnsButtonToPlay_andSentenceStays() = runVmTest {
+        subscribe()
+        buildSentence("ahoj")
+        viewModel.onEvent(ClientEvent.TogglePlayback)
+
+        speech.finishSpeaking()
+
+        assertEquals(false, viewModel.uiState.value.isSpeaking)
+        assertEquals(listOf("ahoj"), sentence())
+    }
+
+    @Test
+    fun changingSentenceWhileSpeaking_doesNotRestartSpeech_andNextToggleStops() = runVmTest {
+        subscribe()
+        buildSentence("ahoj")
+        viewModel.onEvent(ClientEvent.TogglePlayback)
+
+        buildSentence("světe")
+        viewModel.onEvent(ClientEvent.RemoveFromSentence(viewModel.uiState.value.sentence.first().entryId))
+        assertEquals(listOf("ahoj"), speech.spoken) // rozmluvená řeč se nemění
+        assertTrue(viewModel.uiState.value.isSpeaking)
+
+        viewModel.onEvent(ClientEvent.TogglePlayback)
+        assertEquals(1, speech.stopCount)
+        assertEquals(false, viewModel.uiState.value.isSpeaking)
+    }
+
+    @Test
+    fun speechError_isShownUntilDismissed() = runVmTest {
+        subscribe()
+
+        speech.fail(SpeechError.LANGUAGE_MISSING)
+        assertEquals(SpeechError.LANGUAGE_MISSING, viewModel.uiState.value.speechError)
+
+        viewModel.onEvent(ClientEvent.DismissSpeechError)
+        assertEquals(null, viewModel.uiState.value.speechError)
     }
 }

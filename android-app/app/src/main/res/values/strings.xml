@@ -10,6 +10,12 @@
     <string name="client_folder_marker">Složka</string>
     <string name="client_sentence_hint">Klepnutím na slovo ho přidáte do věty.</string>
     <string name="client_clear_sentence">Smazat větu</string>
+    <string name="client_play">Přehrát</string>
+    <string name="client_stop">Zastavit</string>
+    <string name="client_speech_error_title">Čtení nahlas se nepodařilo</string>
+    <string name="client_speech_error_engine">Na tomto zařízení nefunguje čtení textu nahlas. Chybí nebo nejde spustit hlasový modul (převod textu na řeč). Zkontrolujte v nastavení Androidu v části Jazyk a zadávání, že je hlasový modul nainstalovaný a zapnutý.</string>
+    <string name="client_speech_error_language">Na tomto zařízení chybí český hlas. V nastavení Androidu (Jazyk a zadávání, Převod textu na řeč) stáhněte hlasová data pro češtinu.</string>
+    <string name="client_speech_error_failed">Přehrání se nepodařilo. Zkuste to prosím znovu.</string>
     <string name="client_back">Zpět</string>
     <string name="client_home">Domů</string>
     <string name="client_breadcrumb_root">Úvod</string>
@@ -35,6 +41,7 @@
     <string name="dialog_title_empty_error">Titulek nesmí být prázdný.</string>
     <string name="dialog_save">Uložit</string>
     <string name="dialog_cancel">Zrušit</string>
+    <string name="dialog_ok">Rozumím</string>
 
     <string name="delete_folder_title">Smazat složku?</string>
     <string name="delete_word_title">Smazat slovíčko?</string>

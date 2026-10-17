@@ -208,15 +208,15 @@ Plán postupuje po funkcionalitách (vertikální řezy přes UI, doménu i data
 ### 3.2 Tlačítko Přehrát/Stop a chyby
 
 **Úkoly:**
-- [ ] Tlačítko Přehrát, které se při přehrávání mění na Stop.
-- [ ] Tlačítko je neaktivní (nebo nic nedělá) při prázdné větě.
-- [ ] Ošetření chyb: chybějící český hlas nebo nedostupný TTS engine zobrazí srozumitelnou hlášku (s nápovědou, co dělat).
+- [x] Tlačítko Přehrát, které se při přehrávání mění na Stop.
+- [x] Tlačítko je neaktivní (nebo nic nedělá) při prázdné větě.
+- [x] Ošetření chyb: chybějící český hlas nebo nedostupný TTS engine zobrazí srozumitelnou hlášku (s nápovědou, co dělat).
 
 **Kritéria splnění:**
-- [ ] Poskládaná věta se přečte jedním plynulým TTS výstupem, ne po slovech.
-- [ ] Stop okamžitě přeruší řeč a tlačítko se vrátí na Přehrát; opětovné přehrání funguje.
-- [ ] Změna věty během přehrávání se chová předvídatelně (přehrávací tlačítko opětovným stiskem přehrání zastaví).
-- [ ] Ruční ověření hlasu na emulátoru/zařízení.
+- [x] Poskládaná věta se přečte jedním plynulým TTS výstupem, ne po slovech.
+- [x] Stop okamžitě přeruší řeč a tlačítko se vrátí na Přehrát; opětovné přehrání funguje.
+- [x] Změna věty během přehrávání se chová předvídatelně (přehrávací tlačítko opětovným stiskem přehrání zastaví).
+- [ ] Ruční ověření hlasu na emulátoru/zařízení. _(neověřeno sluchem: emulátor běží bez zvuku. Test s reálným TTS enginem na API 26 doběhl bez chyby, tj. engine i čeština jsou k dispozici, ale že věta zní správně, musí zkontrolovat člověk)_
 
 ---
 

@@ -82,6 +82,12 @@ fun ClientScreen(
                 onRemove = { onEvent(ClientEvent.RemoveFromSentence(it)) },
                 modifier = Modifier.weight(1f),
             )
+            PlayStopButton(
+                isSpeaking = state.isSpeaking,
+                enabled = state.sentence.isNotEmpty() || state.isSpeaking,
+                onClick = { onEvent(ClientEvent.TogglePlayback) },
+                modifier = Modifier.padding(start = dimens.spaceMedium),
+            )
             ClearSentenceButton(
                 enabled = state.sentence.isNotEmpty(),
                 onClick = { onEvent(ClientEvent.ClearSentence) },
@@ -91,6 +97,7 @@ fun ClientScreen(
         }
 
         NavigationRow(path = state.path, onEvent = onEvent)
+        state.speechError?.let { SpeechErrorDialog(it) { onEvent(ClientEvent.DismissSpeechError) } }
 
         val grid = if (isLandscape) state.config.gridLandscape else state.config.gridPortrait
         when {

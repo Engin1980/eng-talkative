@@ -6,9 +6,11 @@ import cz.talkative.app.domain.model.SentenceEntry
 import cz.talkative.app.domain.usecase.GetFolderPathUseCase
 import cz.talkative.app.domain.usecase.ObserveConfigUseCase
 import cz.talkative.app.domain.speech.SpeechProvider
+import cz.talkative.app.domain.speech.UtteranceBuilder
 import cz.talkative.app.domain.usecase.ObserveFolderItemsUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -35,7 +37,7 @@ class ClientViewModel @Inject constructor(
     private val sentence = MutableStateFlow<List<SentenceEntry>>(emptyList())
     private var nextEntryId = 0
 
-    val uiState: StateFlow<ClientUiState> = combine(
+    private val browsingState: Flow<ClientUiState> = combine(
         currentFolderId.flatMapLatest { folderId ->
             observeItems(folderId).map { items -> getPath(folderId) to items }
         },
@@ -51,6 +53,10 @@ class ClientViewModel @Inject constructor(
             config = config,
             isLoading = false,
         )
+    }
+
+    val uiState: StateFlow<ClientUiState> = combine(browsingState, speech.state) { state, speechState ->
+        state.copy(isSpeaking = speechState.isSpeaking, speechError = speechState.error)
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), ClientUiState())
 
     fun onEvent(event: ClientEvent) {
@@ -66,7 +72,19 @@ class ClientViewModel @Inject constructor(
             is ClientEvent.WordSelected -> sentence.value += SentenceEntry(nextEntryId++, event.word)
             is ClientEvent.RemoveFromSentence -> sentence.value = sentence.value.filterNot { it.entryId == event.entryId }
             ClientEvent.ClearSentence -> sentence.value = emptyList()
+            ClientEvent.TogglePlayback -> togglePlayback()
+            ClientEvent.DismissSpeechError -> speech.clearError()
         }
+    }
+
+    /** Při řeči tlačítko zastaví; jinak přečte celou větu jedním výstupem (prázdná věta se nepřehrává). */
+    private fun togglePlayback() {
+        if (speech.state.value.isSpeaking) {
+            speech.stop()
+            return
+        }
+        val text = UtteranceBuilder.build(sentence.value)
+        if (text.isNotEmpty()) speech.speak(text)
     }
 
     override fun onCleared() {

@@ -4,6 +4,8 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.test.assertHeightIsAtLeast
 import androidx.compose.ui.test.getUnclippedBoundsInRoot
 import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.assertIsEnabled
+import androidx.compose.ui.test.assertIsNotEnabled
 import androidx.compose.ui.test.junit4.v2.createComposeRule
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.onAllNodesWithTag
@@ -19,6 +21,7 @@ import cz.talkative.app.domain.model.DictionaryItem
 import cz.talkative.app.domain.model.Folder
 import cz.talkative.app.domain.model.SentenceEntry
 import cz.talkative.app.domain.model.Word
+import cz.talkative.app.domain.speech.SpeechError
 import cz.talkative.app.ui.client.ClientEvent
 import cz.talkative.app.ui.client.ClientScreen
 import cz.talkative.app.ui.client.ClientUiState
@@ -273,5 +276,49 @@ class ClientScreenTest {
         assertTrue("výška řádku věty: $barHeight", barHeight <= 176.dp)
         composeRule.onNodeWithText("věta40").assertIsDisplayed() // věta se sama posune na konec
         composeRule.onNodeWithText("Smazat větu").assertIsDisplayed() // ovládání zůstává na místě
+    }
+
+    @Test
+    fun playButton_isDisabledForEmptySentence() {
+        show(loaded(words(1)))
+
+        composeRule.onNodeWithText("Přehrát").assertIsNotEnabled()
+    }
+
+    @Test
+    fun playButton_sendsToggle_andHasMinimumTouchTarget() {
+        show(sentenceState(2))
+
+        composeRule.onNodeWithText("Přehrát").assertHeightIsAtLeast(64.dp).performClick()
+
+        assertEquals(listOf<ClientEvent>(ClientEvent.TogglePlayback), events)
+    }
+
+    @Test
+    fun whileSpeaking_buttonIsStop_evenWithEmptySentence() {
+        show(ClientUiState(isSpeaking = true, isLoading = false))
+
+        composeRule.onNodeWithText("Zastavit").assertIsEnabled().performClick()
+
+        assertEquals(0, composeRule.onAllNodesWithText("Přehrát").fetchSemanticsNodes().size)
+        assertEquals(listOf<ClientEvent>(ClientEvent.TogglePlayback), events)
+    }
+
+    @Test
+    fun speechErrors_showHelpfulMessage_andCanBeDismissed() {
+        show(ClientUiState(speechError = SpeechError.LANGUAGE_MISSING, isLoading = false))
+
+        composeRule.onNodeWithText("Čtení nahlas se nepodařilo").assertIsDisplayed()
+        composeRule.onNodeWithText("Na tomto zařízení chybí český hlas.", substring = true).assertIsDisplayed()
+        composeRule.onNodeWithText("Rozumím").assertHeightIsAtLeast(64.dp).performClick()
+
+        assertEquals(listOf<ClientEvent>(ClientEvent.DismissSpeechError), events)
+    }
+
+    @Test
+    fun engineError_explainsWhatToDo() {
+        show(ClientUiState(speechError = SpeechError.ENGINE_UNAVAILABLE, isLoading = false))
+
+        composeRule.onNodeWithText("hlasový modul", substring = true).assertIsDisplayed()
     }
 }
