@@ -22,6 +22,7 @@ import cz.talkative.app.domain.repository.ConfigRepository
 import cz.talkative.app.domain.usecase.GetFolderPathUseCase
 import cz.talkative.app.domain.usecase.ObserveConfigUseCase
 import cz.talkative.app.domain.usecase.ObserveFolderItemsUseCase
+import cz.talkative.app.testing.FakeSpeechProvider
 import cz.talkative.app.ui.client.ClientScreen
 import cz.talkative.app.ui.client.ClientViewModel
 import cz.talkative.app.ui.client.SENTENCE_BAR_TAG
@@ -70,6 +71,7 @@ class ClientFlowTest {
             ObserveFolderItemsUseCase(repository),
             GetFolderPathUseCase(repository),
             ObserveConfigUseCase(configRepository),
+            FakeSpeechProvider(),
         )
         composeRule.setContent {
             TalkativeTheme {

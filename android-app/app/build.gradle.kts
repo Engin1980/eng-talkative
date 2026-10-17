@@ -37,6 +37,9 @@ android {
     sourceSets {
         // Exportovaná schémata Room pro testy migrací (MigrationTestHelper).
         getByName("androidTest").assets.directories.add("$projectDir/schemas")
+        // Falešné implementace sdílené JVM i instrumentovanými testy.
+        getByName("test").kotlin.directories.add("src/sharedTest/java")
+        getByName("androidTest").kotlin.directories.add("src/sharedTest/java")
     }
 }
 

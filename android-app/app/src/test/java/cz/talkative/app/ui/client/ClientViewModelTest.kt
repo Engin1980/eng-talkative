@@ -6,6 +6,7 @@ import cz.talkative.app.domain.repository.ConfigRepository
 import cz.talkative.app.domain.usecase.GetFolderPathUseCase
 import cz.talkative.app.domain.usecase.ObserveConfigUseCase
 import cz.talkative.app.domain.usecase.ObserveFolderItemsUseCase
+import cz.talkative.app.testing.FakeSpeechProvider
 import cz.talkative.app.ui.admin.FakeDictionaryRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -34,6 +35,7 @@ class ClientViewModelTest {
             configFlow.value = transform(configFlow.value)
         }
     }
+    private val speech = FakeSpeechProvider()
     private lateinit var viewModel: ClientViewModel
 
     @Before
@@ -43,6 +45,7 @@ class ClientViewModelTest {
             ObserveFolderItemsUseCase(repository),
             GetFolderPathUseCase(repository),
             ObserveConfigUseCase(configRepository),
+            speech,
         )
     }
 
@@ -284,5 +287,16 @@ class ClientViewModelTest {
 
         assertEquals(listOf("stare"), sentence())
         assertEquals("nove", wordOf(viewModel.uiState.value.items.single()).title)
+    }
+
+    @Test
+    fun onCleared_releasesSpeechProvider() {
+        assertEquals(false, speech.isShutdown)
+
+        val onCleared = ClientViewModel::class.java.getDeclaredMethod("onCleared")
+        onCleared.isAccessible = true
+        onCleared.invoke(viewModel)
+
+        assertEquals(true, speech.isShutdown)
     }
 }

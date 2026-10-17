@@ -196,14 +196,14 @@ Plán postupuje po funkcionalitách (vertikální řezy přes UI, doménu i data
 ### 3.1 Rozhraní a TTS implementace
 
 **Úkoly:**
-- [ ] Rozhraní `SpeechProvider` (přehraj, zastav, stav přehrávání jako Flow).
-- [ ] Implementace nad Android `TextToSpeech` (čeština, hlas dle zařízení), správa životního cyklu (inicializace, uvolnění).
-- [ ] Falešná implementace `SpeechProvider` pro testy.
-- [ ] Sestavení výpovědi: titulky slovíček se spojí do jednoho textu (čistá logika).
+- [x] Rozhraní `SpeechProvider` (přehraj, zastav, stav přehrávání jako Flow).
+- [x] Implementace nad Android `TextToSpeech` (čeština, hlas dle zařízení), správa životního cyklu (inicializace, uvolnění).
+- [x] Falešná implementace `SpeechProvider` pro testy.
+- [x] Sestavení výpovědi: titulky slovíček se spojí do jednoho textu (čistá logika).
 
 **Kritéria splnění:**
-- [ ] Unit test skládání textu s falešným `SpeechProvider`.
-- [ ] TTS engine se po zavření aplikace korektně uvolní (bez úniku).
+- [x] Unit test skládání textu s falešným `SpeechProvider`.
+- [x] TTS engine se po zavření aplikace korektně uvolní (bez úniku).
 
 ### 3.2 Tlačítko Přehrát/Stop a chyby
 

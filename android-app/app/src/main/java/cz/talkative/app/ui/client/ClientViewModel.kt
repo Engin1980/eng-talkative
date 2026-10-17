@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import cz.talkative.app.domain.model.SentenceEntry
 import cz.talkative.app.domain.usecase.GetFolderPathUseCase
 import cz.talkative.app.domain.usecase.ObserveConfigUseCase
+import cz.talkative.app.domain.speech.SpeechProvider
 import cz.talkative.app.domain.usecase.ObserveFolderItemsUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -24,6 +25,8 @@ class ClientViewModel @Inject constructor(
     observeItems: ObserveFolderItemsUseCase,
     private val getPath: GetFolderPathUseCase,
     observeConfig: ObserveConfigUseCase,
+    /** Instance patří tomuto view modelu a uvolní se v [onCleared]. */
+    private val speech: SpeechProvider,
 ) : ViewModel() {
 
     /** Aktuální složka; `null` je kořen. Nezávisí na orientaci displeje, ta mění jen velikost mřížky. */
@@ -64,6 +67,10 @@ class ClientViewModel @Inject constructor(
             is ClientEvent.RemoveFromSentence -> sentence.value = sentence.value.filterNot { it.entryId == event.entryId }
             ClientEvent.ClearSentence -> sentence.value = emptyList()
         }
+    }
+
+    override fun onCleared() {
+        speech.shutdown()
     }
 
     private fun goTo(folderId: String?) {
