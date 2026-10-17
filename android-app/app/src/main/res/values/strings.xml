@@ -43,6 +43,18 @@
     <string name="dialog_cancel">Zrušit</string>
     <string name="dialog_ok">Rozumím</string>
 
+    <string name="image_label">Obrázek</string>
+    <string name="image_none">Slovíčko zatím nemá obrázek.</string>
+    <string name="image_preview">Náhled obrázku</string>
+    <string name="image_pick_gallery">Vybrat z galerie</string>
+    <string name="image_take_photo">Vyfotit</string>
+    <string name="image_remove">Odebrat obrázek</string>
+    <string name="image_processing">Zpracovávám obrázek…</string>
+    <string name="image_problem_unreadable">Obrázek se nepodařilo načíst. Zkuste vybrat jiný soubor.</string>
+    <string name="image_problem_storage_full">Na zařízení není dost místa pro uložení obrázku. Uvolněte místo a zkuste to znovu.</string>
+    <string name="image_problem_no_gallery">Na zařízení chybí aplikace pro výběr obrázků.</string>
+    <string name="image_problem_no_camera">Fotoaparát není dostupný. Zkontrolujte, že je na zařízení aplikace fotoaparátu a že smí fotit.</string>
+
     <string name="delete_folder_title">Smazat složku?</string>
     <string name="delete_word_title">Smazat slovíčko?</string>
     <string name="delete_confirm">Smazat</string>

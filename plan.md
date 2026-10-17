@@ -239,13 +239,13 @@ Plán postupuje po funkcionalitách (vertikální řezy přes UI, doménu i data
 ### 4.2 Výběr obrázku v administraci
 
 **Úkoly:**
-- [ ] Výběr z galerie (systémový výběr) a pořízení fotografie.
-- [ ] Náhled, výměna a odebrání obrázku v editaci slovíčka.
-- [ ] Správa oprávnění a chyb (fotoaparát zamítnut, soubor nelze přečíst, nedostatek místa).
+- [x] Výběr z galerie (systémový výběr) a pořízení fotografie.
+- [x] Náhled, výměna a odebrání obrázku v editaci slovíčka.
+- [x] Správa oprávnění a chyb (fotoaparát zamítnut, soubor nelze přečíst, nedostatek místa). _(fotí se přes systémovou aplikaci fotoaparátu, takže aplikace oprávnění CAMERA nevyžaduje; chybějící galerie/fotoaparát, nečitelný soubor i plné úložiště ukazují hlášku)_
 
 **Kritéria splnění:**
-- [ ] Obrázek lze přidat, vyměnit a odebrat; přežije restart aplikace.
-- [ ] Zamítnuté oprávnění k fotoaparátu nezpůsobí pád a zobrazí hlášku.
+- [x] Obrázek lze přidat, vyměnit a odebrat; přežije restart aplikace.
+- [x] Zamítnuté oprávnění k fotoaparátu nezpůsobí pád a zobrazí hlášku. _(aplikace oprávnění nepotřebuje; ověřeno na emulátoru: zamítnutí oprávnění v systémovém fotoaparátu aplikaci nerozbije, chybu startu fotoaparátu ošetřuje hláška „Fotoaparát není dostupný“ – ta je ověřená jen testem události, ne vynuceným selháním)_
 
 ### 4.3 Zobrazení obrázků v klientovi
 

@@ -2,12 +2,17 @@ package cz.talkative.app.ui
 
 import androidx.compose.ui.test.assertHeightIsAtLeast
 import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.assertIsEnabled
+import androidx.compose.ui.test.assertIsNotEnabled
+import androidx.compose.ui.test.onAllNodesWithTag
+import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.assertWidthIsAtLeast
-import androidx.compose.ui.test.junit4.v2.createComposeRule
+import androidx.compose.ui.test.junit4.v2.createAndroidComposeRule
 import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performScrollTo
 import androidx.compose.ui.unit.dp
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import cz.talkative.app.domain.model.DictionaryItem
@@ -17,10 +22,17 @@ import cz.talkative.app.ui.admin.AdminDialog
 import cz.talkative.app.ui.admin.AdminEvent
 import cz.talkative.app.ui.admin.AdminScreen
 import cz.talkative.app.ui.admin.AdminUiState
+import cz.talkative.app.ui.admin.ImageProblem
 import cz.talkative.app.ui.admin.ItemKind
+import cz.talkative.app.ui.common.LocalImageResolver
+import cz.talkative.app.ui.common.WORD_IMAGE_TAG
+import android.graphics.Bitmap
+import androidx.compose.runtime.CompositionLocalProvider
+import java.io.File
 import cz.talkative.app.ui.theme.TalkativeTheme
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
+import cz.talkative.app.testing.NoSoftKeyboardRule
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -29,8 +41,11 @@ import org.junit.runner.RunWith
 @RunWith(AndroidJUnit4::class)
 class AdminScreenTest {
 
-    @get:Rule
-    val composeRule = createComposeRule()
+    @get:Rule(order = 0)
+    val noSoftKeyboard = NoSoftKeyboardRule()
+
+    @get:Rule(order = 1)
+    val composeRule = createAndroidComposeRule<androidx.activity.ComponentActivity>()
 
     private val events = mutableListOf<AdminEvent>()
     private var backToClient = 0
@@ -159,4 +174,132 @@ class AdminScreenTest {
 
     private fun androidx.compose.ui.test.junit4.ComposeContentTestRule.onAllNodesWithTextCount(text: String) =
         onAllNodesWithText(text).fetchSemanticsNodes().size
+
+    // ---- obrázky (krok 4.2)
+
+    private fun wordDialog(
+        image: String? = null,
+        processing: Boolean = false,
+        problem: ImageProblem? = null,
+        kind: ItemKind = ItemKind.WORD,
+    ) = AdminDialog.Edit(
+        kind = kind,
+        itemId = null,
+        title = "",
+        imageFile = image,
+        isProcessingImage = processing,
+        imageProblem = problem,
+    )
+
+    @Test
+    fun wordDialog_offersGalleryAndCamera_withoutRemoveWhenNoImage() {
+        show(state(dialog = wordDialog()))
+
+        composeRule.onNodeWithText("Vybrat z galerie").performScrollTo().assertHeightIsAtLeast(64.dp).assertIsEnabled()
+        composeRule.onNodeWithText("Vyfotit").performScrollTo().assertHeightIsAtLeast(64.dp).assertIsEnabled()
+        // Dialog se při otevřené klávesnici posouvá, proto se na prvky v dolní části nejdřív doscrolluje.
+        composeRule.onNodeWithText("Slovíčko zatím nemá obrázek.").performScrollTo().assertIsDisplayed()
+        assertEquals(0, composeRule.onAllNodesWithTextCount("Odebrat obrázek"))
+        composeRule.onNodeWithTag(WORD_IMAGE_TAG).assertDoesNotExist()
+    }
+
+    @Test
+    fun wordDialog_withImage_showsPreviewAndRemoveButton() {
+        val file = File(composeRule.activity.cacheDir, "preview-test.png")
+        file.outputStream().use { Bitmap.createBitmap(8, 8, Bitmap.Config.ARGB_8888).compress(Bitmap.CompressFormat.PNG, 100, it) }
+        composeRule.setContent {
+            CompositionLocalProvider(LocalImageResolver provides { name -> file.takeIf { name == "preview.png" } }) {
+                TalkativeTheme {
+                    AdminScreen(
+                        state = state(dialog = wordDialog(image = "preview.png")),
+                        onEvent = { events += it },
+                        onBackToClient = {},
+                    )
+                }
+            }
+        }
+
+        composeRule.onNodeWithTag(WORD_IMAGE_TAG).assertExists()
+        composeRule.onNodeWithText("Odebrat obrázek").performScrollTo().assertHeightIsAtLeast(64.dp).performClick()
+
+        assertEquals(listOf<AdminEvent>(AdminEvent.RemoveImage), events)
+        file.delete()
+    }
+
+    @Test
+    fun missingImageFile_showsNoPreviewInsteadOfCrashing() {
+        show(state(dialog = wordDialog(image = "neexistuje.png")))
+
+        composeRule.onNodeWithTag(WORD_IMAGE_TAG).assertDoesNotExist()
+        composeRule.onNodeWithText("Slovíčko zatím nemá obrázek.").performScrollTo().assertIsDisplayed()
+    }
+
+    @Test
+    fun processingImage_showsProgress_andDisablesButtons() {
+        show(state(dialog = wordDialog(processing = true)))
+
+        composeRule.onNodeWithText("Zpracovávám obrázek…").assertIsDisplayed()
+        composeRule.onNodeWithText("Vybrat z galerie").assertIsNotEnabled()
+        composeRule.onNodeWithText("Vyfotit").assertIsNotEnabled()
+        composeRule.onNodeWithText("Uložit").assertIsNotEnabled()
+    }
+
+    @Test
+    fun imageProblems_showUnderstandableMessages() {
+        val expected = mapOf(
+            ImageProblem.UNREADABLE to "Obrázek se nepodařilo načíst.",
+            ImageProblem.STORAGE_FULL to "Na zařízení není dost místa",
+            ImageProblem.NO_GALLERY to "chybí aplikace pro výběr obrázků",
+            ImageProblem.NO_CAMERA to "Fotoaparát není dostupný.",
+        )
+        val problem = androidx.compose.runtime.mutableStateOf(ImageProblem.UNREADABLE)
+        composeRule.setContent {
+            TalkativeTheme {
+                AdminScreen(
+                    state = state(dialog = wordDialog(problem = problem.value)),
+                    onEvent = {},
+                    onBackToClient = {},
+                )
+            }
+        }
+
+        for ((kind, text) in expected) {
+            problem.value = kind
+            composeRule.waitForIdle()
+            composeRule.onNodeWithText(text, substring = true).assertExists() // nad klávesnicí může být vidět jen část dialogu
+        }
+    }
+
+    @Test
+    fun folderDialog_hasNoImageSection() {
+        show(state(dialog = wordDialog(kind = ItemKind.FOLDER)))
+
+        assertEquals(0, composeRule.onAllNodesWithTextCount("Vybrat z galerie"))
+        assertEquals(0, composeRule.onAllNodesWithTextCount("Vyfotit"))
+    }
+
+    @Test
+    fun wordRowInList_showsThumbnailOnlyWhenFileExists() {
+        val file = File(composeRule.activity.cacheDir, "thumb-test.png")
+        file.outputStream().use { Bitmap.createBitmap(8, 8, Bitmap.Config.ARGB_8888).compress(Bitmap.CompressFormat.PNG, 100, it) }
+        composeRule.setContent {
+            CompositionLocalProvider(LocalImageResolver provides { name -> file.takeIf { name == "ok.png" } }) {
+                TalkativeTheme {
+                    AdminScreen(
+                        state = state(
+                            Word("w1", "default", "s obrázkem", null, 0, 0, imageFile = "ok.png"),
+                            Word("w2", "default", "bez obrázku", null, 1, 0),
+                            Word("w3", "default", "rozbitý odkaz", null, 2, 0, imageFile = "chybi.png"),
+                        ),
+                        onEvent = {},
+                        onBackToClient = {},
+                    )
+                }
+            }
+        }
+
+        assertEquals(1, composeRule.onAllNodesWithTag(WORD_IMAGE_TAG, useUnmergedTree = true).fetchSemanticsNodes().size)
+        composeRule.onNodeWithText("rozbitý odkaz").assertIsDisplayed() // chybějící soubor nezpůsobí pád
+        file.delete()
+    }
 }
