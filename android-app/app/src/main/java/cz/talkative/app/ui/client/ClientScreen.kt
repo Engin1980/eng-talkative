@@ -42,6 +42,7 @@ import cz.talkative.app.domain.model.Folder
 import cz.talkative.app.domain.model.GridSize
 import cz.talkative.app.domain.model.Word
 import cz.talkative.app.domain.paging.Pagination
+import cz.talkative.app.ui.common.WordImage
 import cz.talkative.app.ui.theme.TalkativeTheme
 
 /** Napojení obrazovky na view model. */
@@ -79,6 +80,7 @@ fun ClientScreen(
             SentenceBar(
                 sentence = state.sentence,
                 removeHoldMillis = state.config.removeHoldMillis,
+                hideCaptions = state.config.hideCaptionsInSentence,
                 onRemove = { onEvent(ClientEvent.RemoveFromSentence(it)) },
                 modifier = Modifier.weight(1f),
             )
@@ -239,13 +241,23 @@ private fun ItemTile(item: DictionaryItem, onFolderClick: (Folder) -> Unit, onWo
         border = BorderStroke(dimens.borderWidth, colors.outline),
     ) {
         Box(modifier = Modifier.padding(dimens.spaceMedium), contentAlignment = Alignment.Center) {
-            Text(
-                text = item.title,
-                style = MaterialTheme.typography.titleLarge,
-                textAlign = TextAlign.Center,
-                maxLines = 3,
-                overflow = TextOverflow.Ellipsis,
-            )
+            Column(
+                modifier = Modifier.fillMaxSize(),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.spacedBy(dimens.spaceSmall, Alignment.CenterVertically),
+            ) {
+                // Slovíčko s obrázkem: obrázek nahoře a titulek pod ním; bez obrázku (nebo se zmizelým souborem) jen text.
+                if (item is Word) {
+                    WordImage(item.imageFile, Modifier.weight(1f, fill = false).fillMaxWidth())
+                }
+                Text(
+                    text = item.title,
+                    style = MaterialTheme.typography.titleLarge,
+                    textAlign = TextAlign.Center,
+                    maxLines = 3,
+                    overflow = TextOverflow.Ellipsis,
+                )
+            }
             if (isFolder) {
                 Icon(
                     imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,

@@ -13,6 +13,11 @@ const val WORD_IMAGE_TAG = "word-image"
 /** Jak z názvu souboru obrázku získat soubor. Zajišťuje ho aplikace (úložiště obrázků), testy ho mohou nahradit. */
 val LocalImageResolver = compositionLocalOf<(String) -> File?> { { null } }
 
+/** `true`, když slovíčko má obrázek a jeho soubor existuje (jinak se zobrazí jen text). */
+@Composable
+fun hasWordImage(imageFile: String?): Boolean =
+    imageFile != null && LocalImageResolver.current(imageFile) != null
+
 /**
  * Obrázek slovíčka. Když název chybí nebo soubor neexistuje, nezobrazí se nic a vrátí `false`
  * (volající pak ukáže jen text). Načítání, zmenšení na velikost prvku a cache řeší Coil.

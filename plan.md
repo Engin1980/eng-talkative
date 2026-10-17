@@ -16,7 +16,7 @@ Plán postupuje po funkcionalitách (vertikální řezy přes UI, doménu i data
 - [x] Krok 1: Vstup do administrace a základ slovníku
 - [x] Krok 2: Klient: procházení a skládání věty
 - [ ] Krok 3: Přehrání věty hlasem (TTS)
-- [ ] Krok 4: Obrázky slovíček
+- [x] Krok 4: Obrázky slovíček
 - [ ] Krok 5: Vlastní zvuková definice slovíčka
 - [ ] Krok 6: Pokročilá správa slovníku
 - [ ] Krok 7: Konfigurace a pokročilé ovládání klienta
@@ -250,14 +250,14 @@ Plán postupuje po funkcionalitách (vertikální řezy přes UI, doménu i data
 ### 4.3 Zobrazení obrázků v klientovi
 
 **Úkoly:**
-- [ ] Dlaždice v mřížce: obrázek a titulek; slovíčko bez obrázku jen text.
-- [ ] Věta: menší dlaždice s obrázkem a titulkem (skrytí titulku podle konfigurace).
-- [ ] Efektivní načítání obrázků (cache, zmenšené bitmapy, plynulé listování).
+- [x] Dlaždice v mřížce: obrázek a titulek; slovíčko bez obrázku jen text.
+- [x] Věta: menší dlaždice s obrázkem a titulkem (skrytí titulku podle konfigurace).
+- [x] Efektivní načítání obrázků (cache, zmenšené bitmapy, plynulé listování). _(řeší knihovna Coil: načítání mimo hlavní vlákno, cache, dekódování na velikost prvku; obrázky se navíc ukládají zmenšené na max. 512 px. Plynulost při stovkách položek se neměřila, to patří do kroku 11.1)_
 
 **Kritéria splnění:**
-- [ ] Zobrazení v mřížce a ve větě odpovídá zadání, bez obrázku se zobrazí jen text.
-- [ ] Skrytí titulků ve větě funguje (hodnota z konfigurace).
-- [ ] UI testy zobrazení s obrázkem i bez.
+- [x] Zobrazení v mřížce a ve větě odpovídá zadání, bez obrázku se zobrazí jen text.
+- [x] Skrytí titulků ve větě funguje (hodnota z konfigurace).
+- [x] UI testy zobrazení s obrázkem i bez.
 
 ---
 

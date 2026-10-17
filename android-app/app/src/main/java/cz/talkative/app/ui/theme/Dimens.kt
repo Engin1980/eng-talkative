@@ -11,6 +11,8 @@ data class Dimens(
     val iconSize: Dp = 32.dp,
     val borderWidth: Dp = 2.dp,
     val thumbnailSize: Dp = 56.dp,
+    /** Výška obrázku ve slově ve větě (menší dlaždice než v mřížce). */
+    val sentenceImageSize: Dp = 64.dp,
     val imagePreviewSize: Dp = 160.dp,
     val sentenceBarMinHeight: Dp = 80.dp,
     val sentenceBarMaxHeight: Dp = 176.dp,

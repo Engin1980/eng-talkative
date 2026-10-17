@@ -4,6 +4,8 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.test.assertHeightIsAtLeast
 import androidx.compose.ui.test.getUnclippedBoundsInRoot
 import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.hasAnyAncestor
+import androidx.compose.ui.test.hasTestTag
 import androidx.compose.ui.test.assertIsEnabled
 import androidx.compose.ui.test.assertIsNotEnabled
 import androidx.compose.ui.test.junit4.v2.createComposeRule
@@ -27,6 +29,8 @@ import cz.talkative.app.ui.client.ClientScreen
 import cz.talkative.app.ui.client.ClientUiState
 import cz.talkative.app.ui.client.SENTENCE_BAR_TAG
 import cz.talkative.app.ui.client.SENTENCE_WORD_TAG
+import cz.talkative.app.ui.common.LocalImageResolver
+import cz.talkative.app.ui.common.WORD_IMAGE_TAG
 import cz.talkative.app.ui.theme.TalkativeTheme
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
@@ -320,5 +324,112 @@ class ClientScreenTest {
         show(ClientUiState(speechError = SpeechError.ENGINE_UNAVAILABLE, isLoading = false))
 
         composeRule.onNodeWithText("hlasový modul", substring = true).assertIsDisplayed()
+    }
+
+    // ---- obrázky (krok 4.3)
+
+    private val appContext = androidx.test.core.app.ApplicationProvider.getApplicationContext<android.content.Context>()
+
+    /** Skutečný malý obrázek v cache; resolver ho nabídne pod názvem `ok.png`, ostatní názvy "neexistují". */
+    private fun showWithImages(state: ClientUiState) {
+        val file = java.io.File(appContext.cacheDir, "client-image-test.png")
+        file.outputStream().use {
+            android.graphics.Bitmap.createBitmap(16, 16, android.graphics.Bitmap.Config.ARGB_8888)
+                .compress(android.graphics.Bitmap.CompressFormat.PNG, 100, it)
+        }
+        composeRule.setContent {
+            androidx.compose.runtime.CompositionLocalProvider(
+                LocalImageResolver provides { name -> file.takeIf { name == "ok.png" } },
+            ) {
+                TalkativeTheme {
+                    ClientScreen(state, onEvent = { events += it }, onOpenAdmin = {}, isLandscape = true)
+                }
+            }
+        }
+    }
+
+    private fun word(title: String, image: String? = null, index: Int = 0) =
+        Word("w$index-$title", "default", title, null, index, 0, image)
+
+    private fun imageNodesIn(ancestorTag: String?) =
+        composeRule.onAllNodes(
+            hasTestTag(WORD_IMAGE_TAG) and
+                (if (ancestorTag == null) hasAnyAncestor(hasTestTag(SENTENCE_BAR_TAG)).not() else hasAnyAncestor(hasTestTag(ancestorTag))),
+            useUnmergedTree = true,
+        ).fetchSemanticsNodes().size
+
+    private fun sentenceOf(vararg words: Word) = words.mapIndexed { index, word -> SentenceEntry(index, word) }
+
+    @Test
+    fun gridTile_withImage_showsImageAndCaption_withoutImageJustText() {
+        showWithImages(
+            loaded(listOf(word("jablko", "ok.png", 0), word("bez obrázku", null, 1), word("rozbitý odkaz", "chybi.png", 2))),
+        )
+
+        assertEquals(1, imageNodesIn(null)) // jen první slovíčko má existující obrázek
+        composeRule.onNodeWithText("jablko").assertIsDisplayed()
+        composeRule.onNodeWithText("bez obrázku").assertIsDisplayed()
+        composeRule.onNodeWithText("rozbitý odkaz").assertIsDisplayed() // chybějící soubor = jen text, žádný pád
+    }
+
+    @Test
+    fun sentence_showsSmallTilesWithImageAndCaption_byDefault() {
+        showWithImages(
+            ClientUiState(
+                sentence = sentenceOf(word("jablko", "ok.png", 0), word("chci", null, 1)),
+                isLoading = false,
+            ),
+        )
+
+        assertEquals(1, imageNodesIn(SENTENCE_BAR_TAG))
+        composeRule.onNodeWithText("jablko").assertIsDisplayed()
+        composeRule.onNodeWithText("chci").assertIsDisplayed()
+    }
+
+    @Test
+    fun hidingCaptions_hidesThemOnlyForWordsWithImage() {
+        showWithImages(
+            ClientUiState(
+                sentence = sentenceOf(word("jablko", "ok.png", 0), word("chci", null, 1), word("rozbitý", "chybi.png", 2)),
+                config = AppConfig(hideCaptionsInSentence = true),
+                isLoading = false,
+            ),
+        )
+
+        assertEquals(1, imageNodesIn(SENTENCE_BAR_TAG))
+        assertEquals(0, composeRule.onAllNodesWithText("jablko").fetchSemanticsNodes().size) // obrázek stačí
+        composeRule.onNodeWithText("chci").assertIsDisplayed() // bez obrázku se titulek neskrývá
+        composeRule.onNodeWithText("rozbitý").assertIsDisplayed() // chybějící soubor = jako bez obrázku
+    }
+
+    @Test
+    fun hidingCaptions_doesNotAffectTheGrid() {
+        showWithImages(
+            ClientUiState(
+                items = listOf(word("jablko", "ok.png")),
+                config = AppConfig(hideCaptionsInSentence = true),
+                isLoading = false,
+            ),
+        )
+
+        composeRule.onNodeWithText("jablko").assertIsDisplayed()
+    }
+
+    @Test
+    fun withoutAnyResolver_wordsStillShowAsText() {
+        show(loaded(listOf(word("jablko", "ok.png"))))
+
+        assertEquals(0, composeRule.onAllNodesWithTag(WORD_IMAGE_TAG, useUnmergedTree = true).fetchSemanticsNodes().size)
+        composeRule.onNodeWithText("jablko").assertIsDisplayed()
+    }
+
+    @Test
+    fun imageTile_isStillClickable() {
+        val jablko = word("jablko", "ok.png")
+        showWithImages(loaded(listOf(jablko)))
+
+        composeRule.onNodeWithText("jablko").performClick()
+
+        assertEquals(listOf<ClientEvent>(ClientEvent.WordSelected(jablko)), events)
     }
 }

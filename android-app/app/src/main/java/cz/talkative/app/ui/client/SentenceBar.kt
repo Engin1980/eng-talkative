@@ -4,6 +4,7 @@ import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
@@ -27,6 +28,8 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import cz.talkative.app.R
 import cz.talkative.app.domain.model.SentenceEntry
+import cz.talkative.app.ui.common.WordImage
+import cz.talkative.app.ui.common.hasWordImage
 import cz.talkative.app.ui.common.onHold
 import cz.talkative.app.ui.theme.TalkativeTheme
 
@@ -35,7 +38,8 @@ const val SENTENCE_WORD_TAG = "sentence-word"
 
 /**
  * Řádek věty: slova za sebou se zalamují do více řádků; když se věta nevejde do maximální výšky, posouvá se
- * (a po přidání slova se posune na konec). Slovo se odebere podržením po dobu [removeHoldMillis],
+ * (a po přidání slova se posune na konec). Slovo je menší dlaždice s obrázkem a titulkem; titulek lze skrýt, ale jen
+ * u slova s obrázkem (slovo bez obrázku by jinak nebylo poznat). Slovo se odebere podržením po dobu [removeHoldMillis],
  * krátké klepnutí nic nedělá.
  */
 @OptIn(ExperimentalLayoutApi::class)
@@ -43,6 +47,7 @@ const val SENTENCE_WORD_TAG = "sentence-word"
 fun SentenceBar(
     sentence: List<SentenceEntry>,
     removeHoldMillis: Long,
+    hideCaptions: Boolean,
     onRemove: (entryId: Int) -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -80,6 +85,8 @@ fun SentenceBar(
                         key(entry.entryId) {
                             SentenceChip(
                                 title = entry.word.title,
+                                imageFile = entry.word.imageFile,
+                                hideCaption = hideCaptions,
                                 onHold = { onRemove(entry.entryId) },
                                 holdMillis = removeHoldMillis,
                             )
@@ -92,9 +99,16 @@ fun SentenceBar(
 }
 
 @Composable
-private fun SentenceChip(title: String, holdMillis: Long, onHold: () -> Unit) {
+private fun SentenceChip(
+    title: String,
+    imageFile: String?,
+    hideCaption: Boolean,
+    holdMillis: Long,
+    onHold: () -> Unit,
+) {
     val dimens = TalkativeTheme.dimens
     val colors = MaterialTheme.colorScheme
+    val hasImage = hasWordImage(imageFile)
     Surface(
         modifier = Modifier.testTag(SENTENCE_WORD_TAG).onHold(holdMillis, onHold),
         shape = MaterialTheme.shapes.medium,
@@ -102,11 +116,19 @@ private fun SentenceChip(title: String, holdMillis: Long, onHold: () -> Unit) {
         contentColor = colors.onSurfaceVariant,
         border = BorderStroke(dimens.borderWidth, colors.outline),
     ) {
-        Box(
-            modifier = Modifier.heightIn(min = dimens.minTouchTarget).padding(horizontal = dimens.spaceMedium),
-            contentAlignment = Alignment.Center,
+        Column(
+            modifier = Modifier
+                .heightIn(min = dimens.minTouchTarget)
+                .padding(horizontal = dimens.spaceMedium, vertical = dimens.spaceSmall),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center,
         ) {
-            Text(text = title, style = MaterialTheme.typography.titleLarge)
+            if (hasImage) {
+                WordImage(imageFile, Modifier.size(dimens.sentenceImageSize))
+            }
+            if (!hasImage || !hideCaption) {
+                Text(text = title, style = MaterialTheme.typography.titleLarge)
+            }
         }
     }
 }
