@@ -2,6 +2,7 @@ package cz.talkative.app.ui.client
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import cz.talkative.app.domain.model.SentenceEntry
 import cz.talkative.app.domain.usecase.GetFolderPathUseCase
 import cz.talkative.app.domain.usecase.ObserveConfigUseCase
 import cz.talkative.app.domain.usecase.ObserveFolderItemsUseCase
@@ -28,15 +29,25 @@ class ClientViewModel @Inject constructor(
     /** Aktuální složka; `null` je kořen. Nezávisí na orientaci displeje, ta mění jen velikost mřížky. */
     private val currentFolderId = MutableStateFlow<String?>(null)
     private val pageIndex = MutableStateFlow(0)
+    private val sentence = MutableStateFlow<List<SentenceEntry>>(emptyList())
+    private var nextEntryId = 0
 
     val uiState: StateFlow<ClientUiState> = combine(
         currentFolderId.flatMapLatest { folderId ->
             observeItems(folderId).map { items -> getPath(folderId) to items }
         },
         pageIndex,
+        sentence,
         observeConfig(),
-    ) { (path, items), page, config ->
-        ClientUiState(path = path, items = items, pageIndex = page, config = config, isLoading = false)
+    ) { (path, items), page, sentenceEntries, config ->
+        ClientUiState(
+            path = path,
+            items = items,
+            pageIndex = page,
+            sentence = sentenceEntries,
+            config = config,
+            isLoading = false,
+        )
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), ClientUiState())
 
     fun onEvent(event: ClientEvent) {
@@ -49,6 +60,9 @@ class ClientViewModel @Inject constructor(
                 goTo(path.getOrNull(path.size - 2)?.id)
             }
             is ClientEvent.PageChanged -> pageIndex.value = event.pageIndex
+            is ClientEvent.WordSelected -> sentence.value += SentenceEntry(nextEntryId++, event.word)
+            is ClientEvent.RemoveFromSentence -> sentence.value = sentence.value.filterNot { it.entryId == event.entryId }
+            ClientEvent.ClearSentence -> sentence.value = emptyList()
         }
     }
 

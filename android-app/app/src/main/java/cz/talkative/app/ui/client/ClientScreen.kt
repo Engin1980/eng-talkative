@@ -40,6 +40,7 @@ import cz.talkative.app.R
 import cz.talkative.app.domain.model.DictionaryItem
 import cz.talkative.app.domain.model.Folder
 import cz.talkative.app.domain.model.GridSize
+import cz.talkative.app.domain.model.Word
 import cz.talkative.app.domain.paging.Pagination
 import cz.talkative.app.ui.theme.TalkativeTheme
 
@@ -75,7 +76,17 @@ fun ClientScreen(
             modifier = Modifier.fillMaxWidth().heightIn(min = dimens.minTouchTarget),
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            Box(modifier = Modifier.weight(1f))
+            SentenceBar(
+                sentence = state.sentence,
+                removeHoldMillis = state.config.removeHoldMillis,
+                onRemove = { onEvent(ClientEvent.RemoveFromSentence(it)) },
+                modifier = Modifier.weight(1f),
+            )
+            ClearSentenceButton(
+                enabled = state.sentence.isNotEmpty(),
+                onClick = { onEvent(ClientEvent.ClearSentence) },
+                modifier = Modifier.padding(start = dimens.spaceMedium),
+            )
             HiddenAdminEntry(onEntered = onOpenAdmin, holdMillis = state.config.adminHoldMillis)
         }
 
@@ -97,6 +108,7 @@ fun ClientScreen(
                     items = Pagination.pageItems(state.items, page, grid.pageSize),
                     grid = grid,
                     onFolderClick = { onEvent(ClientEvent.OpenFolder(it.id)) },
+                    onWordClick = { onEvent(ClientEvent.WordSelected(it)) },
                     modifier = Modifier.weight(1f),
                 )
                 val pageCount = Pagination.pageCount(state.items.size, grid.pageSize)
@@ -179,6 +191,7 @@ private fun ItemGrid(
     items: List<DictionaryItem>,
     grid: GridSize,
     onFolderClick: (Folder) -> Unit,
+    onWordClick: (Word) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val dimens = TalkativeTheme.dimens
@@ -191,7 +204,7 @@ private fun ItemGrid(
                 repeat(grid.columns) { column ->
                     Box(modifier = Modifier.weight(1f).fillMaxHeight()) {
                         items.getOrNull(row * grid.columns + column)?.let { item ->
-                            ItemTile(item = item, onFolderClick = onFolderClick)
+                            ItemTile(item = item, onFolderClick = onFolderClick, onWordClick = onWordClick)
                         }
                     }
                 }
@@ -201,12 +214,17 @@ private fun ItemGrid(
 }
 
 @Composable
-private fun ItemTile(item: DictionaryItem, onFolderClick: (Folder) -> Unit) {
+private fun ItemTile(item: DictionaryItem, onFolderClick: (Folder) -> Unit, onWordClick: (Word) -> Unit) {
     val dimens = TalkativeTheme.dimens
     val isFolder = item is Folder
     val colors = MaterialTheme.colorScheme
     Surface(
-        onClick = { if (item is Folder) onFolderClick(item) },
+        onClick = {
+            when (item) {
+                is Folder -> onFolderClick(item)
+                is Word -> onWordClick(item)
+            }
+        },
         modifier = Modifier.fillMaxSize(),
         shape = MaterialTheme.shapes.large,
         color = if (isFolder) colors.primary else colors.surfaceVariant,

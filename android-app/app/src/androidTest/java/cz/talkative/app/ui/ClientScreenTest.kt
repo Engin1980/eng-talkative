@@ -2,21 +2,31 @@ package cz.talkative.app.ui
 
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.test.assertHeightIsAtLeast
+import androidx.compose.ui.test.getUnclippedBoundsInRoot
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.v2.createComposeRule
 import androidx.compose.ui.test.onNodeWithText
+import androidx.compose.ui.test.onAllNodesWithTag
 import androidx.compose.ui.test.onAllNodesWithText
+import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performTouchInput
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.height
 import androidx.test.ext.junit.runners.AndroidJUnit4
+import cz.talkative.app.domain.model.AppConfig
 import cz.talkative.app.domain.model.DictionaryItem
 import cz.talkative.app.domain.model.Folder
+import cz.talkative.app.domain.model.SentenceEntry
 import cz.talkative.app.domain.model.Word
 import cz.talkative.app.ui.client.ClientEvent
 import cz.talkative.app.ui.client.ClientScreen
 import cz.talkative.app.ui.client.ClientUiState
+import cz.talkative.app.ui.client.SENTENCE_BAR_TAG
+import cz.talkative.app.ui.client.SENTENCE_WORD_TAG
 import cz.talkative.app.ui.theme.TalkativeTheme
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -120,14 +130,12 @@ class ClientScreenTest {
     }
 
     @Test
-    fun clickingFolder_opensIt_clickingWordDoesNotOpenAnything() {
+    fun clickingFolder_opensIt() {
         val folder = Folder("f1", "default", "Jídlo", null, 0, 0)
-        show(loaded(listOf(folder) + words(1)))
-
-        composeRule.onNodeWithText("slovo1").performClick()
-        assertEquals(emptyList<ClientEvent>(), events)
+        show(loaded(listOf(folder)))
 
         composeRule.onNodeWithText("Jídlo").performClick()
+
         assertEquals(listOf<ClientEvent>(ClientEvent.OpenFolder("f1")), events)
     }
 
@@ -175,5 +183,95 @@ class ClientScreenTest {
             ),
             events,
         )
+    }
+
+    private fun entries(vararg titles: String) = titles.mapIndexed { index, title ->
+        SentenceEntry(index, Word("w$index", "default", title, null, index, 0))
+    }
+
+    private fun sentenceState(count: Int, hold: Long = 1_000L) = ClientUiState(
+        items = emptyList(),
+        sentence = entries(*Array(count) { "věta${it + 1}" }),
+        config = AppConfig(removeHoldMillis = hold),
+        isLoading = false,
+    )
+
+    @Test
+    fun tappingGridWord_sendsWordSelected() {
+        val word = Word("w1", "default", "chci", null, 0, 0)
+        show(loaded(listOf(word)))
+
+        composeRule.onNodeWithText("chci").performClick()
+
+        assertEquals(listOf<ClientEvent>(ClientEvent.WordSelected(word)), events)
+    }
+
+    @Test
+    fun emptySentence_showsHint_andClearButtonIsDisabled() {
+        show(loaded(words(1)))
+
+        composeRule.onNodeWithText("Klepnutím na slovo ho přidáte do věty.").assertIsDisplayed()
+        composeRule.onNodeWithText("Smazat větu").performClick()
+        assertEquals(emptyList<ClientEvent>(), events)
+    }
+
+    @Test
+    fun clearButton_sendsClearSentence_andHasMinimumTouchTarget() {
+        show(sentenceState(2))
+
+        composeRule.onNodeWithText("Smazat větu").assertHeightIsAtLeast(64.dp).performClick()
+
+        assertEquals(listOf<ClientEvent>(ClientEvent.ClearSentence), events)
+    }
+
+    @Test
+    fun shortTapOnSentenceWord_removesNothing() {
+        show(sentenceState(1))
+
+        composeRule.onNodeWithTag(SENTENCE_WORD_TAG).performClick()
+        composeRule.mainClock.advanceTimeBy(5_000)
+
+        assertEquals(emptyList<ClientEvent>(), events)
+    }
+
+    @Test
+    fun holdingSentenceWordForConfiguredInterval_removesIt() {
+        show(sentenceState(2, hold = 1_000L))
+        composeRule.mainClock.autoAdvance = false
+
+        composeRule.onAllNodesWithTag(SENTENCE_WORD_TAG)[1].performTouchInput { down(center) }
+        composeRule.mainClock.advanceTimeBy(900)
+        assertEquals(emptyList<ClientEvent>(), events) // ještě nedrží dost dlouho
+
+        composeRule.mainClock.advanceTimeBy(200)
+        assertEquals(listOf<ClientEvent>(ClientEvent.RemoveFromSentence(1)), events)
+
+        composeRule.onAllNodesWithTag(SENTENCE_WORD_TAG)[1].performTouchInput { up() }
+        composeRule.mainClock.advanceTimeBy(3_000)
+        assertEquals(1, events.size) // jedno podržení = jedno odebrání
+    }
+
+    @Test
+    fun releasingBeforeTheInterval_removesNothing() {
+        show(sentenceState(1, hold = 1_000L))
+        composeRule.mainClock.autoAdvance = false
+
+        composeRule.onNodeWithTag(SENTENCE_WORD_TAG).performTouchInput { down(center) }
+        composeRule.mainClock.advanceTimeBy(800)
+        composeRule.onNodeWithTag(SENTENCE_WORD_TAG).performTouchInput { up() }
+        composeRule.mainClock.advanceTimeBy(5_000)
+
+        assertEquals(emptyList<ClientEvent>(), events)
+    }
+
+    @Test
+    fun longSentence_staysInsideBarHeightLimit_andLastWordIsReachable() {
+        show(sentenceState(40))
+        composeRule.waitForIdle()
+
+        val barHeight = composeRule.onNodeWithTag(SENTENCE_BAR_TAG).getUnclippedBoundsInRoot().height
+        assertTrue("výška řádku věty: $barHeight", barHeight <= 176.dp)
+        composeRule.onNodeWithText("věta40").assertIsDisplayed() // věta se sama posune na konec
+        composeRule.onNodeWithText("Smazat větu").assertIsDisplayed() // ovládání zůstává na místě
     }
 }

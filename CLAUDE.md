@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Current state
 
-The Android project lives in `android-app/` (steps 0 and 1 of `plan.md` are done: skeleton, Hilt, Room, theme, navigation; hidden long-press entry to admin; admin CRUD of the folder/word tree with titles only; the client screen is still a placeholder). `plan.md` is the step-by-step implementation plan with checkboxes; tick them as work is finished.
+The Android project lives in `android-app/` (steps 0–2 of `plan.md` are done: skeleton, Hilt, Room, DataStore config, theme, navigation; hidden long-press entry to admin; admin CRUD of the folder/word tree with titles only; client with paged grid, breadcrumbs/Back/Home and sentence bar, no speech yet). `plan.md` is the step-by-step implementation plan with checkboxes; tick them as work is finished.
 
 ## Build and test commands
 

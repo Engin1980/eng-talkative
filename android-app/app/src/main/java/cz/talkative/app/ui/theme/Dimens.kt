@@ -10,6 +10,8 @@ data class Dimens(
     val minTouchTarget: Dp = 64.dp,
     val iconSize: Dp = 32.dp,
     val borderWidth: Dp = 2.dp,
+    val sentenceBarMinHeight: Dp = 80.dp,
+    val sentenceBarMaxHeight: Dp = 176.dp,
     val spaceSmall: Dp = 8.dp,
     val spaceMedium: Dp = 16.dp,
     val spaceLarge: Dp = 24.dp,

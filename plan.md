@@ -14,7 +14,7 @@ Plán postupuje po funkcionalitách (vertikální řezy přes UI, doménu i data
 
 - [x] Krok 0: Kostra projektu
 - [x] Krok 1: Vstup do administrace a základ slovníku
-- [ ] Krok 2: Klient: procházení a skládání věty
+- [x] Krok 2: Klient: procházení a skládání věty
 - [ ] Krok 3: Přehrání věty hlasem (TTS)
 - [ ] Krok 4: Obrázky slovíček
 - [ ] Krok 5: Vlastní zvuková definice slovíčka
@@ -174,18 +174,18 @@ Plán postupuje po funkcionalitách (vertikální řezy přes UI, doménu i data
 ### 2.4 Skládání věty
 
 **Úkoly:**
-- [ ] Stavový řádek věty nahoře.
-- [ ] Klepnutí na slovíčko ho přidá do věty (včetně opakování stejného slova).
-- [ ] Odebrání slova ze věty podržením (výchozí 1 s); krátké klepnutí nic neodebere.
-- [ ] Tlačítko pro smazání celé věty.
-- [ ] Věta se po restartu neobnovuje; přežije ale otočení obrazovky.
-- [ ] Zachování věty při přechodu do administrace a zpět není nutné. Po návratu do klientského pohledu se to může chovat jako nově spuštěná aplikace.
+- [x] Stavový řádek věty nahoře.
+- [x] Klepnutí na slovíčko ho přidá do věty (včetně opakování stejného slova).
+- [x] Odebrání slova ze věty podržením (výchozí 1 s); krátké klepnutí nic neodebere.
+- [x] Tlačítko pro smazání celé věty.
+- [x] Věta se po restartu neobnovuje; přežije ale otočení obrazovky. _(věta žije ve view modelu, aktivita se při otočení nerekonstruuje; skutečné otočení zařízení neověřeno)_
+- [x] Zachování věty při přechodu do administrace a zpět není nutné. Po návratu do klientského pohledu se to může chovat jako nově spuštěná aplikace.
 
 **Kritéria splnění:**
-- [ ] Z dat vytvořených v kroku 1 lze projít celý strom a poskládat větu z libovolných slovíček.
-- [ ] Krátké klepnutí na slovo ve větě nic neodebere, podržení po nastavený interval ano.
-- [ ] Dlouhá věta se ve stavovém řádku zobrazí použitelně (zalamování nebo posun).
-- [ ] Unit testy view modelu (skládání věty) a Compose UI testy hlavního scénáře.
+- [x] Z dat vytvořených v kroku 1 lze projít celý strom a poskládat větu z libovolných slovíček.
+- [x] Krátké klepnutí na slovo ve větě nic neodebere, podržení po nastavený interval ano.
+- [x] Dlouhá věta se ve stavovém řádku zobrazí použitelně (zalamování nebo posun).
+- [x] Unit testy view modelu (skládání věty) a Compose UI testy hlavního scénáře.
 
 ---
 

@@ -8,6 +8,8 @@
     <string name="client_page_next">Další</string>
     <string name="client_page_indicator">Stránka %1$d z %2$d</string>
     <string name="client_folder_marker">Složka</string>
+    <string name="client_sentence_hint">Klepnutím na slovo ho přidáte do věty.</string>
+    <string name="client_clear_sentence">Smazat větu</string>
     <string name="client_back">Zpět</string>
     <string name="client_home">Domů</string>
     <string name="client_breadcrumb_root">Úvod</string>

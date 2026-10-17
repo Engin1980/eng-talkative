@@ -205,4 +205,84 @@ class ClientViewModelTest {
         viewModel.onEvent(ClientEvent.GoToFolder(null))
         assertTrue(path().isEmpty())
     }
+
+    private fun sentence() = viewModel.uiState.value.sentence.map { it.word.title }
+
+    private fun wordOf(item: cz.talkative.app.domain.model.DictionaryItem) =
+        item as cz.talkative.app.domain.model.Word
+
+    @Test
+    fun newViewModel_startsWithEmptySentence() = runVmTest {
+        subscribe()
+
+        assertTrue(viewModel.uiState.value.sentence.isEmpty())
+    }
+
+    @Test
+    fun selectedWordsAreAppendedInOrder_includingRepeats() = runVmTest {
+        val chci = repository.createWord(null, "chci")
+        val pit = repository.createWord(null, "pít")
+        subscribe()
+
+        viewModel.onEvent(ClientEvent.WordSelected(chci))
+        viewModel.onEvent(ClientEvent.WordSelected(pit))
+        viewModel.onEvent(ClientEvent.WordSelected(chci))
+
+        assertEquals(listOf("chci", "pít", "chci"), sentence())
+        val ids = viewModel.uiState.value.sentence.map { it.entryId }
+        assertEquals(3, ids.toSet().size) // každý výskyt má vlastní identitu
+    }
+
+    @Test
+    fun removeFromSentence_removesOnlyThatOccurrence() = runVmTest {
+        val a = repository.createWord(null, "a")
+        val b = repository.createWord(null, "b")
+        subscribe()
+        viewModel.onEvent(ClientEvent.WordSelected(a))
+        viewModel.onEvent(ClientEvent.WordSelected(b))
+        viewModel.onEvent(ClientEvent.WordSelected(a))
+        val secondEntry = viewModel.uiState.value.sentence[2].entryId
+
+        viewModel.onEvent(ClientEvent.RemoveFromSentence(secondEntry))
+
+        assertEquals(listOf("a", "b"), sentence())
+    }
+
+    @Test
+    fun clearSentence_removesEverything() = runVmTest {
+        val a = repository.createWord(null, "a")
+        subscribe()
+        viewModel.onEvent(ClientEvent.WordSelected(a))
+        viewModel.onEvent(ClientEvent.WordSelected(a))
+
+        viewModel.onEvent(ClientEvent.ClearSentence)
+
+        assertTrue(viewModel.uiState.value.sentence.isEmpty())
+    }
+
+    @Test
+    fun sentenceSurvivesNavigationAndPaging() = runVmTest {
+        val folder = repository.createFolder(null, "Jídlo")
+        val word = repository.createWord(folder.id, "chleba")
+        subscribe()
+        viewModel.onEvent(ClientEvent.OpenFolder(folder.id))
+        viewModel.onEvent(ClientEvent.WordSelected(word))
+
+        viewModel.onEvent(ClientEvent.GoHome)
+        viewModel.onEvent(ClientEvent.PageChanged(2))
+
+        assertEquals(listOf("chleba"), sentence())
+    }
+
+    @Test
+    fun sentenceKeepsSnapshotOfWord_whenWordIsRenamedLater() = runVmTest {
+        val word = repository.createWord(null, "stare")
+        subscribe()
+        viewModel.onEvent(ClientEvent.WordSelected(word))
+
+        repository.updateWordTitle(word.id, "nove")
+
+        assertEquals(listOf("stare"), sentence())
+        assertEquals("nove", wordOf(viewModel.uiState.value.items.single()).title)
+    }
 }
