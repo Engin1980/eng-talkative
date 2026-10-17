@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Current state
 
-The Android project lives in `android-app/` (steps 0–2 of `plan.md` are done: skeleton, Hilt, Room, DataStore config, theme, navigation; hidden long-press entry to admin; admin CRUD of the folder/word tree with titles only; client with paged grid, breadcrumbs/Back/Home and sentence bar, no speech yet). `plan.md` is the step-by-step implementation plan with checkboxes; tick them as work is finished.
+The Android project lives in `android-app/` (steps 0–2 of `plan.md` are done: skeleton, Hilt, Room, DataStore config, theme, navigation; hidden long-press entry to admin; admin CRUD of the folder/word tree with titles only; client with paged grid, breadcrumbs/Back/Home, sentence bar and TTS Play/Stop; step 3 is waiting only for a by-ear voice check). `plan.md` is the step-by-step implementation plan with checkboxes; tick them as work is finished.
 
 ## Build and test commands
 
@@ -20,7 +20,7 @@ Run from `android-app/` (Git Bash: `./gradlew`, PowerShell: `.\gradlew.bat`). Re
 
 Toolchain notes: AGP 9.4.1 needs Gradle 9.6.0 (wrapper) and has built-in Kotlin (no `kotlin-android` plugin); versions are in `gradle/libs.versions.toml`. Compose UI tests use `androidx.compose.ui.test.junit4.v2.createComposeRule` and Espresso 3.7.0 (older Espresso crashes on API 37). Room schemas are exported to `app/schemas/`. Compose UI tests run against stateless screens (`TalkativeNavHost` takes the screens as parameters), so they do not need Hilt.
 
-Package layout (`cz.talkative.app`): `ui/` (theme, `client`, `admin`, `navigation`; MVI-style `UiState`/`Event` + `ViewModel`), `domain/` (model, repository interfaces, use cases), `data/` (Room `local/`, repository implementations), `di/` (Hilt modules). Sizes/colors/typography come from `ui/theme` (`TalkativeTheme.dimens`, `MaterialTheme`); strings are in `res/values/strings.xml` (Czech).
+Package layout (`cz.talkative.app`): `ui/` (theme, `client`, `admin`, `navigation`; MVI-style `UiState`/`Event` + `ViewModel`), `domain/` (model, repository interfaces, use cases), `data/` (Room `local/`, repository implementations), `di/` (Hilt modules). Fakes shared by JVM and instrumented tests live in `src/sharedTest/java` (e.g. `FakeSpeechProvider`). `SpeechProvider` is deliberately not a singleton: `ClientViewModel` owns an instance and shuts it down in `onCleared`. Sizes/colors/typography come from `ui/theme` (`TalkativeTheme.dimens`, `MaterialTheme`); strings are in `res/values/strings.xml` (Czech).
 
 Documents (all written in Czech; keep them in Czech):
 - `assignment.md` — the authoritative product spec, with all decisions already incorporated. Read it before designing or coding anything.
