@@ -4,6 +4,7 @@ import android.content.Context
 import androidx.room.Room
 import cz.talkative.app.data.local.DictionaryDao
 import cz.talkative.app.data.local.MIGRATION_1_2
+import cz.talkative.app.data.local.MIGRATION_2_3
 import cz.talkative.app.data.local.MetaDao
 import cz.talkative.app.data.local.TalkativeDatabase
 import dagger.Module
@@ -21,7 +22,7 @@ object DatabaseModule {
     @Singleton
     fun provideDatabase(@ApplicationContext context: Context): TalkativeDatabase =
         Room.databaseBuilder(context, TalkativeDatabase::class.java, TalkativeDatabase.NAME)
-            .addMigrations(MIGRATION_1_2)
+            .addMigrations(MIGRATION_1_2, MIGRATION_2_3)
             .build()
 
     @Provides

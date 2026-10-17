@@ -227,14 +227,14 @@ Plán postupuje po funkcionalitách (vertikální řezy přes UI, doménu i data
 ### 4.1 Úložiště a zpracování obrázků
 
 **Úkoly:**
-- [ ] Služba pro zmenšení obrázku při uložení (např. 512 px, zachování poměru stran, správná orientace dle EXIF) a uložení do soukromého úložiště aplikace.
-- [ ] Pole s cestou/názvem obrázku v modelu slovíčka (migrace databáze + test migrace).
-- [ ] Úklid souboru při odebrání obrázku nebo smazání slovíčka (včetně rekurzivního smazání složky).
+- [x] Služba pro zmenšení obrázku při uložení (např. 512 px, zachování poměru stran, správná orientace dle EXIF) a uložení do soukromého úložiště aplikace.
+- [x] Pole s cestou/názvem obrázku v modelu slovíčka (migrace databáze + test migrace).
+- [x] Úklid souboru při odebrání obrázku nebo smazání slovíčka (včetně rekurzivního smazání složky).
 
 **Kritéria splnění:**
-- [ ] Uložený soubor je zmenšen na limit a původní velký obrázek se neukládá.
-- [ ] Smazání slovíčka (i celé složky) smaže soubory obrázků; žádné osiřelé soubory.
-- [ ] Testy: zmenšení obrázku, čištění souborů, migrace.
+- [x] Uložený soubor je zmenšen na limit a původní velký obrázek se neukládá.
+- [x] Smazání slovíčka (i celé složky) smaže soubory obrázků; žádné osiřelé soubory.
+- [x] Testy: zmenšení obrázku, čištění souborů, migrace.
 
 ### 4.2 Výběr obrázku v administraci
 

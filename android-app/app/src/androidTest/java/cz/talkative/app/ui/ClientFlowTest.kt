@@ -22,6 +22,7 @@ import cz.talkative.app.domain.repository.ConfigRepository
 import cz.talkative.app.domain.usecase.GetFolderPathUseCase
 import cz.talkative.app.domain.usecase.ObserveConfigUseCase
 import cz.talkative.app.domain.usecase.ObserveFolderItemsUseCase
+import cz.talkative.app.testing.FakeImageStore
 import cz.talkative.app.testing.FakeSpeechProvider
 import cz.talkative.app.ui.client.ClientScreen
 import cz.talkative.app.ui.client.ClientViewModel
@@ -51,7 +52,7 @@ class ClientFlowTest {
     fun setUp() {
         val context = ApplicationProvider.getApplicationContext<Context>()
         database = Room.inMemoryDatabaseBuilder(context, TalkativeDatabase::class.java).build()
-        val repository = RoomDictionaryRepository(database.dictionaryDao()) { System.currentTimeMillis() }
+        val repository = RoomDictionaryRepository(database.dictionaryDao(), { System.currentTimeMillis() }, FakeImageStore())
         runBlocking {
             val food = repository.createFolder(null, "Jídlo")
             val fruit = repository.createFolder(food.id, "Ovoce")

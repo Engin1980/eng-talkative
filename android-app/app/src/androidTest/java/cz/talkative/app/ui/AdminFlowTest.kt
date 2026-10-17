@@ -22,6 +22,7 @@ import cz.talkative.app.domain.usecase.GetFolderPathUseCase
 import cz.talkative.app.domain.usecase.ObserveFolderItemsUseCase
 import cz.talkative.app.domain.usecase.SaveFolderUseCase
 import cz.talkative.app.domain.usecase.SaveWordUseCase
+import cz.talkative.app.testing.FakeImageStore
 import cz.talkative.app.ui.admin.AdminScreen
 import cz.talkative.app.ui.admin.AdminViewModel
 import cz.talkative.app.ui.theme.TalkativeTheme
@@ -48,7 +49,7 @@ class AdminFlowTest {
     fun setUp() {
         val context = ApplicationProvider.getApplicationContext<Context>()
         database = Room.inMemoryDatabaseBuilder(context, TalkativeDatabase::class.java).build()
-        val repository = RoomDictionaryRepository(database.dictionaryDao()) { System.currentTimeMillis() }
+        val repository = RoomDictionaryRepository(database.dictionaryDao(), { System.currentTimeMillis() }, FakeImageStore())
         val viewModel = AdminViewModel(
             ObserveFolderItemsUseCase(repository),
             GetFolderPathUseCase(repository),

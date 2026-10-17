@@ -4,6 +4,7 @@ import cz.talkative.app.data.local.DictionaryDao
 import cz.talkative.app.data.local.FolderEntity
 import cz.talkative.app.data.local.WordEntity
 import cz.talkative.app.data.local.toDomain
+import cz.talkative.app.domain.image.ImageStore
 import cz.talkative.app.domain.model.DictionaryItem
 import cz.talkative.app.domain.model.Folder
 import cz.talkative.app.domain.model.Profile
@@ -18,6 +19,7 @@ import javax.inject.Inject
 class RoomDictionaryRepository @Inject constructor(
     private val dao: DictionaryDao,
     private val clock: Clock,
+    private val imageStore: ImageStore,
 ) : DictionaryRepository {
 
     // Zatím existuje jen výchozí profil.
@@ -49,9 +51,9 @@ class RoomDictionaryRepository @Inject constructor(
             FolderEntity(newId(), profileId, title, parentId, sortOrder = 0, updatedAt = clock.nowMillis()),
         ).toDomain()
 
-    override suspend fun createWord(parentId: String?, title: String): Word =
+    override suspend fun createWord(parentId: String?, title: String, imageFile: String?): Word =
         dao.addWord(
-            WordEntity(newId(), profileId, title, parentId, sortOrder = 0, updatedAt = clock.nowMillis()),
+            WordEntity(newId(), profileId, title, parentId, sortOrder = 0, updatedAt = clock.nowMillis(), imageFile = imageFile),
         ).toDomain()
 
     override suspend fun updateFolderTitle(id: String, title: String) =
@@ -66,9 +68,22 @@ class RoomDictionaryRepository @Inject constructor(
         return (folders - 1) + dao.countSubtreeWords(profileId, folderId)
     }
 
-    override suspend fun deleteFolder(id: String) = dao.deleteFolderSubtree(profileId, id, clock.nowMillis())
+    override suspend fun updateWordImage(id: String, imageFile: String?) {
+        val previous = dao.replaceWordImage(profileId, id, imageFile, clock.nowMillis())
+        // Soubor se maže až po úspěšném zápisu do databáze (při pádu mezi tím zbyde jen osiřelý soubor, ne chybějící).
+        if (previous != null && previous != imageFile) imageStore.delete(previous)
+    }
 
-    override suspend fun deleteWord(id: String) = dao.deleteWord(profileId, id, clock.nowMillis())
+    override suspend fun deleteFolder(id: String) {
+        dao.deleteFolderSubtree(profileId, id, clock.nowMillis()).forEach { imageStore.delete(it) }
+    }
 
+    override suspend fun deleteWord(id: String) {
+        dao.deleteWord(profileId, id, clock.nowMillis())?.let { imageStore.delete(it) }
+    }
+
+    override suspend fun cleanUpOrphanImages() {
+        imageStore.deleteAllExcept(dao.allImageFiles(profileId).toSet())
+    }
     private fun newId() = UUID.randomUUID().toString()
 }

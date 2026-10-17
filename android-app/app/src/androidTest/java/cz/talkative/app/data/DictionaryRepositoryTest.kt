@@ -7,6 +7,7 @@ import androidx.test.ext.junit.runners.AndroidJUnit4
 import cz.talkative.app.data.local.TalkativeDatabase
 import cz.talkative.app.data.repository.RoomDictionaryRepository
 import cz.talkative.app.domain.model.Folder
+import cz.talkative.app.testing.FakeImageStore
 import cz.talkative.app.domain.model.Word
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.runTest
@@ -24,13 +25,14 @@ class DictionaryRepositoryTest {
 
     private lateinit var database: TalkativeDatabase
     private lateinit var repository: RoomDictionaryRepository
+    private val imageStore = FakeImageStore()
     private var now = 1_000L
 
     @Before
     fun setUp() {
         val context = ApplicationProvider.getApplicationContext<Context>()
         database = Room.inMemoryDatabaseBuilder(context, TalkativeDatabase::class.java).build()
-        repository = RoomDictionaryRepository(database.dictionaryDao()) { now }
+        repository = RoomDictionaryRepository(database.dictionaryDao(), { now }, imageStore)
     }
 
     @After
@@ -209,5 +211,99 @@ class DictionaryRepositoryTest {
         assertEquals(1, repository.countFolderContents(a.id))
         assertEquals(0, repository.countFolderContents(b.id)) // smazaná složka
         assertTrue(repository.observeItems(a.id).first().none { it is Folder })
+    }
+
+    // ---- obrázky (krok 4.1)
+
+    @Test
+    fun deleteWord_deletesItsImageFile_andLeavesOthers() = runTest {
+        val a = repository.createWord(null, "a", imageStore.add("a.jpg"))
+        repository.createWord(null, "b", imageStore.add("b.jpg"))
+
+        repository.deleteWord(a.id)
+
+        assertEquals(setOf("b.jpg"), imageStore.files)
+    }
+
+    @Test
+    fun deleteFolder_deletesImagesOfWholeSubtree_notOfOtherFolders() = runTest {
+        val a = repository.createFolder(null, "A")
+        val b = repository.createFolder(a.id, "B")
+        repository.createWord(a.id, "a1", imageStore.add("a1.jpg"))
+        repository.createWord(b.id, "b1", imageStore.add("b1.jpg"))
+        repository.createWord(b.id, "b2-bez-obrazku")
+        val other = repository.createFolder(null, "Other")
+        repository.createWord(other.id, "o1", imageStore.add("o1.jpg"))
+        repository.createWord(null, "root", imageStore.add("root.jpg"))
+
+        repository.deleteFolder(a.id)
+
+        assertEquals(setOf("o1.jpg", "root.jpg"), imageStore.files)
+    }
+
+    @Test
+    fun deletedWord_tombstoneKeepsNoImageReference() = runTest {
+        val word = repository.createWord(null, "w", imageStore.add("w.jpg"))
+
+        repository.deleteWord(word.id)
+
+        database.query("SELECT deleted, imageFile FROM words WHERE id = ?", arrayOf(word.id)).use {
+            assertTrue(it.moveToFirst())
+            assertEquals(1, it.getInt(0))
+            assertTrue(it.isNull(1))
+        }
+    }
+
+    @Test
+    fun updateWordImage_replacesAndDeletesOldFile() = runTest {
+        val word = repository.createWord(null, "w", imageStore.add("old.jpg"))
+        val newName = imageStore.add("new.jpg")
+
+        repository.updateWordImage(word.id, newName)
+
+        assertEquals("new.jpg", (repository.observeItems(null).first().single() as Word).imageFile)
+        assertEquals(setOf("new.jpg"), imageStore.files)
+    }
+
+    @Test
+    fun updateWordImage_toNull_removesImageAndFile() = runTest {
+        val word = repository.createWord(null, "w", imageStore.add("old.jpg"))
+
+        repository.updateWordImage(word.id, null)
+
+        assertNull((repository.observeItems(null).first().single() as Word).imageFile)
+        assertTrue(imageStore.files.isEmpty())
+    }
+
+    @Test
+    fun updateWordImage_withSameFile_doesNotDeleteIt() = runTest {
+        val word = repository.createWord(null, "w", imageStore.add("same.jpg"))
+
+        repository.updateWordImage(word.id, "same.jpg")
+
+        assertEquals(setOf("same.jpg"), imageStore.files)
+    }
+
+    @Test
+    fun cleanUpOrphanImages_removesOnlyUnreferencedFiles() = runTest {
+        repository.createWord(null, "w", imageStore.add("used.jpg"))
+        val deleted = repository.createWord(null, "x", imageStore.add("x.jpg"))
+        imageStore.add("orphan.jpg")
+        repository.deleteWord(deleted.id)
+        imageStore.add("x.jpg") // jako by smazání souboru po pádu neproběhlo
+
+        repository.cleanUpOrphanImages()
+
+        assertEquals(setOf("used.jpg"), imageStore.files)
+    }
+
+    @Test
+    fun wordWithoutImage_deletesWithoutTouchingFiles() = runTest {
+        imageStore.add("other.jpg")
+        val word = repository.createWord(null, "bez obrázku")
+
+        repository.deleteWord(word.id)
+
+        assertEquals(setOf("other.jpg"), imageStore.files)
     }
 }

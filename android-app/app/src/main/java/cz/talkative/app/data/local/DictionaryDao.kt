@@ -84,9 +84,19 @@ abstract class DictionaryDao {
     )
     abstract suspend fun countSubtreeWords(profileId: String, rootId: String): Int
 
+    /** Obrázky nesmazaných slovíček v podstromu (pro úklid souborů při mazání složky). */
     @Query(
         SUBTREE + """
-        UPDATE words SET deleted = 1, updatedAt = :now
+        SELECT imageFile FROM words
+        WHERE profileId = :profileId AND deleted = 0 AND imageFile IS NOT NULL
+        AND parentId IN (SELECT id FROM subtree)
+        """,
+    )
+    abstract suspend fun subtreeImageFiles(profileId: String, rootId: String): List<String>
+
+    @Query(
+        SUBTREE + """
+        UPDATE words SET deleted = 1, updatedAt = :now, imageFile = NULL
         WHERE profileId = :profileId AND deleted = 0 AND parentId IN (SELECT id FROM subtree)
         """,
     )
@@ -100,13 +110,41 @@ abstract class DictionaryDao {
     )
     abstract suspend fun deleteSubtreeFolders(profileId: String, rootId: String, now: Long)
 
-    @Query("UPDATE words SET deleted = 1, updatedAt = :now WHERE profileId = :profileId AND id = :id AND deleted = 0")
-    abstract suspend fun deleteWord(profileId: String, id: String, now: Long)
+    @Query("UPDATE words SET deleted = 1, updatedAt = :now, imageFile = NULL WHERE profileId = :profileId AND id = :id AND deleted = 0")
+    abstract suspend fun markWordDeleted(profileId: String, id: String, now: Long)
 
-    /** Tombstone celého podstromu v jedné transakci. Slovíčka první, dokud složky ještě "žijí" pro rekurzi. */
+    @Query("UPDATE words SET imageFile = :imageFile, updatedAt = :now WHERE profileId = :profileId AND id = :id AND deleted = 0")
+    abstract suspend fun updateWordImage(profileId: String, id: String, imageFile: String?, now: Long)
+
+    /** Všechny obrázky, které nesmazaná slovíčka používají (zbytek souborů je osiřelý). */
+    @Query("SELECT imageFile FROM words WHERE profileId = :profileId AND deleted = 0 AND imageFile IS NOT NULL")
+    abstract suspend fun allImageFiles(profileId: String): List<String>
+
+    /** Smaže slovíčko a vrátí název jeho obrázku (k úklidu souboru), nebo `null`. */
     @Transaction
-    open suspend fun deleteFolderSubtree(profileId: String, rootId: String, now: Long) {
+    open suspend fun deleteWord(profileId: String, id: String, now: Long): String? {
+        val image = getWord(profileId, id)?.imageFile
+        markWordDeleted(profileId, id, now)
+        return image
+    }
+
+    /** Nastaví obrázek slovíčka a vrátí název původního obrázku (k úklidu souboru), nebo `null`. */
+    @Transaction
+    open suspend fun replaceWordImage(profileId: String, id: String, imageFile: String?, now: Long): String? {
+        val previous = getWord(profileId, id)?.imageFile
+        updateWordImage(profileId, id, imageFile, now)
+        return previous
+    }
+
+    /**
+     * Tombstone celého podstromu v jedné transakci. Slovíčka první, dokud složky ještě "žijí" pro rekurzi.
+     * Vrací obrázky smazaných slovíček, aby je volající po úspěšném commitu smazal ze souborů.
+     */
+    @Transaction
+    open suspend fun deleteFolderSubtree(profileId: String, rootId: String, now: Long): List<String> {
+        val images = subtreeImageFiles(profileId, rootId)
         deleteSubtreeWords(profileId, rootId, now)
         deleteSubtreeFolders(profileId, rootId, now)
+        return images
     }
 }

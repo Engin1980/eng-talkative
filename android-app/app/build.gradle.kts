@@ -71,6 +71,7 @@ dependencies {
     ksp(libs.androidx.room.compiler)
 
     implementation(libs.androidx.datastore.preferences)
+    implementation(libs.androidx.exifinterface)
     implementation(libs.kotlinx.coroutines.android)
     // Novější runtime než ten z lifecycle (1.7.3); Room migrační testy ho potřebují (AbstractMethodError).
     implementation(libs.kotlinx.serialization.core)
