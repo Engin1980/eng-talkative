@@ -1,0 +1,18 @@
+# Gradle / Android
+.gradle/
+build/
+local.properties
+captures/
+.externalNativeBuild/
+.cxx/
+*.apk
+*.aab
+
+# Podpisové klíče a tajemství (nikdy do repozitáře)
+*.jks
+*.keystore
+keystore.properties
+
+# IDE
+.idea/
+*.iml

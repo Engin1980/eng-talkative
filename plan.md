@@ -2,11 +2,37 @@
 
 Plán postupuje po funkcionalitách (vertikální řezy přes UI, doménu i data), ne po vrstvách. Po každém kroku je aplikace spustitelná a použitelná o kousek víc než předtím. Zadání je v `assignment.md`, odložené funkce v `todo.md` (do tohoto plánu nepatří).
 
-Obecná pravidla pro všechny kroky:
+## Jak s plánem pracovat
+
+- Každý krok je rozdělen na **podkroky** (např. 2.1, 2.2), které jsou dostatečně malé na jednu pracovní session. Lze zadat např. „proveď podkrok 2.3 z `plan.md`“.
+- U každého podkroku jsou dva seznamy: **Úkoly** (co udělat) a **Kritéria** (jak ověřit, že je hotovo). Podkrok je hotový, až jsou zaškrtnuté obě části.
+- Po dokončení položky se v tomto souboru změní `- [ ]` na `- [x]`. Souhrnný přehled níže se zaškrtne, až jsou hotové všechny podkroky daného kroku.
+- Po každém dokončeném podkroku: zelené testy, zaškrtnutí v plánu a samostatný commit (pokud si to vlastník přeje). Rozpracovaný podkrok se nenechává v nefunkčním stavu; pokud dojde limit, nechá se v plánu poznámka, co zbývá.
+- Pokud se při práci objeví nová otázka, postupuje se podle workflow s `guestions.md` popsaného v `CLAUDE.md`.
+
+## Přehled postupu
+
+- [x] Krok 0: Kostra projektu
+- [ ] Krok 1: Vstup do administrace a základ slovníku
+- [ ] Krok 2: Klient: procházení a skládání věty
+- [ ] Krok 3: Přehrání věty hlasem (TTS)
+- [ ] Krok 4: Obrázky slovíček
+- [ ] Krok 5: Vlastní zvuková definice slovíčka
+- [ ] Krok 6: Pokročilá správa slovníku
+- [ ] Krok 7: Konfigurace a pokročilé ovládání klienta
+- [ ] Krok 8: Export a import
+- [ ] Krok 9: Synchronizace s Google Drive
+- [ ] Krok 10: Nekonzistence a zotavení
+- [ ] Krok 11: Dokončení a předání
+
+## Obecná pravidla pro všechny kroky
+
 - Každý krok končí zelenými testy (`./gradlew test`, u UI kroků i instrumentované/Compose testy) a ručním ověřením na emulátoru tabletu.
 - Datový model od začátku obsahuje: ID, `profileId` (`default`), `updatedAt`, příznak smazání (tombstone), aby se synchronizace nemusela dělat zpětně přepisem.
 - Texty jsou v Android resources (čeština), rozměry a barvy z tématu.
 - Pokud nová knihovna vyžaduje minSdk vyšší než 26, krok se zastaví a zeptá se.
+- Kód je jednoduchý a čitelný (vlastník zná Javu); preferuje se jasná architektura před zkratkami.
+- Testy se píší tak, aby skutečně ověřovaly požadované chování, ne jen aby procházely.
 
 ---
 
@@ -14,18 +40,40 @@ Obecná pravidla pro všechny kroky:
 
 **Cíl:** Spustitelná prázdná aplikace se základní architekturou, na které lze stavět.
 
-**Co se bude dělat:**
-- Založit Gradle projekt (`cz.talkative.app`, Kotlin, Compose, Material 3, minSdk 26).
-- Nastavit Hilt, Room (prázdná databáze s verzováním schématu), Coroutines/Flow.
-- Rozdělit balíčky na UI / doména / data a zavést zvolený vzor (MVVM/MVI) na jedné ukázkové obrazovce.
-- Téma (barvy, typografie, rozměry) s vysokým kontrastem.
-- Navigace mezi klientským a administrátorským rozhraním (zatím prázdné obrazovky).
-- Doplnit příkazy pro build a testy do `CLAUDE.md`.
+### 0.1 Gradle projekt a závislosti
+
+**Úkoly:**
+- [x] Založit Gradle projekt (`cz.talkative.app`, Kotlin, Compose, Material 3, minSdk 26) včetně Gradle wrapperu a version catalogu (`libs.versions.toml`). Projekt pro android aplikaci bude ve složce `android-app`.
+- [x] Přidat `.gitignore` pro Android/Gradle (`build/`, `.gradle/`, `local.properties`, keystore soubory).
+- [x] Nastavit Hilt, Room (prázdná databáze s verzováním schématu a exportem schémat do repozitáře), Coroutines/Flow.
+- [x] Nastavit testovací závislosti (JUnit, coroutines-test, Compose UI test, Room testing).
 
 **Kritéria splnění:**
-- Aplikace se sestaví a spustí na emulátoru tabletu (API 26 i novější) a zobrazí klientskou obrazovku.
-- `./gradlew test` a `./gradlew connectedAndroidTest` (nebo ekvivalent) proběhnou s alespoň jedním testem na každé úrovni.
-- `CLAUDE.md` obsahuje funkční příkazy pro build, testy a spuštění jednoho testu.
+- [x] `./gradlew assembleDebug` proběhne bez chyb.
+- [x] Žádná závislost nevyžaduje minSdk vyšší než 26.
+
+### 0.2 Architektura a téma
+
+**Úkoly:**
+- [x] Rozdělit balíčky na UI / doména / data a zavést zvolený vzor (MVVM/MVI) na jedné ukázkové obrazovce.
+- [x] Téma (barvy, typografie, rozměry) s vysokým kontrastem; uvažovat pouze světlý režim.
+- [x] Texty v `strings.xml` (čeština), rozměry v tématu (včetně minimální dotykové plochy 64 dp jako sdílená konstanta).
+
+**Kritéria splnění:**
+- [x] Ukázková obrazovka prochází celým řetězcem UI → ViewModel → doména → data (i kdyby s fiktivními daty).
+- [x] V kódu obrazovek nejsou natvrdo napsané barvy, velikosti ani texty.
+
+### 0.3 Navigace a testy
+
+**Úkoly:**
+- [x] Navigace mezi klientským a administrátorským rozhraním (zatím prázdné obrazovky).
+- [x] Alespoň jeden unit test, jeden test Room (instrumentovaný) a jeden Compose UI test.
+- [x] Doplnit příkazy pro build a testy (včetně spuštění jednoho testu) do `CLAUDE.md` a opravit v něm sekci „Current state“.
+
+**Kritéria splnění:**
+- [x] Aplikace se sestaví a spustí na emulátoru tabletu (API 26 i novější) a zobrazí klientskou obrazovku. _(ověřeno na `Medium_Tablet_API_26` a `Pixel_Tablet_API_35`)_
+- [x] `./gradlew test` a `./gradlew connectedAndroidTest` (nebo ekvivalent) proběhnou s alespoň jedním testem na každé úrovni.
+- [x] `CLAUDE.md` obsahuje funkční příkazy pro build, testy a spuštění jednoho testu.
 
 ---
 
@@ -33,18 +81,53 @@ Obecná pravidla pro všechny kroky:
 
 **Cíl:** Administrátor umí vytvořit strom složek a slovíček s titulky.
 
-**Co se bude dělat:**
-- Datový model: složka a slovíčko (titulek, rodič, pořadí), uloženo v Room jako strom přes ID rodiče.
-- Skrytý ovládací prvek v klientském režimu: podržení 10 s přepne do administrace, v administraci je tlačítko pro návrat do klienta. Žádný PIN.
-- Administrace: výpis obsahu složky, vytvoření, úprava a smazání složky a slovíčka (zatím bez multi-výběru), navigace do podsložek a zpět.
-- Smazání neprázdné složky: rekurzivně, s potvrzením a počtem dotčených položek.
+### 1.1 Datový model a repozitář
+
+**Úkoly:**
+- [ ] Doménový model a Room entity pro složku a slovíčko (ID, `profileId`, titulek, rodič, pořadí, `updatedAt`, tombstone); kořen má rodiče `null`.
+- [ ] DAO a repozitář: čtení obsahu složky (Flow), vytvoření, úprava, smazání.
+- [ ] Rekurzivní smazání podstromu a výpočet počtu dotčených položek.
+- [ ] Nové položky se řadí na konec složky (výpočet pořadí).
 
 **Kritéria splnění:**
-- Aplikace po startu vždy otevře klientský režim; do administrace se dostane jen podržením po dobu nastaveného intervalu (kratší podržení nedělá nic).
-- Lze vytvořit alespoň 3 úrovně zanořených složek, slovíčka v nich, upravit titulky a vše smazat.
-- Smazání složky s obsahem zobrazí správný počet dotčených položek; po potvrzení zmizí celý podstrom, po zrušení se nic nestane.
-- Data přežijí restart aplikace.
-- Unit testy repozitáře (CRUD, rekurzivní mazání, strom) a UI test podržení.
+- [ ] Unit/Room testy: CRUD, strom o 3+ úrovních, rekurzivní mazání, počet dotčených položek.
+- [ ] Smazané položky mají tombstone a nezobrazují se v běžných dotazech.
+
+### 1.2 Skrytý vstup do administrace
+
+**Úkoly:**
+- [ ] Skrytý ovládací prvek v klientském režimu: podržení po dobu intervalu (výchozí 10 s, hodnota zatím konstanta/výchozí z konfigurace) přepne do administrace.
+- [ ] V administraci tlačítko pro návrat do klienta; žádný PIN.
+- [ ] Aplikace po každém startu otevře klientský režim.
+
+**Kritéria splnění:**
+- [ ] Kratší podržení nedělá nic; podržení po celý interval otevře administraci.
+- [ ] Po restartu aplikace je vždy klientský režim.
+- [ ] UI test podržení (krátké vs. dlouhé).
+
+### 1.3 Administrace: výpis a navigace ve stromu
+
+**Úkoly:**
+- [ ] Obrazovka administrace s výpisem obsahu aktuální složky (složky a slovíčka).
+- [ ] Vstup do podsložky a návrat o úroveň výš; zobrazení aktuální cesty.
+- [ ] Prázdný stav (složka bez obsahu) s nápovědou.
+
+**Kritéria splnění:**
+- [ ] Lze se pohybovat stromem tam a zpět a cesta odpovídá poloze.
+- [ ] Dotykové plochy mají minimálně 64 dp.
+
+### 1.4 Administrace: vytvoření, úprava, smazání
+
+**Úkoly:**
+- [ ] Dialog/obrazovka pro vytvoření a úpravu složky a slovíčka (titulek, validace prázdného titulku).
+- [ ] Smazání slovíčka a složky.
+- [ ] Potvrzení smazání neprázdné složky s počtem dotčených položek; bez koše.
+
+**Kritéria splnění:**
+- [ ] Lze vytvořit alespoň 3 úrovně zanořených složek, slovíčka v nich, upravit titulky a vše smazat.
+- [ ] Smazání složky s obsahem zobrazí správný počet dotčených položek; po potvrzení zmizí celý podstrom, po zrušení se nic nestane.
+- [ ] Data přežijí restart aplikace.
+- [ ] Titulky nemusí být unikátní (lze vytvořit dvě stejně pojmenovaná slovíčka).
 
 ---
 
@@ -52,21 +135,56 @@ Obecná pravidla pro všechny kroky:
 
 **Cíl:** Klient vidí mřížku složek a slovíček a klepnutím skládá větu.
 
-**Co se bude dělat:**
-- Konfigurační úložiště (lokální, DataStore) s výchozími hodnotami z `assignment.md`; zatím bez obrazovky nastavení, hodnoty se čtou odtud.
-- Klientská obrazovka: stavový řádek věty nahoře, pod ním stránkovaná mřížka složek a slovíček (velikost mřížky z konfigurace, jiná na výšku a na šířku).
-- Drobečková navigace a velká tlačítka „Zpět“ a „Domů“.
-- Klepnutí na složku vstoupí do složky, klepnutí na slovíčko ho přidá do věty.
-- Odebrání slova ze věty podržením (výchozí 1 s), smazání celé věty tlačítkem.
-- Věta se po restartu neobnovuje.
+### 2.1 Konfigurační úložiště
+
+**Úkoly:**
+- [ ] Lokální konfigurace (DataStore) s výchozími hodnotami z `assignment.md`; zatím bez obrazovky nastavení.
+- [ ] Repozitář konfigurace vystavený jako Flow.
+- [ ] Napojit interval podržení pro vstup do administrace (z kroku 1.2) na konfiguraci.
 
 **Kritéria splnění:**
-- Z dat vytvořených v kroku 1 lze projít celý strom a poskládat větu z libovolných slovíček, včetně opakování stejného slova.
-- Stránkování správně rozdělí položky podle velikosti mřížky (např. 10 položek v mřížce 3×3 jsou 2 stránky) a funguje při otočení tabletu.
-- Breadcrumbs vždy odpovídají aktuální cestě, „Domů“ vede do kořene, „Zpět“ o úroveň výš.
-- Krátké klepnutí na slovo ve větě nic neodebere, podržení po nastavený interval ano.
-- Dotykové plochy mají minimálně 64 dp.
-- Unit testy view modelu (skládání věty, stránkování, navigace) a Compose UI testy hlavního scénáře.
+- [ ] Výchozí hodnoty odpovídají `assignment.md`.
+- [ ] Unit test: čtení výchozích hodnot a zápisu změny.
+
+### 2.2 Mřížka a stránkování
+
+**Úkoly:**
+- [ ] Čistá logika stránkování (rozdělení položek podle velikosti mřížky).
+- [ ] Klientská obrazovka: stránkovaná mřížka složek a slovíček; velikost mřížky z konfigurace, jiná na výšku a na šířku.
+- [ ] Ovládání stránek (listování); stránkování přežije otočení tabletu.
+
+**Kritéria splnění:**
+- [ ] 10 položek v mřížce 3×3 jsou 2 stránky; prázdná složka i přesný násobek stránky fungují.
+- [ ] Otočení tabletu nezmění aktuální složku a mřížka se přepočítá.
+- [ ] Unit testy stránkování.
+
+### 2.3 Navigace ve stromu
+
+**Úkoly:**
+- [ ] Drobečková navigace (breadcrumbs).
+- [ ] Velká tlačítka „Zpět“ a „Domů“.
+- [ ] Klepnutí na složku do ní vstoupí.
+
+**Kritéria splnění:**
+- [ ] Breadcrumbs vždy odpovídají aktuální cestě, „Domů“ vede do kořene, „Zpět“ o úroveň výš.
+- [ ] Dotykové plochy mají minimálně 64 dp.
+- [ ] Unit testy navigace ve view modelu.
+
+### 2.4 Skládání věty
+
+**Úkoly:**
+- [ ] Stavový řádek věty nahoře.
+- [ ] Klepnutí na slovíčko ho přidá do věty (včetně opakování stejného slova).
+- [ ] Odebrání slova ze věty podržením (výchozí 1 s); krátké klepnutí nic neodebere.
+- [ ] Tlačítko pro smazání celé věty.
+- [ ] Věta se po restartu neobnovuje; přežije ale otočení obrazovky.
+- [ ] Zachování věty při přechodu do administrace a zpět není nutné. Po návratu do klientského pohledu se to může chovat jako nově spuštěná aplikace.
+
+**Kritéria splnění:**
+- [ ] Z dat vytvořených v kroku 1 lze projít celý strom a poskládat větu z libovolných slovíček.
+- [ ] Krátké klepnutí na slovo ve větě nic neodebere, podržení po nastavený interval ano.
+- [ ] Dlouhá věta se ve stavovém řádku zobrazí použitelně (zalamování nebo posun).
+- [ ] Unit testy view modelu (skládání věty) a Compose UI testy hlavního scénáře.
 
 ---
 
@@ -74,17 +192,30 @@ Obecná pravidla pro všechny kroky:
 
 **Cíl:** Klient větu stiskem tlačítka přečte nahlas a může přehrávání zastavit.
 
-**Co se bude dělat:**
-- Rozhraní `SpeechProvider` a implementace nad Android `TextToSpeech` (čeština, hlas dle zařízení).
-- Tlačítko Přehrát, které se při přehrávání mění na Stop.
-- Sestavení výpovědi: titulky slovíček se spojí do jednoho textu.
-- Ošetření chyb: chybějící český hlas nebo nedostupný TTS engine zobrazí srozumitelnou hlášku.
+### 3.1 Rozhraní a TTS implementace
+
+**Úkoly:**
+- [ ] Rozhraní `SpeechProvider` (přehraj, zastav, stav přehrávání jako Flow).
+- [ ] Implementace nad Android `TextToSpeech` (čeština, hlas dle zařízení), správa životního cyklu (inicializace, uvolnění).
+- [ ] Falešná implementace `SpeechProvider` pro testy.
+- [ ] Sestavení výpovědi: titulky slovíček se spojí do jednoho textu (čistá logika).
 
 **Kritéria splnění:**
-- Poskládaná věta se přečte jedním plynulým TTS výstupem, ne po slovech.
-- Stop okamžitě přeruší řeč a tlačítko se vrátí na Přehrát; opětovné přehrání funguje.
-- Prázdná věta: tlačítko Přehrát je neaktivní nebo nic nedělá.
-- Unit test skládání textu s falešným `SpeechProvider`; ruční ověření hlasu na emulátoru/zařízení.
+- [ ] Unit test skládání textu s falešným `SpeechProvider`.
+- [ ] TTS engine se po zavření aplikace korektně uvolní (bez úniku).
+
+### 3.2 Tlačítko Přehrát/Stop a chyby
+
+**Úkoly:**
+- [ ] Tlačítko Přehrát, které se při přehrávání mění na Stop.
+- [ ] Tlačítko je neaktivní (nebo nic nedělá) při prázdné větě.
+- [ ] Ošetření chyb: chybějící český hlas nebo nedostupný TTS engine zobrazí srozumitelnou hlášku (s nápovědou, co dělat).
+
+**Kritéria splnění:**
+- [ ] Poskládaná věta se přečte jedním plynulým TTS výstupem, ne po slovech.
+- [ ] Stop okamžitě přeruší řeč a tlačítko se vrátí na Přehrát; opětovné přehrání funguje.
+- [ ] Změna věty během přehrávání se chová předvídatelně (přehrávací tlačítko opětovným stiskem přehrání zastaví).
+- [ ] Ruční ověření hlasu na emulátoru/zařízení.
 
 ---
 
@@ -92,18 +223,40 @@ Obecná pravidla pro všechny kroky:
 
 **Cíl:** Slovíčka mají volitelný obrázek, který se zobrazuje v mřížce i ve větě.
 
-**Co se bude dělat:**
-- Admin: výběr obrázku z galerie a pořízení fotografie, zmenšení při uložení (např. 512 px), uložení do soukromého úložiště aplikace, odebrání obrázku.
-- Dlaždice v mřížce: obrázek a titulek; slovíčko bez obrázku jen text.
-- Věta: menší dlaždice s obrázkem a titulkem (skrytí titulku podle konfigurace).
-- Správa oprávnění a chyb (fotoaparát zamítnut, soubor nelze přečíst).
+### 4.1 Úložiště a zpracování obrázků
+
+**Úkoly:**
+- [ ] Služba pro zmenšení obrázku při uložení (např. 512 px, zachování poměru stran, správná orientace dle EXIF) a uložení do soukromého úložiště aplikace.
+- [ ] Pole s cestou/názvem obrázku v modelu slovíčka (migrace databáze + test migrace).
+- [ ] Úklid souboru při odebrání obrázku nebo smazání slovíčka (včetně rekurzivního smazání složky).
 
 **Kritéria splnění:**
-- Obrázek lze přidat, vyměnit a odebrat; přežije restart aplikace.
-- Uložený soubor je zmenšen na limit a původní velký obrázek se neukládá.
-- Smazání slovíčka smaže i jeho soubor obrázku (žádné osiřelé soubory).
-- Zobrazení v mřížce a ve větě odpovídá zadání, bez obrázku se zobrazí jen text.
-- Testy: zmenšení obrázku, čištění souborů, UI zobrazení s obrázkem i bez.
+- [ ] Uložený soubor je zmenšen na limit a původní velký obrázek se neukládá.
+- [ ] Smazání slovíčka (i celé složky) smaže soubory obrázků; žádné osiřelé soubory.
+- [ ] Testy: zmenšení obrázku, čištění souborů, migrace.
+
+### 4.2 Výběr obrázku v administraci
+
+**Úkoly:**
+- [ ] Výběr z galerie (systémový výběr) a pořízení fotografie.
+- [ ] Náhled, výměna a odebrání obrázku v editaci slovíčka.
+- [ ] Správa oprávnění a chyb (fotoaparát zamítnut, soubor nelze přečíst, nedostatek místa).
+
+**Kritéria splnění:**
+- [ ] Obrázek lze přidat, vyměnit a odebrat; přežije restart aplikace.
+- [ ] Zamítnuté oprávnění k fotoaparátu nezpůsobí pád a zobrazí hlášku.
+
+### 4.3 Zobrazení obrázků v klientovi
+
+**Úkoly:**
+- [ ] Dlaždice v mřížce: obrázek a titulek; slovíčko bez obrázku jen text.
+- [ ] Věta: menší dlaždice s obrázkem a titulkem (skrytí titulku podle konfigurace).
+- [ ] Efektivní načítání obrázků (cache, zmenšené bitmapy, plynulé listování).
+
+**Kritéria splnění:**
+- [ ] Zobrazení v mřížce a ve větě odpovídá zadání, bez obrázku se zobrazí jen text.
+- [ ] Skrytí titulků ve větě funguje (hodnota z konfigurace).
+- [ ] UI testy zobrazení s obrázkem i bez.
 
 ---
 
@@ -111,18 +264,43 @@ Obecná pravidla pro všechny kroky:
 
 **Cíl:** Slovíčko může mít jiný text pro čtení nebo vlastní MP3 a věta se přehraje správně.
 
-**Co se bude dělat:**
-- Admin: u slovíčka volitelný alternativní text pro TTS nebo výběr MP3 souboru ze zařízení (omezení délky na desítky sekund, kontrola velikosti/formátu), náhled zvuku v administraci.
-- Přehrávání: alternativní text nahradí titulek; narazí-li věta na MP3, TTS se přeruší, přehraje se MP3 a pokračuje se.
-- Rozšíření `SpeechProvider` o přehrávání MP3 (přehrávání na pozadí bez zamrznutí UI, Stop funguje i během MP3).
-- Úklid souboru MP3 při smazání nebo výměně.
+### 5.1 Alternativní text a plánování úseků
+
+**Úkoly:**
+- [ ] Pole alternativního textu pro TTS v modelu slovíčka (migrace + test) a v editaci v administraci.
+- [ ] Čistá logika plánování úseků věty (sloučení sousedních TTS slov, dělení na MP3 úseky).
+- [ ] Alternativní text nahradí titulek při sestavení výpovědi.
 
 **Kritéria splnění:**
-- Slovo s alternativním textem se čte podle něj, ne podle titulku.
-- Věta „A, [MP3], B, C“ se přehraje jako TTS(A) → MP3 → TTS(B C) bez překryvu a bez zbytečných pauz.
-- Stop během TTS i během MP3 zastaví vše a další slova se nepřehrají.
-- Příliš dlouhý nebo nečitelný MP3 je odmítnut s hláškou.
-- Testy: plánování úseků věty (sloučení TTS, dělení MP3) jako čistá logika, ruční ověření zvuku.
+- [ ] Slovo s alternativním textem se čte podle něj, ne podle titulku.
+- [ ] Unit testy plánování: „A, [MP3], B, C“ → TTS(A), MP3, TTS(B C); věta jen z MP3; MP3 na začátku i na konci.
+
+### 5.2 Správa MP3 souborů
+
+**Úkoly:**
+- [ ] Výběr MP3 ze zařízení, kontrola formátu, velikosti a délky (desítky sekund), uložení do soukromého úložiště.
+- [ ] Náhled zvuku v administraci (přehrát/zastavit).
+- [ ] Odebrání a výměna MP3; úklid souboru při smazání slovíčka nebo složky.
+- [ ] Hlášky při odmítnutí (příliš dlouhý, nečitelný, nepodporovaný formát).
+
+**Kritéria splnění:**
+- [ ] Příliš dlouhý nebo nečitelný MP3 je odmítnut s hláškou a nic se neuloží.
+- [ ] Smazání/výměna nenechá osiřelý soubor.
+- [ ] Zvuk přežije restart aplikace.
+
+### 5.3 Přehrávání MP3 ve větě
+
+**Úkoly:**
+- [ ] Rozšíření `SpeechProvider` (nebo nadřazená vrstva) o přehrávání MP3 (na pozadí, UI nezamrzá).
+- [ ] Sekvenční přehrávání úseků podle plánu: TTS → MP3 → TTS.
+- [ ] Stop funguje v kterékoli fázi (TTS i MP3) a zruší zbývající úseky.
+- [ ] Uvolnění přehrávače po dokončení/zastavení.
+
+**Kritéria splnění:**
+- [ ] Věta „A, [MP3], B, C“ se přehraje bez překryvu a bez zbytečných pauz.
+- [ ] Stop během TTS i během MP3 zastaví vše a další slova se nepřehrají.
+- [ ] Chyba při přehrávání jednoho MP3 neshodí aplikaci ani nezablokuje tlačítko Přehrát.
+- [ ] Ruční ověření zvuku na zařízení.
 
 ---
 
@@ -130,18 +308,47 @@ Obecná pravidla pro všechny kroky:
 
 **Cíl:** Administrátor pohodlně přesouvá a řadí položky, včetně hromadných operací.
 
-**Co se bude dělat:**
-- Režim multi-výběru v administraci (slovíčka i složky najednou).
-- Hromadný přesun do cílové složky (s ochranou proti přesunu složky do sebe sama nebo do vlastního podstromu).
-- Ruční řazení položek ve složce (přesouváním), uložené pořadí se používá v administraci i v klientu.
-- Rychlé seřazení podle abecedy s kolací z konfigurace (čeština: správné řazení „ch“, diakritiky).
+### 6.1 Multi-výběr
+
+**Úkoly:**
+- [ ] Režim multi-výběru v administraci (slovíčka i složky najednou), označení/odznačení, „vybrat vše“.
+- [ ] Hromadné smazání vybraných položek se souhrnným potvrzením (počet včetně podstromů).
 
 **Kritéria splnění:**
-- Označení více položek a přesun do jiné složky je jedna operace; po ní je vše na novém místě a ve staré složce zmizelo.
-- Pokus o přesun složky do jejího potomka je odmítnut.
-- Po ručním přeřazení a restartu je pořadí stejné, klient vidí stejné pořadí.
-- Abecední řazení řadí česky (např. „cibule“ před „chléb“, „d“ po „ch“), změna kolace v konfiguraci změní výsledek.
-- Unit testy přesunů, ochrany cyklů a řazení.
+- [ ] Lze označit více položek a výběr zrušit; stav je přehledný.
+- [ ] Hromadné smazání zobrazí správný celkový počet a po potvrzení smaže vše.
+
+### 6.2 Hromadný přesun
+
+**Úkoly:**
+- [ ] Výběr cílové složky (procházení stromu).
+- [ ] Přesun jako jedna transakce; aktualizace `updatedAt` přesunutých položek.
+- [ ] Ochrana proti přesunu složky do sebe sama nebo do vlastního podstromu.
+
+**Kritéria splnění:**
+- [ ] Označení více položek a přesun do jiné složky je jedna operace; po ní je vše na novém místě a ve staré složce zmizelo.
+- [ ] Pokus o přesun složky do jejího potomka je odmítnut s hláškou a nic se nezmění.
+- [ ] Unit testy přesunů a ochrany cyklů.
+
+### 6.3 Ruční řazení
+
+**Úkoly:**
+- [ ] Ruční řazení položek ve složce (přesouváním nahoru/dolů nebo tažením).
+- [ ] Uložené pořadí se používá v administraci i v klientu.
+
+**Kritéria splnění:**
+- [ ] Po ručním přeřazení a restartu je pořadí stejné, klient vidí stejné pořadí.
+- [ ] Unit test přepočtu pořadí.
+
+### 6.4 Abecední řazení
+
+**Úkoly:**
+- [ ] Rychlé seřazení podle abecedy s kolací z konfigurace (výchozí čeština).
+- [ ] Volba kolace v konfiguraci zatím jako hodnota v úložišti (UI nastavení přijde v kroku 7).
+
+**Kritéria splnění:**
+- [ ] Abecední řazení řadí česky (např. „cibule“ před „chléb“, „d“ po „ch“, správně diakritika); změna kolace v konfiguraci změní výsledek.
+- [ ] Unit testy řazení.
 
 ---
 
@@ -149,19 +356,49 @@ Obecná pravidla pro všechny kroky:
 
 **Cíl:** Administrátor nastaví chování klienta a klient může věty skládat i tažením.
 
-**Co se bude dělat:**
-- Obrazovka konfigurace v administraci: způsob přidání slova (klepnutí/tažení), povolení změny pořadí, interval podržení, přehrání slova při klepnutí, velikost mřížky, kolace, skrytí titulků ve větě, automatické smazání věty po přehrání.
-- Režim tažení: přetažení slova do stavového řádku, odtažení slova pryč z řádku jej odebere.
-- Změna pořadí slov ve větě posunováním vlevo/vpravo (lze zakázat).
-- Přehrání jednotlivého slova při klepnutí (pokud zapnuto) a automatické smazání věty po přehrání (pokud zapnuto).
-- Konfigurace je lokální a nesynchronizuje se.
+### 7.1 Obrazovka konfigurace
+
+**Úkoly:**
+- [ ] Obrazovka konfigurace v administraci: způsob přidání slova (klepnutí/tažení), povolení změny pořadí, interval podržení, přehrání slova při klepnutí, velikost mřížky (na výšku i na šířku), kolace, skrytí titulků ve větě, automatické smazání věty po přehrání.
+- [ ] Validace hodnot (rozumné meze intervalů a velikostí mřížky) a tlačítko „obnovit výchozí“.
 
 **Kritéria splnění:**
-- Každé nastavení má viditelný efekt v klientovi hned po návratu z administrace a přežije restart.
-- V režimu tažení klepnutí slovo nepřidá a tažení ano (a naopak v režimu klepnutí).
-- Zakázaná změna pořadí opravdu nejde provést.
-- Výchozí hodnoty odpovídají `assignment.md`.
-- Compose UI testy pro oba režimy ovládání a pro nastavení.
+- [ ] Každé nastavení má viditelný efekt v klientovi hned po návratu z administrace a přežije restart.
+- [ ] Výchozí hodnoty odpovídají `assignment.md`.
+- [ ] Konfigurace je lokální a nesynchronizuje se.
+- [ ] Compose UI test nastavení.
+
+### 7.2 Přehrání slova při klepnutí a automatické mazání
+
+**Úkoly:**
+- [ ] Přehrání jednotlivého slova při klepnutí (pokud zapnuto).
+- [ ] Automatické smazání věty po přehrání (pokud zapnuto).
+
+**Kritéria splnění:**
+- [ ] Při zapnutém nastavení se slovo po klepnutí přečte, při vypnutém ne.
+- [ ] Věta se po dokončení přehrávání smaže jen při zapnutém nastavení; po Stopu se nesmaže.
+
+### 7.3 Režim tažení
+
+**Úkoly:**
+- [ ] Přetažení slova do stavového řádku přidá slovo.
+- [ ] Odtažení slova pryč z řádku jej odebere.
+- [ ] V režimu tažení klepnutí slovo nepřidá, v režimu klepnutí tažení nepřidá.
+
+**Kritéria splnění:**
+- [ ] Obě varianty ovládání fungují podle nastavení a vzájemně se nerušají.
+- [ ] Compose UI testy pro oba režimy.
+
+### 7.4 Změna pořadí ve větě
+
+**Úkoly:**
+- [ ] Změna pořadí slov ve větě posunováním vlevo/vpravo.
+- [ ] Možnost změnu pořadí zakázat v konfiguraci.
+
+**Kritéria splnění:**
+- [ ] Zakázaná změna pořadí opravdu nejde provést.
+- [ ] Při povolení lze slovo přesunout na libovolnou pozici ve větě.
+- [ ] Unit testy přesunu ve větě.
 
 ---
 
@@ -169,19 +406,43 @@ Obecná pravidla pro všechny kroky:
 
 **Cíl:** Slovník nebo jeho část lze uložit do souboru a později načíst.
 
-**Co se bude dělat:**
-- Formát: ZIP s `manifest.json` (verze schématu, struktura složek a slovíček) a adresáři pro obrázky a zvuky.
-- Export celého slovníku nebo vybrané složky (včetně podstromu) přes systémový výběr souboru (SAF); volitelně i konfigurace (zaškrtávátko).
-- Import: celého archivu nebo vybraných složek/podsložek do zvolené cílové složky (výchozí kořen); vždy přidává s novými ID a nic nepřepisuje; volitelně nahrazení celého slovníku (s potvrzením).
-- Kontrola verze schématu a odolnost vůči poškozenému archivu.
+### 8.1 Formát archivu a serializace
+
+**Úkoly:**
+- [ ] Návrh `manifest.json` (verze schématu, struktura složek a slovíček, odkazy na média) a adresářů pro obrázky a zvuky.
+- [ ] Serializace a deserializace (kotlinx.serialization nebo ekvivalent).
+- [ ] Zdokumentovat formát (např. krátká sekce v `assignment.md` nebo samostatný soubor).
 
 **Kritéria splnění:**
-- Export → smazání dat → import vrátí identický slovník (struktura, titulky, pořadí, obrázky, zvuky).
-- Opakovaný import téhož archivu vytvoří duplicity s novými ID, původní data zůstanou nedotčena.
-- Částečný import jen vybrané složky ji vloží do zvolené cílové složky včetně jejích médií.
-- Poškozený nebo cizí archiv i archiv s novější verzí schématu skončí srozumitelnou chybou bez změny dat.
-- Archiv neobsahuje nic jiného než povolená data (žádný PIN, žádné přihlašovací údaje).
-- Unit testy (de)serializace a import/export round-trip.
+- [ ] Unit testy (de)serializace včetně prázdného slovníku a slovníku s médii.
+- [ ] Archiv neobsahuje nic jiného než povolená data (žádný PIN, žádné přihlašovací údaje).
+
+### 8.2 Export
+
+**Úkoly:**
+- [ ] Export celého slovníku nebo vybrané složky (včetně podstromu) do ZIP přes systémový výběr souboru (SAF).
+- [ ] Volitelně export konfigurace (zaškrtávátko).
+- [ ] Indikace průběhu a chyb (nedostatek místa, přerušení).
+
+**Kritéria splnění:**
+- [ ] Vzniklý ZIP lze otevřít a obsahuje `manifest.json` a všechna použitá média.
+- [ ] Chyba při zápisu nezanechá poškozený částečný soubor bez upozornění.
+
+### 8.3 Import
+
+**Úkoly:**
+- [ ] Import celého archivu přidávající položky s novými ID; nic nepřepisuje.
+- [ ] Import vybraných složek/podsložek do zvolené cílové složky (výchozí kořen).
+- [ ] Volitelné nahrazení celého slovníku (s potvrzením).
+- [ ] Kontrola verze schématu, validace archivu před zápisem, odolnost vůči poškozenému archivu (import v jedné transakci, média se kopírují až po validaci nebo se při chybě odstraní).
+- [ ] Import konfigurace, je-li v archivu a uživatel ji chce.
+
+**Kritéria splnění:**
+- [ ] Export → smazání dat → import vrátí identický slovník (struktura, titulky, pořadí, obrázky, zvuky).
+- [ ] Opakovaný import téhož archivu vytvoří duplicity s novými ID, původní data zůstanou nedotčena.
+- [ ] Částečný import jen vybrané složky ji vloží do zvolené cílové složky včetně jejích médií.
+- [ ] Poškozený nebo cizí archiv i archiv s novější verzí schématu skončí srozumitelnou chybou bez změny dat.
+- [ ] Unit testy import/export round-trip a chybových stavů.
 
 ---
 
@@ -189,21 +450,55 @@ Obecná pravidla pro všechny kroky:
 
 **Cíl:** Data se zálohují na Google Drive a po instalaci na jiném zařízení se stejným účtem se dotáhnou.
 
-**Co se bude dělat:**
-- Výběr Google účtu systémovým dialogem při prvním spuštění nebo v administraci; bez účtu aplikace běží jen lokálně.
-- Úložiště ve skryté složce aplikace (`drive.appdata`): metadata jako JSON, média jako samostatné soubory.
-- Slučování změn podle `updatedAt` (last write wins), mazání přes tombstony, úklid starých tombstonů.
-- Spouštění synchronizace: po změně v administraci (je-li síť), při startu aplikace, ručně tlačítkem; opakování po výpadku sítě na pozadí.
-- Stav synchronizace viditelný v administraci (poslední úspěšná synchronizace, chyba).
-- Konfigurace se nesynchronizuje.
+> Tento krok vyžaduje externí nastavení (Google Cloud projekt, OAuth klient, podpisový klíč). Nejdřív ho připravit ručně, případně se zeptat vlastníka.
+
+### 9.1 Příprava a přihlášení
+
+**Úkoly:**
+- [ ] Založit/ověřit Google Cloud projekt, povolit Drive API, nastavit OAuth klienta pro `cz.talkative.app` a SHA-1 debug klíče (postup zapsat do dokumentace).
+- [ ] Výběr Google účtu systémovým dialogem při prvním spuštění nebo v administraci.
+- [ ] Bez účtu aplikace běží jen lokálně; odhlášení/změna účtu v administraci.
 
 **Kritéria splnění:**
-- Offline aplikace funguje beze změn a nahromaděné změny se po připojení odešlou.
-- Po instalaci na druhém zařízení (nebo po vymazání dat) a přihlášení stejným účtem se objeví stejný slovník včetně obrázků a zvuků.
-- Smazání na jednom zařízení se po synchronizaci projeví na druhém; úprava vs. smazání vyhrává novější změna.
-- Souběžné úpravy ze dvou zařízení nezpůsobí pád ani ztrátu celého slovníku; vyhrává poslední zápis.
-- Výpadek sítě uprostřed synchronizace nenechá lokální data v poškozeném stavu.
-- Testy slučování a konfliktů nad falešným úložištěm; ruční test se dvěma zařízeními/emulátory a skutečným účtem.
+- [ ] Po výběru účtu aplikace získá oprávnění `drive.appdata` a zapamatuje si účet.
+- [ ] Odmítnutí přihlášení nezpůsobí pád a aplikace dál funguje lokálně.
+
+### 9.2 Abstrakce úložiště a model sloučení
+
+**Úkoly:**
+- [ ] Rozhraní vzdáleného úložiště (výpis, čtení, zápis, mazání) s falešnou implementací pro testy.
+- [ ] Návrh struktury na Drive: metadata jako JSON, média jako samostatné soubory; zdokumentovat.
+- [ ] Čistá logika slučování podle `updatedAt` (last write wins) včetně tombstonů a konfliktu delete-vs-edit.
+- [ ] Úklid starých tombstonů (po definované době).
+
+**Kritéria splnění:**
+- [ ] Unit testy slučování: nová položka, úprava na jedné straně, souběžné úpravy, smazání vs. úprava (vyhrává novější), tombstone.
+- [ ] Slučování je idempotentní (opakované spuštění nic nemění).
+
+### 9.3 Implementace Drive a přenos médií
+
+**Úkoly:**
+- [ ] Implementace úložiště nad Drive API (`drive.appdata`).
+- [ ] Nahrávání a stahování obrázků a MP3; přenášejí se jen změněné soubory.
+- [ ] Lokální data se mění až po úspěšném stažení (aplikace změn v transakci), aby výpadek sítě nenechal poškozený stav.
+
+**Kritéria splnění:**
+- [ ] Po instalaci na druhém zařízení (nebo po vymazání dat) a přihlášení stejným účtem se objeví stejný slovník včetně obrázků a zvuků.
+- [ ] Výpadek sítě uprostřed synchronizace nenechá lokální data v poškozeném stavu.
+
+### 9.4 Spouštění a stav synchronizace
+
+**Úkoly:**
+- [ ] Synchronizace po změně v administraci (je-li síť), při startu aplikace a ručním tlačítkem.
+- [ ] Opakování po výpadku sítě na pozadí (WorkManager s omezením na síť, exponenciální backoff).
+- [ ] Stav synchronizace v administraci (probíhá, poslední úspěšná synchronizace, chyba).
+- [ ] Konfigurace se nesynchronizuje.
+
+**Kritéria splnění:**
+- [ ] Offline aplikace funguje beze změn a nahromaděné změny se po připojení odešlou.
+- [ ] Smazání na jednom zařízení se po synchronizaci projeví na druhém; úprava vs. smazání vyhrává novější změna.
+- [ ] Souběžné úpravy ze dvou zařízení nezpůsobí pád ani ztrátu celého slovníku; vyhrává poslední zápis.
+- [ ] Ruční test se dvěma zařízeními/emulátory a skutečným účtem.
 
 ---
 
@@ -211,17 +506,38 @@ Obecná pravidla pro všechny kroky:
 
 **Cíl:** Aplikace se po poškození dat nerozsype a upozorní administrátora výkřičníkem.
 
-**Co se bude dělat:**
-- Detekce: chybějící soubor obrázku nebo MP3, slovíčko odkazující na neexistující složku, nevyřešitelný konflikt při synchronizaci.
-- Označení výkřičníkem u dotčeného slovíčka v administraci (a bezpečné chování v klientu: chybějící obrázek se zobrazí jako text, chybějící MP3 se přeskočí nebo přečte titulek).
-- Zotavení: osiřelé položky se zobrazí na dohledatelném místě, aby je šlo opravit nebo smazat; po opravě výkřičník zmizí.
-- Pokus o opětovné stažení chybějících souborů z Drive při další synchronizaci.
+### 10.1 Detekce nekonzistencí
+
+**Úkoly:**
+- [ ] Detekce chybějícího souboru obrázku nebo MP3.
+- [ ] Detekce slovíčka/složky odkazující na neexistující složku.
+- [ ] Označení nevyřešitelného konfliktu při synchronizaci.
+- [ ] Doménový model „problému“ slovíčka (seznam důvodů) vystavený UI.
 
 **Kritéria splnění:**
-- Ručně smazaný soubor obrázku/MP3 nebo uměle rozbitá reference vede k výkřičníku, nikoli k pádu ani prázdné obrazovce.
-- Po opravě administrátorem (nahrání souboru, přesun, smazání) výkřičník zmizí.
-- Klient s poškozenými daty dál skládá a přehrává věty.
-- Testy pro každou z tří situací.
+- [ ] Testy pro každou ze tří situací (chybějící soubor, neexistující rodič, konflikt).
+
+### 10.2 Zobrazení a bezpečné chování
+
+**Úkoly:**
+- [ ] Výkřičník u dotčeného slovíčka v administraci (s vysvětlením po klepnutí).
+- [ ] Klient: chybějící obrázek se zobrazí jako text, chybějící MP3 se přečte titulek.
+
+**Kritéria splnění:**
+- [ ] Ručně smazaný soubor obrázku/MP3 nebo uměle rozbitá reference vede k výkřičníku, nikoli k pádu ani prázdné obrazovce.
+- [ ] Klient s poškozenými daty dál skládá a přehrává věty.
+
+### 10.3 Zotavení
+
+**Úkoly:**
+- [ ] Osiřelé položky se zobrazí na dohledatelném místě (např. speciální složka „Nalezené“), aby je šlo opravit nebo smazat.
+- [ ] Po opravě (nahrání souboru, přesun, smazání) výkřičník zmizí.
+- [ ] Pokus o opětovné stažení chybějících souborů z Drive při další synchronizaci.
+
+**Kritéria splnění:**
+- [ ] Osiřelé položky nejsou nikde „ztracené“ a lze je přesunout nebo smazat.
+- [ ] Po opravě administrátorem výkřičník zmizí.
+- [ ] Chybějící soubor, který je na Drive, se při další synchronizaci obnoví.
 
 ---
 
@@ -229,15 +545,36 @@ Obecná pravidla pro všechny kroky:
 
 **Cíl:** Stabilní první verze připravená k interní distribuci.
 
-**Co se bude dělat:**
-- Projít přístupnost: velikosti dotykových ploch, kontrast, žádná časově omezená gesta, orientace na výšku i na šířku na různých velikostech tabletu.
-- Informace o soukromí (co se ukládá a kam) dostupná v administraci.
-- Kontrola výkonu při velkém slovníku (stovky položek, desítky obrázků).
-- Podepsaný release APK pro interní distribuci, návod k instalaci.
-- Aktualizace `CLAUDE.md`, `assignment.md` a `todo.md` podle skutečného stavu.
+### 11.1 Přístupnost a výkon
+
+**Úkoly:**
+- [ ] Projít přístupnost: velikosti dotykových ploch, kontrast, žádná časově omezená gesta, popisky pro čtečku obrazovky (`contentDescription`).
+- [ ] Orientace na výšku i na šířku na různých velikostech tabletu.
+- [ ] Kontrola výkonu při velkém slovníku (stovky položek, desítky obrázků): plynulé listování, rychlý start.
 
 **Kritéria splnění:**
-- Všechny testy jsou zelené a projdou ručním scénářem: vytvořit slovník → poskládat větu → přehrát → export/import → synchronizace na druhé zařízení.
-- Aplikace běží plynule na minimálně podporovaném Androidu 8.0 i na novějším.
-- Release APK se nainstaluje na čisté zařízení a funguje včetně přihlášení k Drive.
-- Dokumentace odpovídá kódu.
+- [ ] Všechny interaktivní prvky mají alespoň 64 dp a dostatečný kontrast.
+- [ ] Aplikace zůstává plynulá s testovacím slovníkem o stovkách položek.
+
+### 11.2 Soukromí a release
+
+**Úkoly:**
+- [ ] Informace o soukromí (co se ukládá a kam) dostupná v administraci.
+- [ ] Release build: ikona aplikace, název, verze, minifikace/ProGuard pravidla (Room, Hilt, Drive API).
+- [ ] Podpisový klíč (mimo repozitář), podepsaný release APK, návod k instalaci.
+- [ ] Ověřit OAuth klienta Drive pro release podpis (SHA-1 release klíče).
+
+**Kritéria splnění:**
+- [ ] Release APK se nainstaluje na čisté zařízení a funguje včetně přihlášení k Drive.
+- [ ] Aplikace běží plynule na minimálně podporovaném Androidu 8.0 i na novějším.
+- [ ] Keystore ani hesla nejsou v repozitáři.
+
+### 11.3 Závěrečné ověření a dokumentace
+
+**Úkoly:**
+- [ ] Projít ručním scénářem: vytvořit slovník → poskládat větu → přehrát → export/import → synchronizace na druhé zařízení.
+- [ ] Aktualizace `CLAUDE.md`, `assignment.md` a `todo.md` podle skutečného stavu.
+
+**Kritéria splnění:**
+- [ ] Všechny testy jsou zelené a ruční scénář projde.
+- [ ] Dokumentace odpovídá kódu.
