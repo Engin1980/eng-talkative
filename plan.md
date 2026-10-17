@@ -150,14 +150,14 @@ Plán postupuje po funkcionalitách (vertikální řezy přes UI, doménu i data
 ### 2.2 Mřížka a stránkování
 
 **Úkoly:**
-- [ ] Čistá logika stránkování (rozdělení položek podle velikosti mřížky).
-- [ ] Klientská obrazovka: stránkovaná mřížka složek a slovíček; velikost mřížky z konfigurace, jiná na výšku a na šířku.
-- [ ] Ovládání stránek (listování); stránkování přežije otočení tabletu.
+- [x] Čistá logika stránkování (rozdělení položek podle velikosti mřížky).
+- [x] Klientská obrazovka: stránkovaná mřížka složek a slovíček; velikost mřížky z konfigurace, jiná na výšku a na šířku.
+- [x] Ovládání stránek (listování); stránkování přežije otočení tabletu.
 
 **Kritéria splnění:**
-- [ ] 10 položek v mřížce 3×3 jsou 2 stránky; prázdná složka i přesný násobek stránky fungují.
-- [ ] Otočení tabletu nezmění aktuální složku a mřížka se přepočítá.
-- [ ] Unit testy stránkování.
+- [x] 10 položek v mřížce 3×3 jsou 2 stránky; prázdná složka i přesný násobek stránky fungují.
+- [x] Otočení tabletu nezmění aktuální složku a mřížka se přepočítá. _(ověřeno testem přepočtu mřížky a tím, že složka i stránka žijí ve view modelu; skutečné otočení zařízení neověřeno)_
+- [x] Unit testy stránkování.
 
 ### 2.3 Navigace ve stromu
 

@@ -2,8 +2,12 @@
 <resources>
     <string name="app_name">Talkative</string>
 
-    <string name="client_profile">Profil: %1$s</string>
     <string name="client_loading">Načítání…</string>
+    <string name="client_empty_folder">Tato složka je prázdná.</string>
+    <string name="client_page_previous">Předchozí</string>
+    <string name="client_page_next">Další</string>
+    <string name="client_page_indicator">Stránka %1$d z %2$d</string>
+    <string name="client_folder_marker">Složka</string>
 
     <string name="admin_title">Administrace</string>
     <string name="admin_back_to_client">Zpět do klienta</string>
