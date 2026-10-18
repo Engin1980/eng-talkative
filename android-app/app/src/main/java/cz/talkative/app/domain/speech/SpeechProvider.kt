@@ -12,6 +12,9 @@ enum class SpeechError {
 
     /** Přehrání selhalo za běhu. */
     FAILED,
+
+    /** Vlastní MP3 slovíčka se nepodařilo přehrát (chybí nebo je poškozený soubor). */
+    AUDIO_FAILED,
 }
 
 data class SpeechState(

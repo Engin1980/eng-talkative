@@ -16,6 +16,7 @@
     <string name="client_speech_error_engine">Na tomto zařízení nefunguje čtení textu nahlas. Chybí nebo nejde spustit hlasový modul (převod textu na řeč). Zkontrolujte v nastavení Androidu v části Jazyk a zadávání, že je hlasový modul nainstalovaný a zapnutý.</string>
     <string name="client_speech_error_language">Na tomto zařízení chybí český hlas. V nastavení Androidu (Jazyk a zadávání, Převod textu na řeč) stáhněte hlasová data pro češtinu.</string>
     <string name="client_speech_error_failed">Přehrání se nepodařilo. Zkuste to prosím znovu.</string>
+    <string name="client_speech_error_audio">Vlastní zvuk jednoho ze slovíček se nepodařilo přehrát, soubor chybí nebo je poškozený. Čtení věty bylo zastaveno. Požádejte správce, ať zvuk slovíčka zkontroluje v administraci.</string>
     <string name="client_back">Zpět</string>
     <string name="client_home">Domů</string>
     <string name="client_breadcrumb_root">Úvod</string>

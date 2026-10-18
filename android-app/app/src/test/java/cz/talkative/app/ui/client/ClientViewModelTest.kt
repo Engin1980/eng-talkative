@@ -7,6 +7,7 @@ import cz.talkative.app.domain.speech.SpeechError
 import cz.talkative.app.domain.usecase.GetFolderPathUseCase
 import cz.talkative.app.domain.usecase.ObserveConfigUseCase
 import cz.talkative.app.domain.usecase.ObserveFolderItemsUseCase
+import cz.talkative.app.testing.FakeAudioPlayer
 import cz.talkative.app.testing.FakeSpeechProvider
 import cz.talkative.app.ui.admin.FakeDictionaryRepository
 import kotlinx.coroutines.Dispatchers
@@ -21,6 +22,7 @@ import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
 import org.junit.After
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
@@ -37,6 +39,7 @@ class ClientViewModelTest {
         }
     }
     private val speech = FakeSpeechProvider()
+    private val audioPlayer = FakeAudioPlayer()
     private lateinit var viewModel: ClientViewModel
 
     @Before
@@ -47,6 +50,7 @@ class ClientViewModelTest {
             GetFolderPathUseCase(repository),
             ObserveConfigUseCase(configRepository),
             speech,
+            audioPlayer,
         )
     }
 
@@ -391,5 +395,85 @@ class ClientViewModelTest {
 
         viewModel.onEvent(ClientEvent.DismissSpeechError)
         assertEquals(null, viewModel.uiState.value.speechError)
+    }
+
+    // ---- vlastní MP3 ve větě (krok 5.3)
+
+    private suspend fun pick(title: String, audioFile: String? = null) =
+        viewModel.onEvent(ClientEvent.WordSelected(repository.createWord(null, title, audioFile = audioFile)))
+
+    @Test
+    fun sentenceWithMp3_playsTtsThenMp3ThenTts_withoutOverlap() = runVmTest {
+        subscribe()
+        pick("A")
+        pick("zvonek", audioFile = "zvonek.mp3")
+        pick("B")
+        pick("C")
+
+        viewModel.onEvent(ClientEvent.TogglePlayback)
+        assertEquals(listOf("A"), speech.spoken)
+        assertTrue(viewModel.uiState.value.isSpeaking)
+
+        speech.finishSpeaking()
+        assertEquals(listOf("zvonek.mp3"), audioPlayer.played)
+        assertTrue(viewModel.uiState.value.isSpeaking) // mezi úseky tlačítko zůstává Stop
+
+        audioPlayer.finishPlaying()
+        assertEquals(listOf("A", "B C"), speech.spoken)
+
+        speech.finishSpeaking()
+        assertEquals(false, viewModel.uiState.value.isSpeaking)
+    }
+
+    @Test
+    fun stopButton_duringMp3_stopsEverything() = runVmTest {
+        subscribe()
+        pick("zvonek", audioFile = "zvonek.mp3")
+        pick("B")
+        viewModel.onEvent(ClientEvent.TogglePlayback)
+        assertEquals(1, audioPlayer.activePlays)
+
+        viewModel.onEvent(ClientEvent.TogglePlayback)
+
+        assertEquals(false, viewModel.uiState.value.isSpeaking)
+        assertEquals(0, audioPlayer.activePlays)
+        assertTrue(speech.spoken.isEmpty())
+    }
+
+    @Test
+    fun brokenMp3_showsErrorWithoutBlockingPlayButton() = runVmTest {
+        subscribe()
+        audioPlayer.failingFiles += "rozbite.mp3"
+        pick("zvonek", audioFile = "rozbite.mp3")
+        pick("B")
+
+        viewModel.onEvent(ClientEvent.TogglePlayback)
+
+        assertEquals(cz.talkative.app.domain.speech.SpeechError.AUDIO_FAILED, viewModel.uiState.value.speechError)
+        assertEquals(false, viewModel.uiState.value.isSpeaking)
+        assertTrue(speech.spoken.isEmpty())
+
+        viewModel.onEvent(ClientEvent.DismissSpeechError)
+        assertNull(viewModel.uiState.value.speechError)
+
+        viewModel.onEvent(ClientEvent.ClearSentence)
+        pick("C")
+        viewModel.onEvent(ClientEvent.TogglePlayback) // tlačítko dál funguje
+        assertEquals(listOf("C"), speech.spoken)
+    }
+
+    @Test
+    fun viewModelRelease_stopsRunningMp3() = runVmTest {
+        subscribe()
+        pick("zvonek", audioFile = "zvonek.mp3")
+        viewModel.onEvent(ClientEvent.TogglePlayback)
+        assertEquals(1, audioPlayer.activePlays)
+
+        val onCleared = ClientViewModel::class.java.getDeclaredMethod("onCleared")
+        onCleared.isAccessible = true
+        onCleared.invoke(viewModel)
+
+        assertEquals(0, audioPlayer.activePlays)
+        assertTrue(speech.isShutdown)
     }
 }

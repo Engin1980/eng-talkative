@@ -326,6 +326,14 @@ class ClientScreenTest {
         composeRule.onNodeWithText("hlasový modul", substring = true).assertIsDisplayed()
     }
 
+    @Test
+    fun brokenCustomSound_explainsWhatHappened() {
+        show(ClientUiState(speechError = SpeechError.AUDIO_FAILED, isLoading = false))
+
+        composeRule.onNodeWithText("Vlastní zvuk jednoho ze slovíček se nepodařilo přehrát", substring = true).assertIsDisplayed()
+        composeRule.onNodeWithText("Čtení věty bylo zastaveno", substring = true).assertIsDisplayed()
+    }
+
     // ---- obrázky (krok 4.3)
 
     private val appContext = androidx.test.core.app.ApplicationProvider.getApplicationContext<android.content.Context>()

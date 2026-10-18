@@ -2,12 +2,13 @@ package cz.talkative.app.ui.client
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import cz.talkative.app.domain.audio.AudioPlayer
 import cz.talkative.app.domain.model.SentenceEntry
 import cz.talkative.app.domain.usecase.GetFolderPathUseCase
 import cz.talkative.app.domain.usecase.ObserveConfigUseCase
 import cz.talkative.app.domain.speech.SpeechProvider
 import cz.talkative.app.domain.speech.PlaybackPlanner
-import cz.talkative.app.domain.speech.PlaybackSegment
+import cz.talkative.app.domain.speech.SentencePlayer
 import cz.talkative.app.domain.usecase.ObserveFolderItemsUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -29,8 +30,12 @@ class ClientViewModel @Inject constructor(
     private val getPath: GetFolderPathUseCase,
     observeConfig: ObserveConfigUseCase,
     /** Instance patří tomuto view modelu a uvolní se v [onCleared]. */
-    private val speech: SpeechProvider,
+    speech: SpeechProvider,
+    audioPlayer: AudioPlayer,
 ) : ViewModel() {
+
+    /** Věta se přehrává po úsecích (TTS a MP3); drží se tu kvůli jednomu hlasu na obrazovku a uvolnění v [onCleared]. */
+    private val player = SentencePlayer(speech, audioPlayer, viewModelScope)
 
     /** Aktuální složka; `null` je kořen. Nezávisí na orientaci displeje, ta mění jen velikost mřížky. */
     private val currentFolderId = MutableStateFlow<String?>(null)
@@ -56,7 +61,7 @@ class ClientViewModel @Inject constructor(
         )
     }
 
-    val uiState: StateFlow<ClientUiState> = combine(browsingState, speech.state) { state, speechState ->
+    val uiState: StateFlow<ClientUiState> = combine(browsingState, player.state) { state, speechState ->
         state.copy(isSpeaking = speechState.isSpeaking, speechError = speechState.error)
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), ClientUiState())
 
@@ -74,23 +79,21 @@ class ClientViewModel @Inject constructor(
             is ClientEvent.RemoveFromSentence -> sentence.value = sentence.value.filterNot { it.entryId == event.entryId }
             ClientEvent.ClearSentence -> sentence.value = emptyList()
             ClientEvent.TogglePlayback -> togglePlayback()
-            ClientEvent.DismissSpeechError -> speech.clearError()
+            ClientEvent.DismissSpeechError -> player.clearError()
         }
     }
 
-    /** Při řeči tlačítko zastaví; jinak přečte celou větu jedním výstupem (prázdná věta se nepřehrává). */
+    /** Při přehrávání tlačítko zastaví; jinak přehraje větu po úsecích (prázdná věta se nepřehrává). */
     private fun togglePlayback() {
-        if (speech.state.value.isSpeaking) {
-            speech.stop()
-            return
+        if (player.isPlaying) {
+            player.stop()
+        } else {
+            player.play(PlaybackPlanner.plan(sentence.value))
         }
-        // Přehrávání MP3 úseků přibude v podkroku 5.3; zatím se čtou jen TTS úseky.
-        val text = PlaybackPlanner.plan(sentence.value).filterIsInstance<PlaybackSegment.Tts>().joinToString(" ") { it.text }
-        if (text.isNotEmpty()) speech.speak(text)
     }
 
     override fun onCleared() {
-        speech.shutdown()
+        player.shutdown()
     }
 
     private fun goTo(folderId: String?) {

@@ -58,6 +58,7 @@ fun SpeechErrorDialog(error: SpeechError, onDismiss: () -> Unit) {
         SpeechError.ENGINE_UNAVAILABLE -> R.string.client_speech_error_engine
         SpeechError.LANGUAGE_MISSING -> R.string.client_speech_error_language
         SpeechError.FAILED -> R.string.client_speech_error_failed
+        SpeechError.AUDIO_FAILED -> R.string.client_speech_error_audio
     }
     AlertDialog(
         onDismissRequest = onDismiss,
