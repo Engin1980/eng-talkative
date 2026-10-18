@@ -5,7 +5,10 @@ import cz.talkative.app.domain.usecase.CountFolderContentsUseCase
 import cz.talkative.app.domain.usecase.DeleteFolderUseCase
 import cz.talkative.app.domain.usecase.DeleteItemsUseCase
 import cz.talkative.app.domain.usecase.DeleteWordUseCase
+import cz.talkative.app.domain.usecase.MoveItemInOrderUseCase
 import cz.talkative.app.domain.usecase.MoveItemsUseCase
+import cz.talkative.app.domain.usecase.SortAlphabeticallyUseCase
+import cz.talkative.app.testing.FakeConfigRepository
 import cz.talkative.app.domain.usecase.DiscardImageUseCase
 import cz.talkative.app.domain.usecase.SaveImageUseCase
 import cz.talkative.app.domain.image.ImageError
@@ -44,6 +47,7 @@ class AdminViewModelTest {
     private val imageStore = FakeImageStore()
     private val audioStore = FakeAudioStore()
     private val audioPlayer = FakeAudioPlayer()
+    private val config = FakeConfigRepository()
     private lateinit var viewModel: AdminViewModel
 
     @Before
@@ -59,6 +63,8 @@ class AdminViewModelTest {
             DeleteWordUseCase(repository),
             DeleteItemsUseCase(repository),
             MoveItemsUseCase(repository),
+            MoveItemInOrderUseCase(repository),
+            SortAlphabeticallyUseCase(repository, config),
             SaveImageUseCase(imageStore),
             DiscardImageUseCase(imageStore),
             SaveAudioUseCase(audioStore),
@@ -976,5 +982,54 @@ class AdminViewModelTest {
         viewModel.onEvent(AdminEvent.MoveSelected)
 
         assertNull(viewModel.uiState.value.dialog)
+    }
+
+    // --- ruční pořadí (6.3) a abecední řazení (6.4)
+
+    @Test
+    fun moveItemUpAndDown_changesOrderInAdmin() = runVmTest {
+        subscribe()
+        create(AdminEvent.AddWord, "a")
+        create(AdminEvent.AddFolder, "B")
+        create(AdminEvent.AddWord, "c")
+
+        viewModel.onEvent(AdminEvent.MoveItemUp(itemByTitle("c").id))
+        assertEquals(listOf("a", "c", "B"), titles())
+
+        viewModel.onEvent(AdminEvent.MoveItemDown(itemByTitle("a").id))
+        assertEquals(listOf("c", "a", "B"), titles())
+
+        viewModel.onEvent(AdminEvent.MoveItemUp(itemByTitle("c").id)) // už je první
+        viewModel.onEvent(AdminEvent.MoveItemDown(itemByTitle("B").id)) // už je poslední
+        assertEquals(listOf("c", "a", "B"), titles())
+    }
+
+    @Test
+    fun moveItem_reordersOnlyTheCurrentFolder() = runVmTest {
+        subscribe()
+        create(AdminEvent.AddFolder, "F")
+        create(AdminEvent.AddWord, "root")
+        viewModel.onEvent(AdminEvent.GoToFolder(itemByTitle("F").id))
+        create(AdminEvent.AddWord, "x")
+        create(AdminEvent.AddWord, "y")
+
+        viewModel.onEvent(AdminEvent.MoveItemUp(itemByTitle("y").id))
+
+        assertEquals(listOf("y", "x"), titles())
+        viewModel.onEvent(AdminEvent.GoToFolder(null))
+        assertEquals(listOf("F", "root"), titles())
+    }
+
+    @Test
+    fun sortAlphabetically_usesCollationFromConfiguration() = runVmTest {
+        subscribe()
+        listOf("dům", "chléb", "cibule").forEach { create(AdminEvent.AddWord, it) }
+
+        viewModel.onEvent(AdminEvent.SortAlphabetically)
+        assertEquals(listOf("cibule", "dům", "chléb"), titles())
+
+        config.update { it.copy(collationLanguageTag = "en") }
+        viewModel.onEvent(AdminEvent.SortAlphabetically)
+        assertEquals(listOf("chléb", "cibule", "dům"), titles())
     }
 }

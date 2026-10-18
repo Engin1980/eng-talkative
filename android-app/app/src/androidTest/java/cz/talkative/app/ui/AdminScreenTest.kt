@@ -565,4 +565,37 @@ class AdminScreenTest {
         show(state(dialog = moveDialog(targetId = "f2", path = listOf(folder("f2", "A")), problem = cz.talkative.app.ui.admin.MoveProblem.INTO_ITSELF)))
         composeRule.onNodeWithText("Složku nelze přesunout do sebe samé ani do její podsložky. Nic se nepřesunulo.").assertIsDisplayed()
     }
+
+    // --- ruční pořadí (6.3) a abecední řazení (6.4)
+
+    @Test
+    fun moveButtons_sendEvents_andAreDisabledAtTheEnds() {
+        show(state(word("w1", "První"), word("w2", "Druhý", order = 1), word("w3", "Třetí", order = 2)))
+
+        composeRule.onNodeWithContentDescription("Posunout První nahoru").assertIsNotEnabled()
+        composeRule.onNodeWithContentDescription("Posunout Třetí dolů").assertIsNotEnabled()
+        composeRule.onNodeWithContentDescription("Posunout Druhý nahoru").assertHeightIsAtLeast(64.dp).assertIsEnabled().performClick()
+        composeRule.onNodeWithContentDescription("Posunout Druhý dolů").assertWidthIsAtLeast(64.dp).performClick()
+
+        assertEquals(listOf<AdminEvent>(AdminEvent.MoveItemUp("w2"), AdminEvent.MoveItemDown("w2")), events)
+    }
+
+    @Test
+    fun sortButton_sendsEvent_andIsDisabledForFewerThanTwoItems() {
+        show(state(word("w1", "A"), word("w2", "B", order = 1)))
+        composeRule.onNodeWithText("Seřadit podle abecedy").assertHeightIsAtLeast(64.dp).assertIsEnabled().performClick()
+        assertEquals(listOf<AdminEvent>(AdminEvent.SortAlphabetically), events)
+    }
+
+    @Test
+    fun sortButton_isDisabledWithOneItem() {
+        show(state(word("w1", "A")))
+        composeRule.onNodeWithText("Seřadit podle abecedy").assertIsNotEnabled()
+    }
+
+    @Test
+    fun moveButtons_areHiddenInSelectionMode() {
+        show(selectingState(emptySet()))
+        assertEquals(0, composeRule.onAllNodesWithContentDescription("Posunout Chci nahoru").fetchSemanticsNodes().size)
+    }
 }

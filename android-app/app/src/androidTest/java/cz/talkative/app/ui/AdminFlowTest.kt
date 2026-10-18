@@ -2,6 +2,7 @@ package cz.talkative.app.ui
 
 import android.content.Context
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.layout.positionInRoot
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.test.junit4.v2.createComposeRule
 import androidx.compose.ui.test.assertIsDisplayed
@@ -22,7 +23,10 @@ import cz.talkative.app.domain.usecase.CountFolderContentsUseCase
 import cz.talkative.app.domain.usecase.DeleteFolderUseCase
 import cz.talkative.app.domain.usecase.DeleteItemsUseCase
 import cz.talkative.app.domain.usecase.DeleteWordUseCase
+import cz.talkative.app.domain.usecase.MoveItemInOrderUseCase
 import cz.talkative.app.domain.usecase.MoveItemsUseCase
+import cz.talkative.app.domain.usecase.SortAlphabeticallyUseCase
+import cz.talkative.app.testing.FakeConfigRepository
 import cz.talkative.app.domain.usecase.DiscardAudioUseCase
 import cz.talkative.app.domain.usecase.DiscardImageUseCase
 import cz.talkative.app.domain.usecase.SaveAudioUseCase
@@ -64,6 +68,7 @@ class AdminFlowTest {
     private val imageStore = FakeImageStore()
     private val audioStore = FakeAudioStore()
     private val audioPlayer = FakeAudioPlayer()
+    private val config = FakeConfigRepository()
     private lateinit var viewModel: AdminViewModel
 
     @Before
@@ -81,6 +86,8 @@ class AdminFlowTest {
             DeleteWordUseCase(repository),
             DeleteItemsUseCase(repository),
             MoveItemsUseCase(repository),
+            MoveItemInOrderUseCase(repository),
+            SortAlphabeticallyUseCase(repository, config),
             SaveImageUseCase(imageStore),
             DiscardImageUseCase(imageStore),
             SaveAudioUseCase(audioStore),
@@ -374,5 +381,26 @@ class AdminFlowTest {
         composeRule.onNodeWithText("Cíl").performClick()
         waitForText("Slovo")
         composeRule.onNodeWithText("Zdroj").assertIsDisplayed()
+    }
+
+    private fun listedTitles(vararg expected: String): Boolean {
+        val positions = expected.map { title ->
+            composeRule.onAllNodesWithText(title).fetchSemanticsNodes().firstOrNull()?.positionInRoot?.y ?: return false
+        }
+        return positions == positions.sorted()
+    }
+
+    @Test
+    fun manualOrderAndAlphabeticalSort_changeTheListInTheScreen() {
+        waitForText("Tato složka je prázdná")
+        create("Nové slovíčko", "dům")
+        create("Nové slovíčko", "chléb")
+        create("Nové slovíčko", "cibule")
+
+        composeRule.onNodeWithContentDescription("Posunout cibule nahoru").performClick()
+        composeRule.waitUntil(5_000) { listedTitles("dům", "cibule", "chléb") }
+
+        composeRule.onNodeWithText("Seřadit podle abecedy").performClick()
+        composeRule.waitUntil(5_000) { listedTitles("cibule", "dům", "chléb") } // česky: c, d, ch
     }
 }

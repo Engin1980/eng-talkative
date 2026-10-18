@@ -140,6 +140,13 @@ sealed interface AdminEvent {
     data object DeleteSelected : AdminEvent
     data object ConfirmDeleteSelected : AdminEvent
 
+    /** Posune položku o místo nahoru nebo dolů v ručním pořadí složky. */
+    data class MoveItemUp(val itemId: String) : AdminEvent
+    data class MoveItemDown(val itemId: String) : AdminEvent
+
+    /** Seřadí obsah aktuální složky podle abecedy (podle kolace z konfigurace). */
+    data object SortAlphabetically : AdminEvent
+
     /** Otevře výběr cílové složky pro přesun označených položek. */
     data object MoveSelected : AdminEvent
 

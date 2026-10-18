@@ -20,11 +20,13 @@ import cz.talkative.app.domain.usecase.DeleteItemsUseCase
 import cz.talkative.app.domain.usecase.DeleteWordUseCase
 import cz.talkative.app.domain.usecase.DiscardImageUseCase
 import cz.talkative.app.domain.usecase.GetFolderPathUseCase
+import cz.talkative.app.domain.usecase.MoveItemInOrderUseCase
 import cz.talkative.app.domain.usecase.MoveItemsUseCase
 import cz.talkative.app.domain.usecase.ObserveFolderItemsUseCase
 import cz.talkative.app.domain.usecase.SaveFolderUseCase
 import cz.talkative.app.domain.usecase.SaveImageUseCase
 import cz.talkative.app.domain.usecase.SaveWordUseCase
+import cz.talkative.app.domain.usecase.SortAlphabeticallyUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.Job
@@ -52,6 +54,8 @@ class AdminViewModel @Inject constructor(
     private val deleteWord: DeleteWordUseCase,
     private val deleteItems: DeleteItemsUseCase,
     private val moveItems: MoveItemsUseCase,
+    private val moveItemInOrder: MoveItemInOrderUseCase,
+    private val sortAlphabetically: SortAlphabeticallyUseCase,
     private val saveImage: SaveImageUseCase,
     private val discardImage: DiscardImageUseCase,
     private val saveAudio: SaveAudioUseCase,
@@ -100,6 +104,9 @@ class AdminViewModel @Inject constructor(
             AdminEvent.ToggleSelectAll -> toggleSelectAll()
             AdminEvent.DeleteSelected -> requestDeleteSelected()
             AdminEvent.ConfirmDeleteSelected -> confirmDeleteSelected()
+            is AdminEvent.MoveItemUp -> moveInOrder(event.itemId, offset = -1)
+            is AdminEvent.MoveItemDown -> moveInOrder(event.itemId, offset = 1)
+            AdminEvent.SortAlphabetically -> viewModelScope.launch { sortAlphabetically(currentFolderId.value) }
             AdminEvent.MoveSelected -> requestMove()
             is AdminEvent.BrowseMoveTarget -> browseMoveTarget(event.folderId)
             AdminEvent.ConfirmMove -> confirmMove()
@@ -130,6 +137,11 @@ class AdminViewModel @Inject constructor(
             val total = selected.size + folders.sumOf { countContents(it.id) }
             dialog.value = AdminDialog.ConfirmDeleteSelected(selected.size, total)
         }
+    }
+
+    private fun moveInOrder(itemId: String, offset: Int) {
+        val orderedIds = uiState.value.items.map { it.id }
+        viewModelScope.launch { moveItemInOrder(currentFolderId.value, orderedIds, itemId, offset) }
     }
 
     /** Dialog přesunu začíná ve složce, ve které se právě výběr dělá. */

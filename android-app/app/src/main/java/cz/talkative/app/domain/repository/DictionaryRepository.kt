@@ -50,6 +50,12 @@ interface DictionaryRepository {
     suspend fun deleteWord(id: String)
 
     /**
+     * Uloží ruční pořadí složky [parentId]: položky z [orderedIds] dostanou pořadí 0, 1, 2, ... (složky a slovíčka
+     * dohromady) v jedné transakci. Nový `updatedAt` dostanou jen položky, kterým se pořadí změnilo.
+     */
+    suspend fun reorderItems(parentId: String?, orderedIds: List<String>)
+
+    /**
      * Přesune složky a slovíčka s [ids] na konec složky [targetParentId] (`null` = kořen) v jedné transakci;
      * zachová jejich dosavadní vzájemné pořadí. Položky, které už v cíli jsou, a neexistující ID se přeskočí.
      * Kontrolu cyklů (složka do vlastního podstromu) dělá volající, viz `MoveItemsUseCase`.

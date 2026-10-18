@@ -33,6 +33,9 @@
     <string name="admin_kind_word">Slovíčko</string>
     <string name="admin_edit_item">Upravit %1$s</string>
     <string name="admin_delete_item">Smazat %1$s</string>
+    <string name="admin_move_up">Posunout %1$s nahoru</string>
+    <string name="admin_move_down">Posunout %1$s dolů</string>
+    <string name="admin_sort_alphabetically">Seřadit podle abecedy</string>
     <string name="admin_select">Vybrat</string>
     <string name="admin_selected_count">Vybráno: %1$d</string>
     <string name="admin_select_all">Vybrat vše</string>

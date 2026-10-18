@@ -20,6 +20,8 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.KeyboardArrowDown
+import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material3.AlertDialog
 import androidx.compose.ui.window.DialogProperties
 import androidx.compose.foundation.layout.imePadding
@@ -140,6 +142,13 @@ fun AdminScreen(
             ) {
                 Text(stringResource(R.string.admin_select))
             }
+            OutlinedButton(
+                onClick = { onEvent(AdminEvent.SortAlphabetically) },
+                enabled = state.items.size > 1,
+                modifier = Modifier.heightIn(min = dimens.minTouchTarget),
+            ) {
+                Text(stringResource(R.string.admin_sort_alphabetically))
+            }
         }
 
         when {
@@ -152,6 +161,10 @@ fun AdminScreen(
                 items(state.items, key = { it.id }) { item ->
                     ItemRow(
                         item = item,
+                        isFirst = item.id == state.items.first().id,
+                        isLast = item.id == state.items.last().id,
+                        onMoveUp = { onEvent(AdminEvent.MoveItemUp(item.id)) },
+                        onMoveDown = { onEvent(AdminEvent.MoveItemDown(item.id)) },
                         isSelecting = state.isSelecting,
                         isSelected = item.id in state.selectedIds,
                         onClick = {
@@ -273,6 +286,10 @@ private fun EmptyFolderHint(modifier: Modifier = Modifier) {
 @Composable
 private fun ItemRow(
     item: DictionaryItem,
+    isFirst: Boolean,
+    isLast: Boolean,
+    onMoveUp: () -> Unit,
+    onMoveDown: () -> Unit,
     isSelecting: Boolean,
     isSelected: Boolean,
     onClick: () -> Unit,
@@ -315,6 +332,18 @@ private fun ItemRow(
                 )
             }
             if (isSelecting) return@Row
+            IconButton(onClick = onMoveUp, enabled = !isFirst, modifier = Modifier.size(dimens.minTouchTarget)) {
+                Icon(
+                    imageVector = Icons.Filled.KeyboardArrowUp,
+                    contentDescription = stringResource(R.string.admin_move_up, item.title),
+                )
+            }
+            IconButton(onClick = onMoveDown, enabled = !isLast, modifier = Modifier.size(dimens.minTouchTarget)) {
+                Icon(
+                    imageVector = Icons.Filled.KeyboardArrowDown,
+                    contentDescription = stringResource(R.string.admin_move_down, item.title),
+                )
+            }
             IconButton(onClick = onEdit, modifier = Modifier.size(dimens.minTouchTarget)) {
                 Icon(
                     imageVector = Icons.Filled.Edit,

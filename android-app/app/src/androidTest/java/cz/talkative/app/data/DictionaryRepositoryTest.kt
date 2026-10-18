@@ -471,4 +471,71 @@ class DictionaryRepositoryTest {
         assertEquals(listOf("F", "živé"), titles(null))
         assertTrue(titles(folder.id).isEmpty())
     }
+
+    private suspend fun orderOf(parentId: String?) = repository.observeItems(parentId).first().map { it.title to it.sortOrder }
+
+    @Test
+    fun reorderItems_renumbersFoldersAndWordsTogether_andBumpsOnlyChangedItems() = runTest {
+        val a = repository.createWord(null, "a")
+        val b = repository.createFolder(null, "B")
+        val c = repository.createWord(null, "c")
+        val d = repository.createWord(null, "d")
+        now = 9_000L
+
+        repository.reorderItems(null, listOf(a.id, c.id, b.id, d.id)) // a a d zůstávají na místě
+
+        assertEquals(listOf("a" to 0, "c" to 1, "B" to 2, "d" to 3), orderOf(null))
+        val dao = database.dictionaryDao()
+        assertEquals(1_000L, dao.getWord("default", a.id)?.updatedAt)
+        assertEquals(9_000L, dao.getWord("default", c.id)?.updatedAt)
+        assertEquals(9_000L, dao.getFolder("default", b.id)?.updatedAt)
+        assertEquals(1_000L, dao.getWord("default", d.id)?.updatedAt)
+    }
+
+    @Test
+    fun reorderItems_closesGapsLeftByDeletion() = runTest {
+        val a = repository.createWord(null, "a")
+        val b = repository.createWord(null, "b")
+        val c = repository.createWord(null, "c")
+        repository.deleteWord(b.id)
+        assertEquals(listOf("a" to 0, "c" to 2), orderOf(null))
+
+        repository.reorderItems(null, listOf(c.id, a.id))
+
+        assertEquals(listOf("c" to 0, "a" to 1), orderOf(null))
+    }
+
+    @Test
+    fun reorderItems_doesNotTouchItemsOfOtherFolders() = runTest {
+        val folder = repository.createFolder(null, "F")
+        val inside = repository.createWord(folder.id, "uvnitř")
+        val outside = repository.createWord(null, "venku")
+
+        repository.reorderItems(null, listOf(outside.id, inside.id, folder.id))
+
+        assertEquals(listOf("venku" to 0, "F" to 2), orderOf(null))
+        assertEquals(listOf("uvnitř" to 0), orderOf(folder.id))
+    }
+
+    @Test
+    fun manualOrder_survivesReopeningTheDatabase() = runTest {
+        val context = ApplicationProvider.getApplicationContext<Context>()
+        val name = "order-test-${System.nanoTime()}.db"
+        try {
+            var db = Room.databaseBuilder(context, TalkativeDatabase::class.java, name).build()
+            var repo = RoomDictionaryRepository(db.dictionaryDao(), { now }, imageStore, audioStore)
+            val a = repo.createWord(null, "a")
+            val b = repo.createWord(null, "b")
+            val c = repo.createWord(null, "c")
+            repo.reorderItems(null, listOf(c.id, a.id, b.id))
+            db.close()
+
+            db = Room.databaseBuilder(context, TalkativeDatabase::class.java, name).build()
+            repo = RoomDictionaryRepository(db.dictionaryDao(), { now }, imageStore, audioStore)
+            assertEquals(listOf("c", "a", "b"), repo.observeItems(null).first().map { it.title })
+            db.close()
+        } finally {
+            context.deleteDatabase(name)
+        }
+    }
 }

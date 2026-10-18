@@ -178,6 +178,26 @@ abstract class DictionaryDao {
         }
     }
 
+    @Query("UPDATE folders SET sortOrder = :sortOrder, updatedAt = :now WHERE profileId = :profileId AND id = :id AND deleted = 0")
+    abstract suspend fun setFolderOrder(profileId: String, id: String, sortOrder: Int, now: Long)
+
+    @Query("UPDATE words SET sortOrder = :sortOrder, updatedAt = :now WHERE profileId = :profileId AND id = :id AND deleted = 0")
+    abstract suspend fun setWordOrder(profileId: String, id: String, sortOrder: Int, now: Long)
+
+    /** Přečísluje položky složky podle [orderedIds] na 0, 1, 2, ...; položky z jiné složky se přeskočí. */
+    @Transaction
+    open suspend fun reorderItems(profileId: String, parentId: String?, orderedIds: List<String>, now: Long) {
+        orderedIds.forEachIndexed { index, id ->
+            val folder = getFolder(profileId, id)
+            val word = if (folder == null) getWord(profileId, id) else null
+            if (folder != null && folder.parentId == parentId && folder.sortOrder != index) {
+                setFolderOrder(profileId, id, index, now)
+            } else if (word != null && word.parentId == parentId && word.sortOrder != index) {
+                setWordOrder(profileId, id, index, now)
+            }
+        }
+    }
+
     /** Smaže složky (s podstromy) i slovíčka podle ID v jedné transakci a vrátí soubory k úklidu. */
     @Transaction
     open suspend fun deleteItems(profileId: String, ids: Collection<String>, now: Long): List<WordFiles> {

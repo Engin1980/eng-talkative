@@ -94,6 +94,13 @@ class FakeDictionaryRepository : DictionaryRepository {
         ids.forEach { id -> if (folders.value.any { it.id == id }) deleteFolder(id) else deleteWord(id) }
     }
 
+    override suspend fun reorderItems(parentId: String?, orderedIds: List<String>) {
+        orderedIds.forEachIndexed { index, id ->
+            folders.value = folders.value.map { if (it.id == id && it.parentId == parentId) it.copy(sortOrder = index) else it }
+            words.value = words.value.map { if (it.id == id && it.parentId == parentId) it.copy(sortOrder = index) else it }
+        }
+    }
+
     override suspend fun moveItems(ids: Collection<String>, targetParentId: String?) {
         val moving = (folders.value.filter { it.id in ids && it.parentId != targetParentId }.map { it.sortOrder to it.id } +
             words.value.filter { it.id in ids && it.parentId != targetParentId }.map { it.sortOrder to it.id })

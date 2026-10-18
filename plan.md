@@ -18,7 +18,7 @@ Plán postupuje po funkcionalitách (vertikální řezy přes UI, doménu i data
 - [x] Krok 3: Přehrání věty hlasem (TTS)
 - [x] Krok 4: Obrázky slovíček
 - [ ] Krok 5: Vlastní zvuková definice slovíčka
-- [ ] Krok 6: Pokročilá správa slovníku
+- [x] Krok 6: Pokročilá správa slovníku
 - [ ] Krok 7: Konfigurace a pokročilé ovládání klienta
 - [ ] Krok 8: Export a import
 - [ ] Krok 9: Synchronizace s Google Drive
@@ -334,22 +334,22 @@ Plán postupuje po funkcionalitách (vertikální řezy přes UI, doménu i data
 ### 6.3 Ruční řazení
 
 **Úkoly:**
-- [ ] Ruční řazení položek ve složce (přesouváním nahoru/dolů nebo tažením).
-- [ ] Uložené pořadí se používá v administraci i v klientu.
+- [x] Ruční řazení položek ve složce (přesouváním nahoru/dolů nebo tažením).
+- [x] Uložené pořadí se používá v administraci i v klientu. _(pozn.: administrace i klient čtou stejný `observeItems`)_
 
 **Kritéria splnění:**
-- [ ] Po ručním přeřazení a restartu je pořadí stejné, klient vidí stejné pořadí.
-- [ ] Unit test přepočtu pořadí.
+- [x] Po ručním přeřazení a restartu je pořadí stejné, klient vidí stejné pořadí. _(pozn.: restart ověřen znovuotevřením databáze v testu; ruční řazení je tlačítky nahoru/dolů)_
+- [x] Unit test přepočtu pořadí.
 
 ### 6.4 Abecední řazení
 
 **Úkoly:**
-- [ ] Rychlé seřazení podle abecedy s kolací z konfigurace (výchozí čeština).
-- [ ] Volba kolace v konfiguraci zatím jako hodnota v úložišti (UI nastavení přijde v kroku 7).
+- [x] Rychlé seřazení podle abecedy s kolací z konfigurace (výchozí čeština).
+- [x] Volba kolace v konfiguraci zatím jako hodnota v úložišti (UI nastavení přijde v kroku 7). _(pozn.: hodnota `collationLanguageTag` už byla v konfiguraci z kroku 0, UI nastavení přijde v kroku 7)_
 
 **Kritéria splnění:**
-- [ ] Abecední řazení řadí česky (např. „cibule“ před „chléb“, „d“ po „ch“, správně diakritika); změna kolace v konfiguraci změní výsledek.
-- [ ] Unit testy řazení.
+- [x] Abecední řazení řadí česky (např. „cibule“ před „chléb“, „d“ po „ch“, správně diakritika); změna kolace v konfiguraci změní výsledek. _(pozn.: příklad v plánu "d po ch" je chybný; v české abecedě je ch za h, takže „dům“ je před „chléb“, implementace řadí podle skutečné české abecedy; ověřeno i na zařízení, kde řadí ICU)_
+- [x] Unit testy řazení.
 
 ---
 
