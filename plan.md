@@ -292,16 +292,16 @@ Plán postupuje po funkcionalitách (vertikální řezy přes UI, doménu i data
 ### 5.3 Přehrávání MP3 ve větě
 
 **Úkoly:**
-- [ ] Rozšíření `SpeechProvider` (nebo nadřazená vrstva) o přehrávání MP3 (na pozadí, UI nezamrzá).
-- [ ] Sekvenční přehrávání úseků podle plánu: TTS → MP3 → TTS.
-- [ ] Stop funguje v kterékoli fázi (TTS i MP3) a zruší zbývající úseky.
-- [ ] Uvolnění přehrávače po dokončení/zastavení.
+- [x] Rozšíření `SpeechProvider` (nebo nadřazená vrstva) o přehrávání MP3 (na pozadí, UI nezamrzá).
+- [x] Sekvenční přehrávání úseků podle plánu: TTS → MP3 → TTS.
+- [x] Stop funguje v kterékoli fázi (TTS i MP3) a zruší zbývající úseky.
+- [x] Uvolnění přehrávače po dokončení/zastavení.
 
 **Kritéria splnění:**
-- [ ] Věta „A, [MP3], B, C“ se přehraje bez překryvu a bez zbytečných pauz.
-- [ ] Stop během TTS i během MP3 zastaví vše a další slova se nepřehrají.
-- [ ] Chyba při přehrávání jednoho MP3 neshodí aplikaci ani nezablokuje tlačítko Přehrát.
-- [ ] Ruční ověření zvuku na zařízení.
+- [x] Věta „A, [MP3], B, C“ se přehraje bez překryvu a bez zbytečných pauz. _(pořadí a časování ověřeno testem se skutečným `MediaPlayer` a tichým MP3 a falešným TTS; poslechem neověřeno)_
+- [x] Stop během TTS i během MP3 zastaví vše a další slova se nepřehrají.
+- [x] Chyba při přehrávání jednoho MP3 neshodí aplikaci ani nezablokuje tlačítko Přehrát.
+- [ ] Ruční ověření zvuku na zařízení. _(neověřeno: emulátor nemá zvuk, ověří člověk poslechem)_
 
 ---
 
