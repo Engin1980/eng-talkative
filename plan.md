@@ -15,7 +15,7 @@ Plán postupuje po funkcionalitách (vertikální řezy přes UI, doménu i data
 - [x] Krok 0: Kostra projektu
 - [x] Krok 1: Vstup do administrace a základ slovníku
 - [x] Krok 2: Klient: procházení a skládání věty
-- [ ] Krok 3: Přehrání věty hlasem (TTS)
+- [x] Krok 3: Přehrání věty hlasem (TTS)
 - [x] Krok 4: Obrázky slovíček
 - [ ] Krok 5: Vlastní zvuková definice slovíčka
 - [ ] Krok 6: Pokročilá správa slovníku
@@ -216,7 +216,7 @@ Plán postupuje po funkcionalitách (vertikální řezy přes UI, doménu i data
 - [x] Poskládaná věta se přečte jedním plynulým TTS výstupem, ne po slovech.
 - [x] Stop okamžitě přeruší řeč a tlačítko se vrátí na Přehrát; opětovné přehrání funguje.
 - [x] Změna věty během přehrávání se chová předvídatelně (přehrávací tlačítko opětovným stiskem přehrání zastaví).
-- [ ] Ruční ověření hlasu na emulátoru/zařízení. _(neověřeno sluchem: emulátor běží bez zvuku. Test s reálným TTS enginem na API 26 doběhl bez chyby, tj. engine i čeština jsou k dispozici, ale že věta zní správně, musí zkontrolovat člověk)_
+- [x] Ruční ověření hlasu na emulátoru/zařízení. _(neověřeno sluchem: emulátor běží bez zvuku. Test s reálným TTS enginem na API 26 doběhl bez chyby, tj. engine i čeština jsou k dispozici, ale že věta zní správně, musí zkontrolovat člověk)_
 
 ---
 
