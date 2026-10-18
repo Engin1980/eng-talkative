@@ -16,6 +16,9 @@ private const val SUBTREE = """
     )
 """
 
+/** Názvy souborů slovíčka v úložištích (obrázek a MP3); každý může chybět. */
+data class WordFiles(val imageFile: String?, val audioFile: String?)
+
 /** Dotazy nad složkami a slovíčky. Všechny běžné dotazy vynechávají smazané položky (tombstony). */
 @Dao
 abstract class DictionaryDao {
@@ -84,19 +87,19 @@ abstract class DictionaryDao {
     )
     abstract suspend fun countSubtreeWords(profileId: String, rootId: String): Int
 
-    /** Obrázky nesmazaných slovíček v podstromu (pro úklid souborů při mazání složky). */
+    /** Soubory (obrázky a MP3) nesmazaných slovíček v podstromu, pro úklid při mazání složky. */
     @Query(
         SUBTREE + """
-        SELECT imageFile FROM words
-        WHERE profileId = :profileId AND deleted = 0 AND imageFile IS NOT NULL
+        SELECT imageFile, audioFile FROM words
+        WHERE profileId = :profileId AND deleted = 0 AND (imageFile IS NOT NULL OR audioFile IS NOT NULL)
         AND parentId IN (SELECT id FROM subtree)
         """,
     )
-    abstract suspend fun subtreeImageFiles(profileId: String, rootId: String): List<String>
+    abstract suspend fun subtreeFiles(profileId: String, rootId: String): List<WordFiles>
 
     @Query(
         SUBTREE + """
-        UPDATE words SET deleted = 1, updatedAt = :now, imageFile = NULL
+        UPDATE words SET deleted = 1, updatedAt = :now, imageFile = NULL, audioFile = NULL
         WHERE profileId = :profileId AND deleted = 0 AND parentId IN (SELECT id FROM subtree)
         """,
     )
@@ -110,7 +113,7 @@ abstract class DictionaryDao {
     )
     abstract suspend fun deleteSubtreeFolders(profileId: String, rootId: String, now: Long)
 
-    @Query("UPDATE words SET deleted = 1, updatedAt = :now, imageFile = NULL WHERE profileId = :profileId AND id = :id AND deleted = 0")
+    @Query("UPDATE words SET deleted = 1, updatedAt = :now, imageFile = NULL, audioFile = NULL WHERE profileId = :profileId AND id = :id AND deleted = 0")
     abstract suspend fun markWordDeleted(profileId: String, id: String, now: Long)
 
     @Query("UPDATE words SET imageFile = :imageFile, updatedAt = :now WHERE profileId = :profileId AND id = :id AND deleted = 0")
@@ -119,16 +122,23 @@ abstract class DictionaryDao {
     @Query("UPDATE words SET alternateText = :alternateText, updatedAt = :now WHERE profileId = :profileId AND id = :id AND deleted = 0")
     abstract suspend fun updateWordAlternateText(profileId: String, id: String, alternateText: String?, now: Long)
 
+    @Query("UPDATE words SET audioFile = :audioFile, updatedAt = :now WHERE profileId = :profileId AND id = :id AND deleted = 0")
+    abstract suspend fun updateWordAudio(profileId: String, id: String, audioFile: String?, now: Long)
+
     /** Všechny obrázky, které nesmazaná slovíčka používají (zbytek souborů je osiřelý). */
     @Query("SELECT imageFile FROM words WHERE profileId = :profileId AND deleted = 0 AND imageFile IS NOT NULL")
     abstract suspend fun allImageFiles(profileId: String): List<String>
 
-    /** Smaže slovíčko a vrátí název jeho obrázku (k úklidu souboru), nebo `null`. */
+    /** Všechna MP3, která nesmazaná slovíčka používají. */
+    @Query("SELECT audioFile FROM words WHERE profileId = :profileId AND deleted = 0 AND audioFile IS NOT NULL")
+    abstract suspend fun allAudioFiles(profileId: String): List<String>
+
+    /** Smaže slovíčko a vrátí názvy jeho souborů (k úklidu), nebo `null`, když slovíčko neexistuje. */
     @Transaction
-    open suspend fun deleteWord(profileId: String, id: String, now: Long): String? {
-        val image = getWord(profileId, id)?.imageFile
+    open suspend fun deleteWord(profileId: String, id: String, now: Long): WordFiles? {
+        val word = getWord(profileId, id) ?: return null
         markWordDeleted(profileId, id, now)
-        return image
+        return WordFiles(word.imageFile, word.audioFile)
     }
 
     /** Nastaví obrázek slovíčka a vrátí název původního obrázku (k úklidu souboru), nebo `null`. */
@@ -139,15 +149,23 @@ abstract class DictionaryDao {
         return previous
     }
 
+    /** Nastaví MP3 slovíčka a vrátí název původního MP3 (k úklidu souboru), nebo `null`. */
+    @Transaction
+    open suspend fun replaceWordAudio(profileId: String, id: String, audioFile: String?, now: Long): String? {
+        val previous = getWord(profileId, id)?.audioFile
+        updateWordAudio(profileId, id, audioFile, now)
+        return previous
+    }
+
     /**
      * Tombstone celého podstromu v jedné transakci. Slovíčka první, dokud složky ještě "žijí" pro rekurzi.
-     * Vrací obrázky smazaných slovíček, aby je volající po úspěšném commitu smazal ze souborů.
+     * Vrací soubory smazaných slovíček, aby je volající po úspěšném commitu smazal z úložiště.
      */
     @Transaction
-    open suspend fun deleteFolderSubtree(profileId: String, rootId: String, now: Long): List<String> {
-        val images = subtreeImageFiles(profileId, rootId)
+    open suspend fun deleteFolderSubtree(profileId: String, rootId: String, now: Long): List<WordFiles> {
+        val files = subtreeFiles(profileId, rootId)
         deleteSubtreeWords(profileId, rootId, now)
         deleteSubtreeFolders(profileId, rootId, now)
-        return images
+        return files
     }
 }

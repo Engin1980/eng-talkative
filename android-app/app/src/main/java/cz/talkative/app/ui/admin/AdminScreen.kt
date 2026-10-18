@@ -58,6 +58,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import cz.talkative.app.R
+import cz.talkative.app.domain.audio.AudioLimits
 import cz.talkative.app.domain.model.DictionaryItem
 import cz.talkative.app.domain.model.Folder
 import cz.talkative.app.domain.model.Word
@@ -307,10 +308,12 @@ private fun EditDialog(dialog: AdminDialog.Edit, onEvent: (AdminEvent) -> Unit) 
                         value = dialog.alternateText,
                         onValueChange = { onEvent(AdminEvent.AlternateTextChanged(it)) },
                         label = { Text(stringResource(R.string.dialog_alternate_text_label)) },
+                        enabled = dialog.audioFile == null,
                         supportingText = { Text(stringResource(R.string.dialog_alternate_text_hint)) },
                         singleLine = true,
                         modifier = Modifier.fillMaxWidth(),
                     )
+                    AudioSection(dialog, onEvent)
                     ImageSection(dialog, onEvent)
                 }
             }
@@ -318,7 +321,7 @@ private fun EditDialog(dialog: AdminDialog.Edit, onEvent: (AdminEvent) -> Unit) 
         confirmButton = {
             Button(
                 onClick = { onEvent(AdminEvent.ConfirmEdit) },
-                enabled = !dialog.isProcessingImage,
+                enabled = !dialog.isProcessingImage && !dialog.isProcessingAudio,
                 modifier = Modifier.heightIn(min = dimens.minTouchTarget),
             ) {
                 Text(stringResource(R.string.dialog_save))
@@ -333,6 +336,82 @@ private fun EditDialog(dialog: AdminDialog.Edit, onEvent: (AdminEvent) -> Unit) 
             }
         },
     )
+}
+
+/** Vlastní MP3 slovíčka: výběr souboru, náhled (přehrát/zastavit) a odebrání. */
+@Composable
+private fun AudioSection(dialog: AdminDialog.Edit, onEvent: (AdminEvent) -> Unit) {
+    val dimens = TalkativeTheme.dimens
+    val pickAudio = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
+        if (uri != null) onEvent(AdminEvent.AudioPicked(uri.toString()))
+    }
+
+    Column(verticalArrangement = Arrangement.spacedBy(dimens.spaceSmall)) {
+        Text(text = stringResource(R.string.audio_label), style = MaterialTheme.typography.titleLarge)
+        when {
+            dialog.isProcessingAudio -> Row(verticalAlignment = Alignment.CenterVertically) {
+                CircularProgressIndicator(modifier = Modifier.size(dimens.iconSize))
+                Text(
+                    text = stringResource(R.string.audio_processing),
+                    modifier = Modifier.padding(start = dimens.spaceMedium),
+                )
+            }
+            else -> Text(
+                text = stringResource(if (dialog.audioFile == null) R.string.audio_none else R.string.audio_present),
+                style = MaterialTheme.typography.bodyLarge,
+            )
+        }
+        dialog.audioProblem?.let { problem ->
+            Text(
+                text = audioProblemMessage(problem),
+                color = MaterialTheme.colorScheme.error,
+                style = MaterialTheme.typography.bodyLarge,
+                modifier = Modifier.testTag(AUDIO_PROBLEM_TAG),
+            )
+        }
+        Button(
+            onClick = {
+                try {
+                    pickAudio.launch(arrayOf(AudioLimits.MP3_MIME_TYPE))
+                } catch (e: ActivityNotFoundException) {
+                    onEvent(AdminEvent.AudioSelectionFailed(AudioProblem.NO_PICKER))
+                }
+            },
+            enabled = !dialog.isProcessingAudio,
+            modifier = Modifier.fillMaxWidth().heightIn(min = dimens.minTouchTarget),
+        ) {
+            Text(stringResource(R.string.audio_pick))
+        }
+        if (dialog.audioFile != null) {
+            Button(
+                onClick = { onEvent(AdminEvent.ToggleAudioPreview) },
+                enabled = !dialog.isProcessingAudio,
+                modifier = Modifier.fillMaxWidth().heightIn(min = dimens.minTouchTarget),
+            ) {
+                Text(stringResource(if (dialog.isPreviewingAudio) R.string.audio_stop else R.string.audio_play))
+            }
+            OutlinedButton(
+                onClick = { onEvent(AdminEvent.RemoveAudio) },
+                enabled = !dialog.isProcessingAudio,
+                modifier = Modifier.fillMaxWidth().heightIn(min = dimens.minTouchTarget),
+            ) {
+                Text(stringResource(R.string.audio_remove))
+            }
+        }
+    }
+}
+
+const val AUDIO_PROBLEM_TAG = "audio-problem"
+
+@Composable
+private fun audioProblemMessage(problem: AudioProblem): String = when (problem) {
+    AudioProblem.UNREADABLE -> stringResource(R.string.audio_problem_unreadable)
+    AudioProblem.UNSUPPORTED_FORMAT -> stringResource(R.string.audio_problem_unsupported_format)
+    AudioProblem.TOO_LONG -> stringResource(R.string.audio_problem_too_long, (AudioLimits.MAX_DURATION_MILLIS / 1000).toInt())
+    AudioProblem.TOO_LARGE -> stringResource(R.string.audio_problem_too_large, (AudioLimits.MAX_BYTES / (1024 * 1024)).toInt())
+    AudioProblem.STORAGE_FULL -> stringResource(R.string.audio_problem_storage_full)
+    AudioProblem.NO_PICKER -> stringResource(R.string.audio_problem_no_picker)
+    AudioProblem.PLAYBACK_FAILED -> stringResource(R.string.audio_problem_playback_failed)
 }
 
 /** Náhled obrázku slovíčka a tlačítka pro výběr z galerie, pořízení fotky a odebrání. */

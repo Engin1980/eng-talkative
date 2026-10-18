@@ -10,6 +10,7 @@ import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performTextClearance
+import androidx.compose.ui.test.performScrollTo
 import androidx.compose.ui.test.performTextInput
 import androidx.room.Room
 import androidx.test.core.app.ApplicationProvider
@@ -19,7 +20,11 @@ import cz.talkative.app.data.repository.RoomDictionaryRepository
 import cz.talkative.app.domain.usecase.CountFolderContentsUseCase
 import cz.talkative.app.domain.usecase.DeleteFolderUseCase
 import cz.talkative.app.domain.usecase.DeleteWordUseCase
+import cz.talkative.app.domain.usecase.DiscardAudioUseCase
 import cz.talkative.app.domain.usecase.DiscardImageUseCase
+import cz.talkative.app.domain.usecase.SaveAudioUseCase
+import cz.talkative.app.testing.FakeAudioPlayer
+import cz.talkative.app.testing.FakeAudioStore
 import cz.talkative.app.domain.usecase.SaveImageUseCase
 import cz.talkative.app.domain.usecase.GetFolderPathUseCase
 import cz.talkative.app.domain.usecase.ObserveFolderItemsUseCase
@@ -54,13 +59,15 @@ class AdminFlowTest {
 
     private lateinit var database: TalkativeDatabase
     private val imageStore = FakeImageStore()
+    private val audioStore = FakeAudioStore()
+    private val audioPlayer = FakeAudioPlayer()
     private lateinit var viewModel: AdminViewModel
 
     @Before
     fun setUp() {
         val context = ApplicationProvider.getApplicationContext<Context>()
         database = Room.inMemoryDatabaseBuilder(context, TalkativeDatabase::class.java).build()
-        val repository = RoomDictionaryRepository(database.dictionaryDao(), { System.currentTimeMillis() }, imageStore)
+        val repository = RoomDictionaryRepository(database.dictionaryDao(), { System.currentTimeMillis() }, imageStore, audioStore)
         viewModel = AdminViewModel(
             ObserveFolderItemsUseCase(repository),
             GetFolderPathUseCase(repository),
@@ -71,6 +78,9 @@ class AdminFlowTest {
             DeleteWordUseCase(repository),
             SaveImageUseCase(imageStore),
             DiscardImageUseCase(imageStore),
+            SaveAudioUseCase(audioStore),
+            DiscardAudioUseCase(audioStore),
+            audioPlayer,
         )
         composeRule.setContent {
             TalkativeTheme {
@@ -222,7 +232,8 @@ class AdminFlowTest {
 
         // odebrání: smaže se i poslední soubor
         composeRule.onNodeWithContentDescription("Upravit jablko").performClick()
-        composeRule.onNodeWithText("Odebrat obrázek").performClick()
+        // Dialog je delší než okno, tlačítko je pod zalomením a před kliknutím se musí odrolovat.
+        composeRule.onNodeWithText("Odebrat obrázek").performScrollTo().performClick()
         composeRule.onNodeWithText("Uložit").performClick()
         composeRule.waitUntil(5_000) { imageStore.files.isEmpty() }
     }
@@ -249,5 +260,56 @@ class AdminFlowTest {
         composeRule.onNodeWithText("Smazat").performClick()
 
         composeRule.waitUntil(5_000) { imageStore.files.isEmpty() }
+    }
+
+    @Test
+    fun wordWithAudio_survivesInDatabase_andReplacingOrRemovingCleansFiles() {
+        waitForText("Tato složka je prázdná")
+        composeRule.onNodeWithText("Nové slovíčko").performClick()
+        composeRule.onNodeWithText("Titulek").performTextInput("zvonek")
+        viewModel.onEvent(AdminEvent.AudioPicked("content://zvuk-1"))
+        composeRule.waitUntil(5_000) { audioStore.files.size == 1 }
+        composeRule.onNodeWithText("Přehrát zvuk").assertExists()
+        composeRule.onNodeWithText("Uložit").performClick()
+        waitForText("zvonek")
+        val first = audioStore.files.single()
+
+        // výměna: nový soubor přibude, starý se smaže
+        composeRule.onNodeWithContentDescription("Upravit zvonek").performClick()
+        viewModel.onEvent(AdminEvent.AudioPicked("content://zvuk-2"))
+        composeRule.waitUntil(5_000) { audioStore.files.size == 2 }
+        composeRule.onNodeWithText("Uložit").performClick()
+        composeRule.waitUntil(5_000) { audioStore.files.size == 1 && first !in audioStore.files }
+
+        // náhled používá přehrávač; zavření dialogu ho uvolní
+        composeRule.onNodeWithContentDescription("Upravit zvonek").performClick()
+        composeRule.onNodeWithText("Přehrát zvuk").performClick()
+        composeRule.waitUntil(5_000) { audioPlayer.activePlays == 1 }
+        composeRule.onNodeWithText("Zastavit zvuk").assertExists()
+        composeRule.onNodeWithText("Zrušit").performClick()
+        composeRule.waitUntil(5_000) { audioPlayer.activePlays == 0 }
+
+        // odebrání: smaže se i poslední soubor
+        composeRule.onNodeWithContentDescription("Upravit zvonek").performClick()
+        composeRule.onNodeWithText("Odebrat zvuk").performClick()
+        composeRule.onNodeWithText("Uložit").performClick()
+        composeRule.waitUntil(5_000) { audioStore.files.isEmpty() }
+    }
+
+    @Test
+    fun deletingWordWithAudio_removesItsFile() {
+        waitForText("Tato složka je prázdná")
+        composeRule.onNodeWithText("Nové slovíčko").performClick()
+        composeRule.onNodeWithText("Titulek").performTextInput("zvonek")
+        viewModel.onEvent(AdminEvent.AudioPicked("content://zvuk"))
+        composeRule.waitUntil(5_000) { audioStore.files.size == 1 }
+        composeRule.onNodeWithText("Uložit").performClick()
+        waitForText("zvonek")
+
+        composeRule.onNodeWithContentDescription("Smazat zvonek").performClick()
+        waitForText("Smazat slovíčko?")
+        composeRule.onNodeWithText("Smazat").performClick()
+
+        composeRule.waitUntil(5_000) { audioStore.files.isEmpty() }
     }
 }

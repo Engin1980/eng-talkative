@@ -3,7 +3,9 @@ package cz.talkative.app.data.repository
 import cz.talkative.app.data.local.DictionaryDao
 import cz.talkative.app.data.local.FolderEntity
 import cz.talkative.app.data.local.WordEntity
+import cz.talkative.app.data.local.WordFiles
 import cz.talkative.app.data.local.toDomain
+import cz.talkative.app.domain.audio.AudioStore
 import cz.talkative.app.domain.image.ImageStore
 import cz.talkative.app.domain.model.DictionaryItem
 import cz.talkative.app.domain.model.Folder
@@ -20,6 +22,7 @@ class RoomDictionaryRepository @Inject constructor(
     private val dao: DictionaryDao,
     private val clock: Clock,
     private val imageStore: ImageStore,
+    private val audioStore: AudioStore,
 ) : DictionaryRepository {
 
     // Zatím existuje jen výchozí profil.
@@ -51,9 +54,18 @@ class RoomDictionaryRepository @Inject constructor(
             FolderEntity(newId(), profileId, title, parentId, sortOrder = 0, updatedAt = clock.nowMillis()),
         ).toDomain()
 
-    override suspend fun createWord(parentId: String?, title: String, imageFile: String?, alternateText: String?): Word =
+    override suspend fun createWord(
+        parentId: String?,
+        title: String,
+        imageFile: String?,
+        alternateText: String?,
+        audioFile: String?,
+    ): Word =
         dao.addWord(
-            WordEntity(newId(), profileId, title, parentId, sortOrder = 0, updatedAt = clock.nowMillis(), imageFile = imageFile, alternateText = alternateText),
+            WordEntity(
+                newId(), profileId, title, parentId, sortOrder = 0, updatedAt = clock.nowMillis(),
+                imageFile = imageFile, alternateText = alternateText, audioFile = audioFile,
+            ),
         ).toDomain()
 
     override suspend fun updateFolderTitle(id: String, title: String) =
@@ -77,16 +89,28 @@ class RoomDictionaryRepository @Inject constructor(
         if (previous != null && previous != imageFile) imageStore.delete(previous)
     }
 
+    override suspend fun updateWordAudio(id: String, audioFile: String?) {
+        val previous = dao.replaceWordAudio(profileId, id, audioFile, clock.nowMillis())
+        if (previous != null && previous != audioFile) audioStore.delete(previous)
+    }
+
     override suspend fun deleteFolder(id: String) {
-        dao.deleteFolderSubtree(profileId, id, clock.nowMillis()).forEach { imageStore.delete(it) }
+        dao.deleteFolderSubtree(profileId, id, clock.nowMillis()).forEach { deleteFiles(it) }
     }
 
     override suspend fun deleteWord(id: String) {
-        dao.deleteWord(profileId, id, clock.nowMillis())?.let { imageStore.delete(it) }
+        dao.deleteWord(profileId, id, clock.nowMillis())?.let { deleteFiles(it) }
     }
 
-    override suspend fun cleanUpOrphanImages() {
+    override suspend fun cleanUpOrphanFiles() {
         imageStore.deleteAllExcept(dao.allImageFiles(profileId).toSet())
+        audioStore.deleteAllExcept(dao.allAudioFiles(profileId).toSet())
     }
+
+    private suspend fun deleteFiles(files: WordFiles) {
+        files.imageFile?.let { imageStore.delete(it) }
+        files.audioFile?.let { audioStore.delete(it) }
+    }
+
     private fun newId() = UUID.randomUUID().toString()
 }

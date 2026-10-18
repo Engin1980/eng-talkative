@@ -13,6 +13,17 @@ enum class ImageProblem {
     NO_CAMERA,
 }
 
+/** Proč se MP3 nepodařilo vybrat, uložit nebo přehrát; UI k tomu zobrazí srozumitelnou hlášku. */
+enum class AudioProblem {
+    UNREADABLE,
+    UNSUPPORTED_FORMAT,
+    TOO_LONG,
+    TOO_LARGE,
+    STORAGE_FULL,
+    NO_PICKER,
+    PLAYBACK_FAILED,
+}
+
 /** Otevřený dialog nad administrací. */
 sealed interface AdminDialog {
     /**
@@ -27,8 +38,14 @@ sealed interface AdminDialog {
         val showEmptyError: Boolean = false,
         val imageFile: String? = null,
         val originalImageFile: String? = null,
-        /** Jiný text pro čtení (slovíčko); prázdný = čte se titulek. */
+        /** Jiný text pro čtení (slovíčko); prázdný = čte se titulek. Při vlastním MP3 se neukládá. */
         val alternateText: String = "",
+        /** Vlastní MP3: [audioFile] je vybrané (nové nebo původní), [originalAudioFile] to, které slovíčko mělo při otevření. */
+        val audioFile: String? = null,
+        val originalAudioFile: String? = null,
+        val isProcessingAudio: Boolean = false,
+        val isPreviewingAudio: Boolean = false,
+        val audioProblem: AudioProblem? = null,
         val isProcessingImage: Boolean = false,
         val imageProblem: ImageProblem? = null,
         /** Rozlišuje jednotlivá otevření dialogu, aby pozdní výsledek zpracování obrázku nepřistál do jiného dialogu. */
@@ -72,4 +89,18 @@ sealed interface AdminEvent {
     data class ImageSelectionFailed(val problem: ImageProblem) : AdminEvent
 
     data object DismissImageProblem : AdminEvent
+
+    /** Systémový výběr souboru vrátil MP3 ([uri]) ke kontrole a uložení. */
+    data class AudioPicked(val uri: String) : AdminEvent
+
+    /** MP3 slovíčka se při „Uložit“ odebere. */
+    data object RemoveAudio : AdminEvent
+
+    /** Výběr MP3 se nepodařilo spustit (např. chybí aplikace pro výběr souborů). */
+    data class AudioSelectionFailed(val problem: AudioProblem) : AdminEvent
+
+    /** Spustí náhled MP3, nebo ho zastaví, když právě hraje. */
+    data object ToggleAudioPreview : AdminEvent
+
+    data object DismissAudioProblem : AdminEvent
 }

@@ -19,7 +19,13 @@ interface DictionaryRepository {
     /** Nová položka se zařadí na konec složky. */
     suspend fun createFolder(parentId: String?, title: String): Folder
 
-    suspend fun createWord(parentId: String?, title: String, imageFile: String? = null, alternateText: String? = null): Word
+    suspend fun createWord(
+        parentId: String?,
+        title: String,
+        imageFile: String? = null,
+        alternateText: String? = null,
+        audioFile: String? = null,
+    ): Word
 
     suspend fun updateFolderTitle(id: String, title: String)
 
@@ -31,15 +37,18 @@ interface DictionaryRepository {
     /** Nastaví (nebo odebere, `null`) jiný text, který se čte místo titulku. */
     suspend fun updateWordAlternateText(id: String, alternateText: String?)
 
+    /** Nastaví (nebo odebere, `null`) vlastní MP3 slovíčka; soubor původního MP3 se smaže. */
+    suspend fun updateWordAudio(id: String, audioFile: String?)
+
     /** Počet složek a slovíček uvnitř složky včetně všech podsložek (složka sama se nepočítá). */
     suspend fun countFolderContents(folderId: String): Int
 
-    /** Smaže složku i celý její podstrom včetně souborů obrázků. */
+    /** Smaže složku i celý její podstrom včetně souborů obrázků a MP3. */
     suspend fun deleteFolder(id: String)
 
-    /** Smaže slovíčko včetně souboru jeho obrázku. */
+    /** Smaže slovíčko včetně souborů jeho obrázku a MP3. */
     suspend fun deleteWord(id: String)
 
-    /** Smaže soubory obrázků, které nepatří žádnému slovíčku (po přerušeném mazání nebo zrušené úpravě). */
-    suspend fun cleanUpOrphanImages()
+    /** Smaže soubory obrázků a MP3, které nepatří žádnému slovíčku (po přerušeném mazání nebo zrušené úpravě). */
+    suspend fun cleanUpOrphanFiles()
 }

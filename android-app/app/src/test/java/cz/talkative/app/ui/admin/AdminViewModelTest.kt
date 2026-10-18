@@ -7,7 +7,13 @@ import cz.talkative.app.domain.usecase.DeleteWordUseCase
 import cz.talkative.app.domain.usecase.DiscardImageUseCase
 import cz.talkative.app.domain.usecase.SaveImageUseCase
 import cz.talkative.app.domain.image.ImageError
+import cz.talkative.app.testing.FakeAudioPlayer
+import cz.talkative.app.testing.FakeAudioStore
 import cz.talkative.app.testing.FakeImageStore
+import cz.talkative.app.domain.audio.AudioError
+import cz.talkative.app.domain.audio.AudioPlaybackException
+import cz.talkative.app.domain.usecase.DiscardAudioUseCase
+import cz.talkative.app.domain.usecase.SaveAudioUseCase
 import kotlinx.coroutines.CompletableDeferred
 import cz.talkative.app.domain.usecase.GetFolderPathUseCase
 import cz.talkative.app.domain.usecase.ObserveFolderItemsUseCase
@@ -34,6 +40,8 @@ class AdminViewModelTest {
 
     private val repository = FakeDictionaryRepository()
     private val imageStore = FakeImageStore()
+    private val audioStore = FakeAudioStore()
+    private val audioPlayer = FakeAudioPlayer()
     private lateinit var viewModel: AdminViewModel
 
     @Before
@@ -49,6 +57,9 @@ class AdminViewModelTest {
             DeleteWordUseCase(repository),
             SaveImageUseCase(imageStore),
             DiscardImageUseCase(imageStore),
+            SaveAudioUseCase(audioStore),
+            DiscardAudioUseCase(audioStore),
+            audioPlayer,
         )
     }
 
@@ -468,5 +479,275 @@ class AdminViewModelTest {
         viewModel.onEvent(AdminEvent.DismissDialog)
 
         assertEquals("ká dé", wordOf("KD").alternateText)
+    }
+
+    // ---- vlastní MP3 (krok 5.2)
+
+    private fun audioOf(title: String) = wordOf(title).audioFile
+
+    private suspend fun pickAudio(title: String = "slovo"): String {
+        viewModel.onEvent(AdminEvent.AddWord)
+        viewModel.onEvent(AdminEvent.TitleChanged(title))
+        viewModel.onEvent(AdminEvent.AudioPicked("content://zvuk"))
+        return editDialog().audioFile!!
+    }
+
+    @Test
+    fun pickedAudio_isShownInDialog_andAssignedToNewWordOnSave() = runVmTest {
+        subscribe()
+        val audio = pickAudio()
+        assertEquals(false, editDialog().isProcessingAudio)
+        assertEquals(setOf(audio), audioStore.files)
+
+        viewModel.onEvent(AdminEvent.ConfirmEdit)
+
+        assertEquals(audio, audioOf("slovo"))
+        assertEquals(setOf(audio), audioStore.files)
+    }
+
+    @Test
+    fun wordWithAudio_doesNotKeepAlternateText() = runVmTest {
+        subscribe()
+        viewModel.onEvent(AdminEvent.AddWord)
+        viewModel.onEvent(AdminEvent.TitleChanged("slovo"))
+        viewModel.onEvent(AdminEvent.AlternateTextChanged("jiný text"))
+        viewModel.onEvent(AdminEvent.AudioPicked("content://zvuk"))
+
+        viewModel.onEvent(AdminEvent.ConfirmEdit)
+
+        assertNull(wordOf("slovo").alternateText)
+        assertNotNull(audioOf("slovo"))
+    }
+
+    @Test
+    fun removingAudioInNewDialog_deletesFile_andAlternateTextWorksAgain() = runVmTest {
+        subscribe()
+        pickAudio()
+
+        viewModel.onEvent(AdminEvent.RemoveAudio)
+
+        assertNull(editDialog().audioFile)
+        assertTrue(audioStore.files.isEmpty())
+        viewModel.onEvent(AdminEvent.AlternateTextChanged("text"))
+        viewModel.onEvent(AdminEvent.ConfirmEdit)
+        assertEquals("text", wordOf("slovo").alternateText)
+        assertNull(audioOf("slovo"))
+    }
+
+    @Test
+    fun cancellingDialogAfterPickingAudio_discardsTheNewFile() = runVmTest {
+        subscribe()
+        pickAudio()
+
+        viewModel.onEvent(AdminEvent.DismissDialog)
+
+        assertTrue(audioStore.files.isEmpty())
+        assertNull(viewModel.uiState.value.dialog)
+    }
+
+    @Test
+    fun pickingAnotherAudio_discardsThePreviousPendingOne() = runVmTest {
+        subscribe()
+        val first = pickAudio()
+
+        viewModel.onEvent(AdminEvent.AudioPicked("content://druhy"))
+
+        val second = editDialog().audioFile
+        assertTrue(first != second)
+        assertEquals(setOf(second), audioStore.files)
+    }
+
+    @Test
+    fun editingWordWithAudio_removeThenSave_clearsAudioOnWord() = runVmTest {
+        val original = audioStore.add("puvodni.mp3")
+        repository.createWord(null, "slovo", audioFile = original)
+        subscribe()
+        viewModel.onEvent(AdminEvent.EditItem(viewModel.uiState.value.items.single()))
+        assertEquals(original, editDialog().audioFile)
+
+        viewModel.onEvent(AdminEvent.RemoveAudio)
+        viewModel.onEvent(AdminEvent.ConfirmEdit)
+
+        assertNull(audioOf("slovo"))
+        // původní soubor maže repozitář (viz DictionaryRepositoryTest), view model na něj nesahá
+        assertEquals(setOf(original), audioStore.files)
+    }
+
+    @Test
+    fun editingWordWithAudio_removeThenCancel_keepsEverything() = runVmTest {
+        val original = audioStore.add("puvodni.mp3")
+        repository.createWord(null, "slovo", audioFile = original)
+        subscribe()
+        viewModel.onEvent(AdminEvent.EditItem(viewModel.uiState.value.items.single()))
+
+        viewModel.onEvent(AdminEvent.RemoveAudio)
+        viewModel.onEvent(AdminEvent.DismissDialog)
+
+        assertEquals(original, audioOf("slovo"))
+        assertEquals(setOf(original), audioStore.files)
+    }
+
+    @Test
+    fun replacingAudioOfExistingWord_cancelDiscardsOnlyTheNewOne() = runVmTest {
+        val original = audioStore.add("puvodni.mp3")
+        repository.createWord(null, "slovo", audioFile = original)
+        subscribe()
+        viewModel.onEvent(AdminEvent.EditItem(viewModel.uiState.value.items.single()))
+
+        viewModel.onEvent(AdminEvent.AudioPicked("content://nove"))
+        assertEquals(2, audioStore.files.size)
+        viewModel.onEvent(AdminEvent.DismissDialog)
+
+        assertEquals(setOf(original), audioStore.files)
+        assertEquals(original, audioOf("slovo"))
+    }
+
+    @Test
+    fun rejectedAudio_showsProblem_savesNothing_andDialogStaysUsable() = runVmTest {
+        subscribe()
+        val expected = mapOf(
+            AudioError.TOO_LONG to AudioProblem.TOO_LONG,
+            AudioError.TOO_LARGE to AudioProblem.TOO_LARGE,
+            AudioError.UNSUPPORTED_FORMAT to AudioProblem.UNSUPPORTED_FORMAT,
+            AudioError.UNREADABLE to AudioProblem.UNREADABLE,
+            AudioError.STORAGE_FULL to AudioProblem.STORAGE_FULL,
+        )
+        viewModel.onEvent(AdminEvent.AddWord)
+        viewModel.onEvent(AdminEvent.TitleChanged("slovo"))
+
+        for ((error, problem) in expected) {
+            audioStore.failWith = error
+            viewModel.onEvent(AdminEvent.AudioPicked("content://spatne"))
+            assertEquals(problem, editDialog().audioProblem)
+            assertNull(editDialog().audioFile)
+            assertEquals(false, editDialog().isProcessingAudio)
+            assertTrue(audioStore.files.isEmpty())
+            viewModel.onEvent(AdminEvent.DismissAudioProblem)
+            assertNull(editDialog().audioProblem)
+        }
+
+        viewModel.onEvent(AdminEvent.ConfirmEdit) // slovíčko jde uložit i bez zvuku
+        assertNull(audioOf("slovo"))
+    }
+
+    @Test
+    fun saveIsIgnoredWhileAudioIsBeingChecked() = runVmTest {
+        subscribe()
+        audioStore.gate = CompletableDeferred()
+        viewModel.onEvent(AdminEvent.AddWord)
+        viewModel.onEvent(AdminEvent.TitleChanged("slovo"))
+        viewModel.onEvent(AdminEvent.AudioPicked("content://pomale"))
+        assertTrue(editDialog().isProcessingAudio)
+
+        viewModel.onEvent(AdminEvent.ConfirmEdit)
+
+        assertTrue(viewModel.uiState.value.items.isEmpty())
+        audioStore.gate!!.complete(Unit)
+        assertEquals(false, editDialog().isProcessingAudio)
+    }
+
+    @Test
+    fun audioFinishingAfterDialogWasCancelled_isDiscarded() = runVmTest {
+        subscribe()
+        audioStore.gate = CompletableDeferred()
+        viewModel.onEvent(AdminEvent.AddWord)
+        viewModel.onEvent(AdminEvent.AudioPicked("content://pomale"))
+
+        viewModel.onEvent(AdminEvent.DismissDialog)
+        audioStore.gate!!.complete(Unit)
+
+        assertTrue(audioStore.files.isEmpty())
+        assertNull(viewModel.uiState.value.dialog)
+    }
+
+    @Test
+    fun audioIsIgnoredForFolders() = runVmTest {
+        subscribe()
+        viewModel.onEvent(AdminEvent.AddFolder)
+
+        viewModel.onEvent(AdminEvent.AudioPicked("content://zvuk"))
+
+        assertTrue(audioStore.files.isEmpty())
+        assertNull(editDialog().audioFile)
+    }
+
+    @Test
+    fun preview_playsPickedAudio_andStopButtonStopsIt() = runVmTest {
+        subscribe()
+        val audio = pickAudio()
+
+        viewModel.onEvent(AdminEvent.ToggleAudioPreview)
+        assertEquals(listOf(audio), audioPlayer.played)
+        assertTrue(editDialog().isPreviewingAudio)
+        assertEquals(1, audioPlayer.activePlays)
+
+        viewModel.onEvent(AdminEvent.ToggleAudioPreview)
+        assertEquals(false, editDialog().isPreviewingAudio)
+        assertEquals(0, audioPlayer.activePlays) // přehrávač je uvolněn
+    }
+
+    @Test
+    fun preview_endsByItself_whenAudioFinishes() = runVmTest {
+        subscribe()
+        pickAudio()
+        viewModel.onEvent(AdminEvent.ToggleAudioPreview)
+
+        audioPlayer.finishPlaying()
+
+        assertEquals(false, editDialog().isPreviewingAudio)
+        assertEquals(0, audioPlayer.activePlays)
+    }
+
+    @Test
+    fun preview_stopsWhenDialogCloses() = runVmTest {
+        subscribe()
+        pickAudio()
+        viewModel.onEvent(AdminEvent.ToggleAudioPreview)
+
+        viewModel.onEvent(AdminEvent.DismissDialog)
+
+        assertEquals(0, audioPlayer.activePlays)
+    }
+
+    @Test
+    fun preview_stopsWhenAudioIsRemovedOrReplaced() = runVmTest {
+        subscribe()
+        pickAudio()
+        viewModel.onEvent(AdminEvent.ToggleAudioPreview)
+        viewModel.onEvent(AdminEvent.AudioPicked("content://jine"))
+        assertEquals(0, audioPlayer.activePlays)
+        assertEquals(false, editDialog().isPreviewingAudio)
+
+        viewModel.onEvent(AdminEvent.ToggleAudioPreview)
+        viewModel.onEvent(AdminEvent.RemoveAudio)
+        assertEquals(0, audioPlayer.activePlays)
+    }
+
+    @Test
+    fun preview_failure_showsProblem_andButtonWorksAgain() = runVmTest {
+        subscribe()
+        val audio = pickAudio()
+        audioPlayer.failWith = AudioPlaybackException("rozbité")
+
+        viewModel.onEvent(AdminEvent.ToggleAudioPreview)
+
+        assertEquals(AudioProblem.PLAYBACK_FAILED, editDialog().audioProblem)
+        assertEquals(false, editDialog().isPreviewingAudio)
+
+        audioPlayer.failWith = null
+        viewModel.onEvent(AdminEvent.ToggleAudioPreview)
+        assertTrue(editDialog().isPreviewingAudio)
+        assertNull(editDialog().audioProblem)
+        assertEquals(listOf(audio, audio), audioPlayer.played)
+    }
+
+    @Test
+    fun previewWithoutAudio_doesNothing() = runVmTest {
+        subscribe()
+        viewModel.onEvent(AdminEvent.AddWord)
+
+        viewModel.onEvent(AdminEvent.ToggleAudioPreview)
+
+        assertTrue(audioPlayer.played.isEmpty())
     }
 }

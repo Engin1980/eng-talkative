@@ -7,6 +7,7 @@ import androidx.test.ext.junit.runners.AndroidJUnit4
 import cz.talkative.app.data.local.TalkativeDatabase
 import cz.talkative.app.data.repository.RoomDictionaryRepository
 import cz.talkative.app.domain.model.Folder
+import cz.talkative.app.testing.FakeAudioStore
 import cz.talkative.app.testing.FakeImageStore
 import cz.talkative.app.domain.model.Word
 import kotlinx.coroutines.flow.first
@@ -26,13 +27,14 @@ class DictionaryRepositoryTest {
     private lateinit var database: TalkativeDatabase
     private lateinit var repository: RoomDictionaryRepository
     private val imageStore = FakeImageStore()
+    private val audioStore = FakeAudioStore()
     private var now = 1_000L
 
     @Before
     fun setUp() {
         val context = ApplicationProvider.getApplicationContext<Context>()
         database = Room.inMemoryDatabaseBuilder(context, TalkativeDatabase::class.java).build()
-        repository = RoomDictionaryRepository(database.dictionaryDao(), { now }, imageStore)
+        repository = RoomDictionaryRepository(database.dictionaryDao(), { now }, imageStore, audioStore)
     }
 
     @After
@@ -285,14 +287,14 @@ class DictionaryRepositoryTest {
     }
 
     @Test
-    fun cleanUpOrphanImages_removesOnlyUnreferencedFiles() = runTest {
+    fun cleanUpOrphanFiles_removesOnlyUnreferencedFiles() = runTest {
         repository.createWord(null, "w", imageStore.add("used.jpg"))
         val deleted = repository.createWord(null, "x", imageStore.add("x.jpg"))
         imageStore.add("orphan.jpg")
         repository.deleteWord(deleted.id)
         imageStore.add("x.jpg") // jako by smazání souboru po pádu neproběhlo
 
-        repository.cleanUpOrphanImages()
+        repository.cleanUpOrphanFiles()
 
         assertEquals(setOf("used.jpg"), imageStore.files)
     }
@@ -317,5 +319,74 @@ class DictionaryRepositoryTest {
 
         repository.updateWordAlternateText(word.id, null)
         assertNull((repository.observeItems(null).first().single() as Word).alternateText)
+    }
+
+    // ---- vlastní MP3 (krok 5.2)
+
+    private suspend fun audioOfOnlyWord() = (repository.observeItems(null).first().single() as Word).audioFile
+
+    @Test
+    fun audio_isStored_replacedAndRemoved_withoutLeavingFiles() = runTest {
+        val word = repository.createWord(null, "w", audioFile = audioStore.add("a.mp3"))
+        assertEquals("a.mp3", audioOfOnlyWord())
+
+        repository.updateWordAudio(word.id, audioStore.add("b.mp3"))
+        assertEquals("b.mp3", audioOfOnlyWord())
+        assertEquals(setOf("b.mp3"), audioStore.files) // původní soubor je pryč
+
+        repository.updateWordAudio(word.id, null)
+        assertNull(audioOfOnlyWord())
+        assertTrue(audioStore.files.isEmpty())
+    }
+
+    @Test
+    fun updatingAudioToTheSameFile_keepsIt() = runTest {
+        val word = repository.createWord(null, "w", audioFile = audioStore.add("same.mp3"))
+
+        repository.updateWordAudio(word.id, "same.mp3")
+
+        assertEquals(setOf("same.mp3"), audioStore.files)
+    }
+
+    @Test
+    fun deleteWord_removesItsAudioAndImage() = runTest {
+        val word = repository.createWord(null, "w", imageStore.add("w.jpg"), audioFile = audioStore.add("w.mp3"))
+        val keep = repository.createWord(null, "k", audioFile = audioStore.add("k.mp3"))
+
+        repository.deleteWord(word.id)
+
+        assertEquals(setOf("k.mp3"), audioStore.files)
+        assertTrue(imageStore.files.isEmpty())
+        assertEquals("k.mp3", (repository.observeItems(null).first().single() as Word).audioFile)
+        assertEquals(keep.id, repository.observeItems(null).first().single().id)
+    }
+
+    @Test
+    fun deleteFolder_removesAudioOfWholeSubtree_only() = runTest {
+        val a = repository.createFolder(null, "A")
+        val b = repository.createFolder(a.id, "B")
+        val other = repository.createFolder(null, "Jiná")
+        repository.createWord(a.id, "a1", audioFile = audioStore.add("a1.mp3"))
+        repository.createWord(b.id, "b1", imageStore.add("b1.jpg"), audioFile = audioStore.add("b1.mp3"))
+        repository.createWord(b.id, "b2-bez-zvuku")
+        repository.createWord(other.id, "o1", audioFile = audioStore.add("o1.mp3"))
+        repository.createWord(null, "root", audioFile = audioStore.add("root.mp3"))
+
+        repository.deleteFolder(a.id)
+
+        assertEquals(setOf("o1.mp3", "root.mp3"), audioStore.files)
+        assertTrue(imageStore.files.isEmpty())
+    }
+
+    @Test
+    fun cleanUpOrphanFiles_removesOnlyUnreferencedAudio() = runTest {
+        repository.createWord(null, "w", audioFile = audioStore.add("used.mp3"))
+        val deleted = repository.createWord(null, "x", audioFile = audioStore.add("x.mp3"))
+        repository.deleteWord(deleted.id)
+        audioStore.add("orphan.mp3")
+
+        repository.cleanUpOrphanFiles()
+
+        assertEquals(setOf("used.mp3"), audioStore.files)
     }
 }

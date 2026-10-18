@@ -41,8 +41,14 @@ class FakeDictionaryRepository : DictionaryRepository {
         return folder
     }
 
-    override suspend fun createWord(parentId: String?, title: String, imageFile: String?, alternateText: String?): Word {
-        val word = Word("w${counter++}", Profile.DEFAULT_ID, title, parentId, nextOrder(parentId), 0, imageFile, alternateText)
+    override suspend fun createWord(
+        parentId: String?,
+        title: String,
+        imageFile: String?,
+        alternateText: String?,
+        audioFile: String?,
+    ): Word {
+        val word = Word("w${counter++}", Profile.DEFAULT_ID, title, parentId, nextOrder(parentId), 0, imageFile, alternateText, audioFile)
         words.value += word
         return word
     }
@@ -63,7 +69,11 @@ class FakeDictionaryRepository : DictionaryRepository {
         words.value = words.value.map { if (it.id == id) it.copy(alternateText = alternateText) else it }
     }
 
-    override suspend fun cleanUpOrphanImages() = Unit
+    override suspend fun updateWordAudio(id: String, audioFile: String?) {
+        words.value = words.value.map { if (it.id == id) it.copy(audioFile = audioFile) else it }
+    }
+
+    override suspend fun cleanUpOrphanFiles() = Unit
 
     override suspend fun countFolderContents(folderId: String): Int {
         val ids = subtreeIds(folderId)

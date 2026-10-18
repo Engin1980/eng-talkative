@@ -23,6 +23,7 @@ import cz.talkative.app.ui.admin.AdminDialog
 import cz.talkative.app.ui.admin.AdminEvent
 import cz.talkative.app.ui.admin.AdminScreen
 import cz.talkative.app.ui.admin.AdminUiState
+import cz.talkative.app.ui.admin.AudioProblem
 import cz.talkative.app.ui.admin.ImageProblem
 import cz.talkative.app.ui.admin.ItemKind
 import cz.talkative.app.ui.common.LocalImageResolver
@@ -329,5 +330,99 @@ class AdminScreenTest {
         show(state(dialog = wordDialog(kind = ItemKind.FOLDER)))
 
         assertEquals(0, composeRule.onAllNodesWithTextCount("Jiný text pro čtení"))
+    }
+
+    // ---- vlastní MP3 (krok 5.2)
+
+    @Test
+    fun wordDialog_withoutAudio_offersOnlyPicker() {
+        show(state(dialog = wordDialog()))
+
+        composeRule.onNodeWithText("Vybrat MP3").assertHeightIsAtLeast(64.dp).assertIsEnabled()
+        composeRule.onNodeWithText("Slovíčko nemá vlastní zvuk, čte se text.").assertIsDisplayed()
+        assertEquals(0, composeRule.onAllNodesWithTextCount("Přehrát zvuk"))
+        assertEquals(0, composeRule.onAllNodesWithTextCount("Odebrat zvuk"))
+    }
+
+    @Test
+    fun wordDialog_withAudio_offersPreviewAndRemove_andDisablesAlternateText() {
+        show(state(dialog = wordDialog().copy(audioFile = "a.mp3")))
+
+        composeRule.onNodeWithText("Přehrát zvuk").assertHeightIsAtLeast(64.dp).assertIsEnabled()
+        composeRule.onNodeWithText("Odebrat zvuk").assertHeightIsAtLeast(64.dp).assertIsEnabled()
+        composeRule.onNodeWithText("Slovíčko má vlastní zvuk. Jiný text pro čtení se nepoužije.").assertIsDisplayed()
+        composeRule.onNodeWithText("Jiný text pro čtení").assertIsNotEnabled()
+    }
+
+    @Test
+    fun previewButton_sendsToggleEvent_andTurnsIntoStopWhilePlaying() {
+        val dialog = androidx.compose.runtime.mutableStateOf(wordDialog().copy(audioFile = "a.mp3"))
+        composeRule.setContent {
+            TalkativeTheme {
+                AdminScreen(state = state(dialog = dialog.value), onEvent = { events += it }, onBackToClient = {})
+            }
+        }
+
+        composeRule.onNodeWithText("Přehrát zvuk").performClick()
+        assertEquals(listOf<AdminEvent>(AdminEvent.ToggleAudioPreview), events)
+
+        dialog.value = dialog.value.copy(isPreviewingAudio = true)
+        composeRule.waitForIdle()
+        composeRule.onNodeWithText("Zastavit zvuk").performClick()
+        assertEquals(listOf<AdminEvent>(AdminEvent.ToggleAudioPreview, AdminEvent.ToggleAudioPreview), events)
+    }
+
+    @Test
+    fun removeAudioButton_sendsEvent() {
+        show(state(dialog = wordDialog().copy(audioFile = "a.mp3")))
+
+        composeRule.onNodeWithText("Odebrat zvuk").performClick()
+
+        assertEquals(listOf<AdminEvent>(AdminEvent.RemoveAudio), events)
+    }
+
+    @Test
+    fun checkingAudio_showsProgress_andDisablesButtonsAndSave() {
+        show(state(dialog = wordDialog().copy(isProcessingAudio = true)))
+
+        composeRule.onNodeWithText("Kontroluji zvuk…").assertIsDisplayed()
+        composeRule.onNodeWithText("Vybrat MP3").assertIsNotEnabled()
+        composeRule.onNodeWithText("Uložit").assertIsNotEnabled()
+    }
+
+    @Test
+    fun audioProblems_showUnderstandableMessages() {
+        val expected = mapOf(
+            AudioProblem.UNREADABLE to "Soubor se nepodařilo načíst jako zvuk.",
+            AudioProblem.UNSUPPORTED_FORMAT to "Vybraný soubor není MP3.",
+            AudioProblem.TOO_LONG to "Zvuk je příliš dlouhý. Nejdelší povolená délka je 60 sekund.",
+            AudioProblem.TOO_LARGE to "Soubor je příliš velký. Nejvíc může mít 5 MB.",
+            AudioProblem.STORAGE_FULL to "Na zařízení není dost místa",
+            AudioProblem.NO_PICKER to "chybí aplikace pro výběr souborů",
+            AudioProblem.PLAYBACK_FAILED to "Zvuk se nepodařilo přehrát.",
+        )
+        val problem = androidx.compose.runtime.mutableStateOf(AudioProblem.UNREADABLE)
+        composeRule.setContent {
+            TalkativeTheme {
+                AdminScreen(
+                    state = state(dialog = wordDialog().copy(audioProblem = problem.value)),
+                    onEvent = {},
+                    onBackToClient = {},
+                )
+            }
+        }
+
+        for ((kind, text) in expected) {
+            problem.value = kind
+            composeRule.waitForIdle()
+            composeRule.onNodeWithText(text, substring = true).assertIsDisplayed()
+        }
+    }
+
+    @Test
+    fun folderDialog_hasNoAudioSection() {
+        show(state(dialog = wordDialog(kind = ItemKind.FOLDER)))
+
+        assertEquals(0, composeRule.onAllNodesWithTextCount("Vybrat MP3"))
     }
 }

@@ -279,15 +279,15 @@ Plán postupuje po funkcionalitách (vertikální řezy přes UI, doménu i data
 ### 5.2 Správa MP3 souborů
 
 **Úkoly:**
-- [ ] Výběr MP3 ze zařízení, kontrola formátu, velikosti a délky (desítky sekund), uložení do soukromého úložiště.
-- [ ] Náhled zvuku v administraci (přehrát/zastavit).
-- [ ] Odebrání a výměna MP3; úklid souboru při smazání slovíčka nebo složky.
-- [ ] Hlášky při odmítnutí (příliš dlouhý, nečitelný, nepodporovaný formát).
+- [x] Výběr MP3 ze zařízení, kontrola formátu, velikosti a délky (desítky sekund), uložení do soukromého úložiště. _(limity: max. 60 s a 5 MB, jen `audio/mpeg`; výběr přes systémový výběr souborů `OpenDocument`, bez nové knihovny)_
+- [x] Náhled zvuku v administraci (přehrát/zastavit).
+- [x] Odebrání a výměna MP3; úklid souboru při smazání slovíčka nebo složky.
+- [x] Hlášky při odmítnutí (příliš dlouhý, nečitelný, nepodporovaný formát).
 
 **Kritéria splnění:**
-- [ ] Příliš dlouhý nebo nečitelný MP3 je odmítnut s hláškou a nic se neuloží.
-- [ ] Smazání/výměna nenechá osiřelý soubor.
-- [ ] Zvuk přežije restart aplikace.
+- [x] Příliš dlouhý nebo nečitelný MP3 je odmítnut s hláškou a nic se neuloží.
+- [x] Smazání/výměna nenechá osiřelý soubor.
+- [x] Zvuk přežije restart aplikace. _(ověřeno na emulátoru: slovíčko i soubor v `files/audio` po restartu; odmítnutí neplatného a příliš dlouhého souboru ověřeno ručně přes systémový výběr, po odmítnutí v úložišti nic nezůstalo)_
 
 ### 5.3 Přehrávání MP3 ve větě
 
