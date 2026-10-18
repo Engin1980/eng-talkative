@@ -102,6 +102,10 @@ class RoomDictionaryRepository @Inject constructor(
         dao.deleteWord(profileId, id, clock.nowMillis())?.let { deleteFiles(it) }
     }
 
+    override suspend fun deleteItems(ids: Collection<String>) {
+        dao.deleteItems(profileId, ids, clock.nowMillis()).forEach { deleteFiles(it) }
+    }
+
     override suspend fun cleanUpOrphanFiles() {
         imageStore.deleteAllExcept(dao.allImageFiles(profileId).toSet())
         audioStore.deleteAllExcept(dao.allAudioFiles(profileId).toSet())

@@ -3,6 +3,7 @@ package cz.talkative.app.ui.admin
 import cz.talkative.app.domain.model.Folder
 import cz.talkative.app.domain.usecase.CountFolderContentsUseCase
 import cz.talkative.app.domain.usecase.DeleteFolderUseCase
+import cz.talkative.app.domain.usecase.DeleteItemsUseCase
 import cz.talkative.app.domain.usecase.DeleteWordUseCase
 import cz.talkative.app.domain.usecase.DiscardImageUseCase
 import cz.talkative.app.domain.usecase.SaveImageUseCase
@@ -55,6 +56,7 @@ class AdminViewModelTest {
             CountFolderContentsUseCase(repository),
             DeleteFolderUseCase(repository),
             DeleteWordUseCase(repository),
+            DeleteItemsUseCase(repository),
             SaveImageUseCase(imageStore),
             DiscardImageUseCase(imageStore),
             SaveAudioUseCase(audioStore),
@@ -749,5 +751,129 @@ class AdminViewModelTest {
         viewModel.onEvent(AdminEvent.ToggleAudioPreview)
 
         assertTrue(audioPlayer.played.isEmpty())
+    }
+
+    private fun ids() = viewModel.uiState.value.items.map { it.id }
+
+    private fun selected() = viewModel.uiState.value.selectedIds
+
+    private fun itemByTitle(title: String) = viewModel.uiState.value.items.first { it.title == title }
+
+    // --- multi-výběr (6.1)
+
+    @Test
+    fun selectionMode_togglesItemsAndSelectAll() = runVmTest {
+        subscribe()
+        create(AdminEvent.AddFolder, "A")
+        create(AdminEvent.AddWord, "b")
+        create(AdminEvent.AddWord, "c")
+        assertEquals(false, viewModel.uiState.value.isSelecting)
+
+        viewModel.onEvent(AdminEvent.ToggleSelecting)
+        assertTrue(viewModel.uiState.value.isSelecting)
+        assertTrue(selected().isEmpty())
+
+        viewModel.onEvent(AdminEvent.ToggleSelected(itemByTitle("b").id))
+        viewModel.onEvent(AdminEvent.ToggleSelected(itemByTitle("A").id))
+        assertEquals(setOf(itemByTitle("b").id, itemByTitle("A").id), selected())
+
+        viewModel.onEvent(AdminEvent.ToggleSelected(itemByTitle("b").id)) // odznačení
+        assertEquals(setOf(itemByTitle("A").id), selected())
+
+        viewModel.onEvent(AdminEvent.ToggleSelectAll)
+        assertEquals(ids().toSet(), selected())
+
+        viewModel.onEvent(AdminEvent.ToggleSelectAll) // už je vše označené, takže se vše odznačí
+        assertTrue(selected().isEmpty())
+        assertTrue(viewModel.uiState.value.isSelecting)
+
+        viewModel.onEvent(AdminEvent.ToggleSelected(itemByTitle("c").id))
+        viewModel.onEvent(AdminEvent.ToggleSelecting) // konec režimu zruší výběr
+        assertEquals(false, viewModel.uiState.value.isSelecting)
+        assertTrue(selected().isEmpty())
+    }
+
+    @Test
+    fun selectionOutsideSelectionMode_isIgnored() = runVmTest {
+        subscribe()
+        create(AdminEvent.AddWord, "a")
+
+        viewModel.onEvent(AdminEvent.ToggleSelected(itemByTitle("a").id))
+        viewModel.onEvent(AdminEvent.ToggleSelectAll)
+
+        assertTrue(selected().isEmpty())
+        assertEquals(false, viewModel.uiState.value.isSelecting)
+    }
+
+    @Test
+    fun selection_isClearedWhenLeavingTheFolder() = runVmTest {
+        subscribe()
+        create(AdminEvent.AddFolder, "A")
+        create(AdminEvent.AddWord, "b")
+        viewModel.onEvent(AdminEvent.ToggleSelecting)
+        viewModel.onEvent(AdminEvent.ToggleSelected(itemByTitle("b").id))
+
+        viewModel.onEvent(AdminEvent.GoToFolder(itemByTitle("A").id))
+
+        assertEquals(false, viewModel.uiState.value.isSelecting)
+        assertTrue(selected().isEmpty())
+    }
+
+    @Test
+    fun deleteSelected_showsTotalIncludingContents_andDeletesOnlySelected() = runVmTest {
+        subscribe()
+        create(AdminEvent.AddFolder, "A")
+        create(AdminEvent.AddFolder, "Zůstane")
+        create(AdminEvent.AddWord, "b")
+        create(AdminEvent.AddWord, "c")
+        viewModel.onEvent(AdminEvent.GoToFolder(itemByTitle("A").id))
+        create(AdminEvent.AddWord, "a1")
+        create(AdminEvent.AddFolder, "A2")
+        viewModel.onEvent(AdminEvent.GoToFolder(itemByTitle("A2").id))
+        create(AdminEvent.AddWord, "a2w")
+        viewModel.onEvent(AdminEvent.GoToFolder(null))
+
+        viewModel.onEvent(AdminEvent.ToggleSelecting)
+        viewModel.onEvent(AdminEvent.ToggleSelected(itemByTitle("A").id))
+        viewModel.onEvent(AdminEvent.ToggleSelected(itemByTitle("b").id))
+        viewModel.onEvent(AdminEvent.DeleteSelected)
+
+        val dialog = viewModel.uiState.value.dialog as AdminDialog.ConfirmDeleteSelected
+        assertEquals(2, dialog.selectedCount)
+        assertEquals(5, dialog.totalCount) // A + b + obsah A (a1, A2, a2w)
+        assertEquals(listOf("A", "Zůstane", "b", "c"), titles()) // zatím se nic nesmazalo
+
+        viewModel.onEvent(AdminEvent.ConfirmDeleteSelected)
+
+        assertEquals(listOf("Zůstane", "c"), titles())
+        assertNull(viewModel.uiState.value.dialog)
+        assertEquals(false, viewModel.uiState.value.isSelecting)
+        assertTrue(repository.allFolders.none { it.title.startsWith("A") })
+        assertTrue(repository.allWords.none { it.title in setOf("b", "a1", "a2w") })
+    }
+
+    @Test
+    fun deleteSelected_cancelled_deletesNothingAndKeepsSelection() = runVmTest {
+        subscribe()
+        create(AdminEvent.AddWord, "a")
+        viewModel.onEvent(AdminEvent.ToggleSelecting)
+        viewModel.onEvent(AdminEvent.ToggleSelected(itemByTitle("a").id))
+        viewModel.onEvent(AdminEvent.DeleteSelected)
+
+        viewModel.onEvent(AdminEvent.DismissDialog)
+
+        assertEquals(listOf("a"), titles())
+        assertEquals(1, selected().size)
+    }
+
+    @Test
+    fun deleteSelected_withNothingSelected_opensNoDialog() = runVmTest {
+        subscribe()
+        create(AdminEvent.AddWord, "a")
+        viewModel.onEvent(AdminEvent.ToggleSelecting)
+
+        viewModel.onEvent(AdminEvent.DeleteSelected)
+
+        assertNull(viewModel.uiState.value.dialog)
     }
 }

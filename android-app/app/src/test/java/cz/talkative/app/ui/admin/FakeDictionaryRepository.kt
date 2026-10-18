@@ -90,6 +90,10 @@ class FakeDictionaryRepository : DictionaryRepository {
         words.value = words.value.filterNot { it.id == id }
     }
 
+    override suspend fun deleteItems(ids: Collection<String>) {
+        ids.forEach { id -> if (folders.value.any { it.id == id }) deleteFolder(id) else deleteWord(id) }
+    }
+
     private fun subtreeIds(rootId: String): Set<String> {
         val ids = mutableSetOf(rootId)
         var added = true

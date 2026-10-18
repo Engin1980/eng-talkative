@@ -312,12 +312,12 @@ Plán postupuje po funkcionalitách (vertikální řezy přes UI, doménu i data
 ### 6.1 Multi-výběr
 
 **Úkoly:**
-- [ ] Režim multi-výběru v administraci (slovíčka i složky najednou), označení/odznačení, „vybrat vše“.
-- [ ] Hromadné smazání vybraných položek se souhrnným potvrzením (počet včetně podstromů).
+- [x] Režim multi-výběru v administraci (slovíčka i složky najednou), označení/odznačení, „vybrat vše“.
+- [x] Hromadné smazání vybraných položek se souhrnným potvrzením (počet včetně podstromů). _(pozn.: smazání běží v jedné databázové transakci; výběr patří jedné složce a při přechodu jinam se zruší)_
 
 **Kritéria splnění:**
-- [ ] Lze označit více položek a výběr zrušit; stav je přehledný.
-- [ ] Hromadné smazání zobrazí správný celkový počet a po potvrzení smaže vše.
+- [x] Lze označit více položek a výběr zrušit; stav je přehledný.
+- [x] Hromadné smazání zobrazí správný celkový počet a po potvrzení smaže vše.
 
 ### 6.2 Hromadný přesun
 

@@ -52,6 +52,12 @@ sealed interface AdminDialog {
         val sessionId: Int = 0,
     ) : AdminDialog
 
+    /**
+     * Potvrzení hromadného smazání: [selectedCount] vybraných položek, [totalCount] jich je celkem
+     * (vybrané plus obsah vybraných složek).
+     */
+    data class ConfirmDeleteSelected(val selectedCount: Int, val totalCount: Int) : AdminDialog
+
     /** Potvrzení smazání; [contentCount] je počet položek uvnitř složky (u slovíčka 0). */
     data class ConfirmDelete(val item: DictionaryItem, val contentCount: Int) : AdminDialog
 }
@@ -63,6 +69,9 @@ data class AdminUiState(
     val items: List<DictionaryItem> = emptyList(),
     val isLoading: Boolean = true,
     val dialog: AdminDialog? = null,
+    /** Režim výběru více položek v aktuální složce; [selectedIds] jsou označené položky. */
+    val isSelecting: Boolean = false,
+    val selectedIds: Set<String> = emptySet(),
 )
 
 sealed interface AdminEvent {
@@ -103,4 +112,13 @@ sealed interface AdminEvent {
     data object ToggleAudioPreview : AdminEvent
 
     data object DismissAudioProblem : AdminEvent
+
+    /** Zapne nebo vypne režim výběru (vypnutím se výběr zruší). */
+    data object ToggleSelecting : AdminEvent
+    data class ToggleSelected(val itemId: String) : AdminEvent
+
+    /** Označí všechny položky aktuální složky, nebo je všechny odznačí, když už jsou označené. */
+    data object ToggleSelectAll : AdminEvent
+    data object DeleteSelected : AdminEvent
+    data object ConfirmDeleteSelected : AdminEvent
 }

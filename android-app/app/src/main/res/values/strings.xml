@@ -33,6 +33,12 @@
     <string name="admin_kind_word">Slovíčko</string>
     <string name="admin_edit_item">Upravit %1$s</string>
     <string name="admin_delete_item">Smazat %1$s</string>
+    <string name="admin_select">Vybrat</string>
+    <string name="admin_selected_count">Vybráno: %1$d</string>
+    <string name="admin_select_all">Vybrat vše</string>
+    <string name="admin_select_none">Zrušit výběr</string>
+    <string name="admin_delete_selected">Smazat vybrané</string>
+    <string name="admin_selection_done">Hotovo</string>
 
     <string name="dialog_folder_new">Nová složka</string>
     <string name="dialog_folder_edit">Upravit složku</string>
@@ -80,4 +86,7 @@
     <string name="delete_folder_message_empty">Složka „%1$s“ bude smazána. Nelze to vrátit zpět.</string>
     <!-- Bez plurálu: gramatika by závisela na jazyce zařízení, ne na jazyce aplikace. -->
     <string name="delete_folder_message_with_items">Složka „%1$s“ není prázdná. Počet položek uvnitř včetně podsložek: %2$d. Smaže se vše a nelze to vrátit zpět.</string>
+    <string name="delete_selected_title">Smazat vybrané položky?</string>
+    <string name="delete_selected_message">Počet vybraných položek: %1$d. Smažou se a nelze to vrátit zpět.</string>
+    <string name="delete_selected_message_with_contents">Počet vybraných položek: %1$d. Včetně obsahu vybraných složek se smaže celkem %2$d položek. Nelze to vrátit zpět.</string>
 </resources>

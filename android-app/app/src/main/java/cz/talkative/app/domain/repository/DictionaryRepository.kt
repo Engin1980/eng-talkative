@@ -49,6 +49,9 @@ interface DictionaryRepository {
     /** Smaže slovíčko včetně souborů jeho obrázku a MP3. */
     suspend fun deleteWord(id: String)
 
+    /** Smaže vybrané složky (i s podstromy) a slovíčka v jedné transakci; neexistující ID se přeskočí. */
+    suspend fun deleteItems(ids: Collection<String>)
+
     /** Smaže soubory obrázků a MP3, které nepatří žádnému slovíčku (po přerušeném mazání nebo zrušené úpravě). */
     suspend fun cleanUpOrphanFiles()
 }

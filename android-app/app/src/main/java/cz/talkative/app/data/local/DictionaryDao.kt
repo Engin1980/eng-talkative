@@ -157,6 +157,20 @@ abstract class DictionaryDao {
         return previous
     }
 
+    /** Smaže složky (s podstromy) i slovíčka podle ID v jedné transakci a vrátí soubory k úklidu. */
+    @Transaction
+    open suspend fun deleteItems(profileId: String, ids: Collection<String>, now: Long): List<WordFiles> {
+        val files = mutableListOf<WordFiles>()
+        for (id in ids) {
+            if (getFolder(profileId, id) != null) {
+                files += deleteFolderSubtree(profileId, id, now)
+            } else {
+                deleteWord(profileId, id, now)?.let { files += it }
+            }
+        }
+        return files
+    }
+
     /**
      * Tombstone celého podstromu v jedné transakci. Slovíčka první, dokud složky ještě "žijí" pro rekurzi.
      * Vrací soubory smazaných slovíček, aby je volající po úspěšném commitu smazal z úložiště.

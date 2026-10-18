@@ -389,4 +389,25 @@ class DictionaryRepositoryTest {
 
         assertEquals(setOf("used.mp3"), audioStore.files)
     }
+
+    @Test
+    fun deleteItems_deletesFoldersWithSubtreesAndWordsTogether_withTheirFiles() = runTest {
+        val a = repository.createFolder(null, "A")
+        val inner = repository.createFolder(a.id, "Vnitřní")
+        repository.createWord(inner.id, "i1", imageStore.add("i1.jpg"), audioFile = audioStore.add("i1.mp3"))
+        val word = repository.createWord(null, "w", audioFile = audioStore.add("w.mp3"))
+        val keep = repository.createFolder(null, "Zůstane")
+        repository.createWord(keep.id, "k1", imageStore.add("k1.jpg"))
+        val keepWord = repository.createWord(null, "keep-word")
+
+        repository.deleteItems(listOf(a.id, word.id, "neexistuje"))
+
+        assertEquals(listOf("Zůstane", "keep-word"), titles(null))
+        assertTrue(titles(a.id).isEmpty())
+        assertTrue(titles(inner.id).isEmpty())
+        assertEquals(listOf("k1"), titles(keep.id))
+        assertEquals(setOf("k1.jpg"), imageStore.files)
+        assertTrue(audioStore.files.isEmpty())
+        assertEquals(keepWord.id, repository.observeItems(null).first().last().id)
+    }
 }

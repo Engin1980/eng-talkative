@@ -15,6 +15,7 @@ import cz.talkative.app.domain.usecase.CountFolderContentsUseCase
 import cz.talkative.app.domain.usecase.DeleteFolderUseCase
 import cz.talkative.app.domain.usecase.DiscardAudioUseCase
 import cz.talkative.app.domain.usecase.SaveAudioUseCase
+import cz.talkative.app.domain.usecase.DeleteItemsUseCase
 import cz.talkative.app.domain.usecase.DeleteWordUseCase
 import cz.talkative.app.domain.usecase.DiscardImageUseCase
 import cz.talkative.app.domain.usecase.GetFolderPathUseCase
@@ -46,6 +47,7 @@ class AdminViewModel @Inject constructor(
     private val countContents: CountFolderContentsUseCase,
     private val deleteFolder: DeleteFolderUseCase,
     private val deleteWord: DeleteWordUseCase,
+    private val deleteItems: DeleteItemsUseCase,
     private val saveImage: SaveImageUseCase,
     private val discardImage: DiscardImageUseCase,
     private val saveAudio: SaveAudioUseCase,
@@ -55,6 +57,7 @@ class AdminViewModel @Inject constructor(
 
     private val currentFolderId = MutableStateFlow<String?>(null)
     private val dialog = MutableStateFlow<AdminDialog?>(null)
+    private val selection = MutableStateFlow<Set<String>?>(null) // null = režim výběru je vypnutý
     private var nextSessionId = 0
     private var previewJob: Job? = null
 
@@ -62,13 +65,13 @@ class AdminViewModel @Inject constructor(
         observeItems(folderId).map { items -> AdminUiState(path = getPath(folderId), items = items, isLoading = false) }
     }
 
-    val uiState: StateFlow<AdminUiState> = combine(browsing, dialog) { browsingState, openDialog ->
-        browsingState.copy(dialog = openDialog)
+    val uiState: StateFlow<AdminUiState> = combine(browsing, dialog, selection) { browsingState, openDialog, selected ->
+        browsingState.copy(dialog = openDialog, isSelecting = selected != null, selectedIds = selected.orEmpty())
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), AdminUiState())
 
     fun onEvent(event: AdminEvent) {
         when (event) {
-            is AdminEvent.GoToFolder -> currentFolderId.value = event.folderId
+            is AdminEvent.GoToFolder -> goToFolder(event.folderId)
             AdminEvent.NavigateUp -> navigateUp()
             AdminEvent.AddFolder -> dialog.value = AdminDialog.Edit(ItemKind.FOLDER, itemId = null, title = "", sessionId = nextSessionId++)
             AdminEvent.AddWord -> dialog.value = AdminDialog.Edit(ItemKind.WORD, itemId = null, title = "", sessionId = nextSessionId++)
@@ -88,6 +91,47 @@ class AdminViewModel @Inject constructor(
             is AdminEvent.AudioSelectionFailed -> updateEditDialog { it.copy(audioProblem = event.problem) }
             AdminEvent.ToggleAudioPreview -> toggleAudioPreview()
             AdminEvent.DismissAudioProblem -> updateEditDialog { it.copy(audioProblem = null) }
+            AdminEvent.ToggleSelecting -> selection.value = if (selection.value == null) emptySet() else null
+            is AdminEvent.ToggleSelected -> toggleSelected(event.itemId)
+            AdminEvent.ToggleSelectAll -> toggleSelectAll()
+            AdminEvent.DeleteSelected -> requestDeleteSelected()
+            AdminEvent.ConfirmDeleteSelected -> confirmDeleteSelected()
+        }
+    }
+
+    /** Výběr patří jedné složce, proto se při přechodu jinam zruší. */
+    private fun goToFolder(folderId: String?) {
+        selection.value = null
+        currentFolderId.value = folderId
+    }
+
+    private fun toggleSelected(itemId: String) {
+        val selected = selection.value ?: return
+        selection.value = if (itemId in selected) selected - itemId else selected + itemId
+    }
+
+    private fun toggleSelectAll() {
+        val selected = selection.value ?: return
+        val allIds = uiState.value.items.map { it.id }.toSet()
+        selection.value = if (selected.containsAll(allIds)) emptySet() else allIds
+    }
+
+    private fun requestDeleteSelected() {
+        val selected = selection.value?.takeIf { it.isNotEmpty() } ?: return
+        viewModelScope.launch {
+            val folders = uiState.value.items.filter { it.id in selected && it is Folder }
+            val total = selected.size + folders.sumOf { countContents(it.id) }
+            dialog.value = AdminDialog.ConfirmDeleteSelected(selected.size, total)
+        }
+    }
+
+    private fun confirmDeleteSelected() {
+        if (dialog.value !is AdminDialog.ConfirmDeleteSelected) return
+        val selected = selection.value ?: return
+        viewModelScope.launch {
+            deleteItems(selected)
+            selection.value = null
+            closeDialog()
         }
     }
 
@@ -111,7 +155,7 @@ class AdminViewModel @Inject constructor(
     private fun navigateUp() {
         viewModelScope.launch {
             val path = getPath(currentFolderId.value)
-            currentFolderId.value = path.getOrNull(path.size - 2)?.id
+            goToFolder(path.getOrNull(path.size - 2)?.id)
         }
     }
 

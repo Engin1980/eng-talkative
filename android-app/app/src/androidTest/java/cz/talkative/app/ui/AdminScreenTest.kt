@@ -8,6 +8,7 @@ import androidx.compose.ui.test.onAllNodesWithTag
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.assertWidthIsAtLeast
 import androidx.compose.ui.test.junit4.v2.createAndroidComposeRule
+import androidx.compose.ui.test.onAllNodesWithContentDescription
 import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
@@ -424,5 +425,82 @@ class AdminScreenTest {
         show(state(dialog = wordDialog(kind = ItemKind.FOLDER)))
 
         assertEquals(0, composeRule.onAllNodesWithTextCount("Vybrat MP3"))
+    }
+
+    // --- multi-výběr (6.1)
+
+    private fun selectingState(selected: Set<String>) = AdminUiState(
+        items = listOf(folder("f1", "Jídlo"), word("w1", "Chci"), word("w2", "Pít", order = 1)),
+        isLoading = false,
+        isSelecting = true,
+        selectedIds = selected,
+    )
+
+    @Test
+    fun selectButton_startsSelectionMode() {
+        show(state(word("w1", "Chci")))
+
+        composeRule.onNodeWithText("Vybrat").assertHeightIsAtLeast(64.dp).performClick()
+
+        assertEquals(listOf<AdminEvent>(AdminEvent.ToggleSelecting), events)
+    }
+
+    @Test
+    fun selectionMode_showsCount_hidesAddButtons_andClickTogglesInsteadOfOpening() {
+        show(selectingState(setOf("w1")))
+
+        composeRule.onNodeWithText("Vybráno: 1").assertIsDisplayed()
+        assertEquals(0, composeRule.onAllNodesWithTextCount("Nová složka"))
+        assertEquals(0, composeRule.onAllNodesWithTextCount("Nové slovíčko"))
+        assertEquals(0, composeRule.onAllNodesWithContentDescription("Smazat Chci").fetchSemanticsNodes().size)
+
+        composeRule.onNodeWithText("Jídlo").performClick() // složka se neotevře, jen se označí
+        composeRule.onNodeWithText("Pít").performClick()
+
+        assertEquals(listOf<AdminEvent>(AdminEvent.ToggleSelected("f1"), AdminEvent.ToggleSelected("w2")), events)
+    }
+
+    @Test
+    fun selectionBar_deleteIsDisabledWithoutSelection_andEnabledWithOne() {
+        show(selectingState(emptySet()))
+        composeRule.onNodeWithText("Smazat vybrané").assertIsNotEnabled()
+        composeRule.onNodeWithText("Vybráno: 0").assertIsDisplayed()
+    }
+
+    @Test
+    fun selectionBar_buttonsSendEvents_andSelectAllBecomesDeselectWhenEverythingIsSelected() {
+        show(selectingState(setOf("f1")))
+        composeRule.onNodeWithText("Vybrat vše").assertHeightIsAtLeast(64.dp).performClick()
+        composeRule.onNodeWithText("Smazat vybrané").assertHeightIsAtLeast(64.dp).assertIsEnabled().performClick()
+        composeRule.onNodeWithText("Hotovo").assertHeightIsAtLeast(64.dp).performClick()
+
+        assertEquals(
+            listOf<AdminEvent>(AdminEvent.ToggleSelectAll, AdminEvent.DeleteSelected, AdminEvent.ToggleSelecting),
+            events,
+        )
+    }
+
+    @Test
+    fun selectionBar_whenAllSelected_offersToClearSelection() {
+        show(selectingState(setOf("f1", "w1", "w2")))
+        composeRule.onNodeWithText("Zrušit výběr").assertIsDisplayed()
+    }
+
+    @Test
+    fun deleteSelectedDialog_showsTotalCount() {
+        show(state(dialog = AdminDialog.ConfirmDeleteSelected(selectedCount = 2, totalCount = 5)))
+
+        composeRule.onNodeWithText("Smazat vybrané položky?").assertIsDisplayed()
+        composeRule.onNodeWithText(
+            "Počet vybraných položek: 2. Včetně obsahu vybraných složek se smaže celkem 5 položek. Nelze to vrátit zpět.",
+        ).assertIsDisplayed()
+        composeRule.onNodeWithText("Smazat").performClick()
+        assertEquals(listOf<AdminEvent>(AdminEvent.ConfirmDeleteSelected), events)
+    }
+
+    @Test
+    fun deleteSelectedDialog_withoutFolders_showsPlainCount() {
+        show(state(dialog = AdminDialog.ConfirmDeleteSelected(selectedCount = 3, totalCount = 3)))
+        composeRule.onNodeWithText("Počet vybraných položek: 3. Smažou se a nelze to vrátit zpět.").assertIsDisplayed()
     }
 }

@@ -25,6 +25,7 @@ import androidx.compose.ui.window.DialogProperties
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
+import androidx.compose.material3.Checkbox
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -108,7 +109,9 @@ fun AdminScreen(
 
         Breadcrumbs(path = state.path, onGoToFolder = { onEvent(AdminEvent.GoToFolder(it)) })
 
-        Row(horizontalArrangement = Arrangement.spacedBy(dimens.spaceMedium)) {
+        if (state.isSelecting) {
+            SelectionBar(state = state, onEvent = onEvent)
+        } else Row(horizontalArrangement = Arrangement.spacedBy(dimens.spaceMedium)) {
             if (!atRoot) {
                 OutlinedButton(
                     onClick = { onEvent(AdminEvent.NavigateUp) },
@@ -129,6 +132,12 @@ fun AdminScreen(
             ) {
                 Text(stringResource(R.string.admin_add_word))
             }
+            OutlinedButton(
+                onClick = { onEvent(AdminEvent.ToggleSelecting) },
+                modifier = Modifier.heightIn(min = dimens.minTouchTarget),
+            ) {
+                Text(stringResource(R.string.admin_select))
+            }
         }
 
         when {
@@ -141,8 +150,14 @@ fun AdminScreen(
                 items(state.items, key = { it.id }) { item ->
                     ItemRow(
                         item = item,
+                        isSelecting = state.isSelecting,
+                        isSelected = item.id in state.selectedIds,
                         onClick = {
-                            if (item is Folder) onEvent(AdminEvent.GoToFolder(item.id)) else onEvent(AdminEvent.EditItem(item))
+                            when {
+                                state.isSelecting -> onEvent(AdminEvent.ToggleSelected(item.id))
+                                item is Folder -> onEvent(AdminEvent.GoToFolder(item.id))
+                                else -> onEvent(AdminEvent.EditItem(item))
+                            }
                         },
                         onEdit = { onEvent(AdminEvent.EditItem(item)) },
                         onDelete = { onEvent(AdminEvent.DeleteItem(item)) },
@@ -153,6 +168,43 @@ fun AdminScreen(
     }
 
     state.dialog?.let { AdminDialogHost(dialog = it, onEvent = onEvent) }
+}
+
+/** Lišta režimu výběru: počet označených, „vybrat vše“, smazání a konec výběru. */
+@Composable
+private fun SelectionBar(state: AdminUiState, onEvent: (AdminEvent) -> Unit) {
+    val dimens = TalkativeTheme.dimens
+    Row(
+        modifier = Modifier.horizontalScroll(rememberScrollState()),
+        horizontalArrangement = Arrangement.spacedBy(dimens.spaceMedium),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Text(
+            text = stringResource(R.string.admin_selected_count, state.selectedIds.size),
+            style = MaterialTheme.typography.titleLarge,
+        )
+        OutlinedButton(
+            onClick = { onEvent(AdminEvent.ToggleSelectAll) },
+            enabled = state.items.isNotEmpty(),
+            modifier = Modifier.heightIn(min = dimens.minTouchTarget),
+        ) {
+            val allSelected = state.items.isNotEmpty() && state.items.all { it.id in state.selectedIds }
+            Text(stringResource(if (allSelected) R.string.admin_select_none else R.string.admin_select_all))
+        }
+        Button(
+            onClick = { onEvent(AdminEvent.DeleteSelected) },
+            enabled = state.selectedIds.isNotEmpty(),
+            modifier = Modifier.heightIn(min = dimens.minTouchTarget),
+        ) {
+            Text(stringResource(R.string.admin_delete_selected))
+        }
+        OutlinedButton(
+            onClick = { onEvent(AdminEvent.ToggleSelecting) },
+            modifier = Modifier.heightIn(min = dimens.minTouchTarget),
+        ) {
+            Text(stringResource(R.string.admin_selection_done))
+        }
+    }
 }
 
 @Composable
@@ -212,6 +264,8 @@ private fun EmptyFolderHint(modifier: Modifier = Modifier) {
 @Composable
 private fun ItemRow(
     item: DictionaryItem,
+    isSelecting: Boolean,
+    isSelected: Boolean,
     onClick: () -> Unit,
     onEdit: () -> Unit,
     onDelete: () -> Unit,
@@ -227,6 +281,10 @@ private fun ItemRow(
                 .padding(start = dimens.spaceMedium),
             verticalAlignment = Alignment.CenterVertically,
         ) {
+            if (isSelecting) {
+                // Klepnutí obsluhuje celý řádek, proto zaškrtávátko samo na klepnutí nereaguje.
+                Checkbox(checked = isSelected, onCheckedChange = null, modifier = Modifier.padding(end = dimens.spaceMedium))
+            }
             if (item is Word) {
                 WordImage(
                     imageFile = item.imageFile,
@@ -247,6 +305,7 @@ private fun ItemRow(
                     modifier = Modifier.size(dimens.iconSize),
                 )
             }
+            if (isSelecting) return@Row
             IconButton(onClick = onEdit, modifier = Modifier.size(dimens.minTouchTarget)) {
                 Icon(
                     imageVector = Icons.Filled.Edit,
@@ -268,6 +327,7 @@ private fun AdminDialogHost(dialog: AdminDialog, onEvent: (AdminEvent) -> Unit) 
     when (dialog) {
         is AdminDialog.Edit -> EditDialog(dialog, onEvent)
         is AdminDialog.ConfirmDelete -> ConfirmDeleteDialog(dialog, onEvent)
+        is AdminDialog.ConfirmDeleteSelected -> ConfirmDeleteSelectedDialog(dialog, onEvent)
     }
 }
 
@@ -535,6 +595,37 @@ private fun ConfirmDeleteDialog(dialog: AdminDialog.ConfirmDelete, onEvent: (Adm
         confirmButton = {
             Button(
                 onClick = { onEvent(AdminEvent.ConfirmDelete) },
+                modifier = Modifier.heightIn(min = dimens.minTouchTarget),
+            ) {
+                Text(stringResource(R.string.delete_confirm))
+            }
+        },
+        dismissButton = {
+            TextButton(
+                onClick = { onEvent(AdminEvent.DismissDialog) },
+                modifier = Modifier.heightIn(min = dimens.minTouchTarget),
+            ) {
+                Text(stringResource(R.string.dialog_cancel))
+            }
+        },
+    )
+}
+
+@Composable
+private fun ConfirmDeleteSelectedDialog(dialog: AdminDialog.ConfirmDeleteSelected, onEvent: (AdminEvent) -> Unit) {
+    val dimens = TalkativeTheme.dimens
+    val message = if (dialog.totalCount == dialog.selectedCount) {
+        stringResource(R.string.delete_selected_message, dialog.selectedCount)
+    } else {
+        stringResource(R.string.delete_selected_message_with_contents, dialog.selectedCount, dialog.totalCount)
+    }
+    AlertDialog(
+        onDismissRequest = { onEvent(AdminEvent.DismissDialog) },
+        title = { Text(stringResource(R.string.delete_selected_title)) },
+        text = { Text(message) },
+        confirmButton = {
+            Button(
+                onClick = { onEvent(AdminEvent.ConfirmDeleteSelected) },
                 modifier = Modifier.heightIn(min = dimens.minTouchTarget),
             ) {
                 Text(stringResource(R.string.delete_confirm))

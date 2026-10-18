@@ -4,6 +4,7 @@ import android.content.Context
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.test.junit4.v2.createComposeRule
+import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.onAllNodesWithTag
 import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithContentDescription
@@ -19,6 +20,7 @@ import cz.talkative.app.data.local.TalkativeDatabase
 import cz.talkative.app.data.repository.RoomDictionaryRepository
 import cz.talkative.app.domain.usecase.CountFolderContentsUseCase
 import cz.talkative.app.domain.usecase.DeleteFolderUseCase
+import cz.talkative.app.domain.usecase.DeleteItemsUseCase
 import cz.talkative.app.domain.usecase.DeleteWordUseCase
 import cz.talkative.app.domain.usecase.DiscardAudioUseCase
 import cz.talkative.app.domain.usecase.DiscardImageUseCase
@@ -76,6 +78,7 @@ class AdminFlowTest {
             CountFolderContentsUseCase(repository),
             DeleteFolderUseCase(repository),
             DeleteWordUseCase(repository),
+            DeleteItemsUseCase(repository),
             SaveImageUseCase(imageStore),
             DiscardImageUseCase(imageStore),
             SaveAudioUseCase(audioStore),
@@ -311,5 +314,31 @@ class AdminFlowTest {
         composeRule.onNodeWithText("Smazat").performClick()
 
         composeRule.waitUntil(5_000) { audioStore.files.isEmpty() }
+    }
+
+    @Test
+    fun selectionMode_deletesSeveralItemsAtOnce_afterConfirmation() {
+        waitForText("Tato složka je prázdná")
+        create("Nová složka", "Složka A")
+        create("Nové slovíčko", "Slovo B")
+        create("Nové slovíčko", "Slovo C")
+
+        composeRule.onNodeWithText("Vybrat").performClick()
+        composeRule.onNodeWithText("Složka A").performClick()
+        composeRule.onNodeWithText("Slovo B").performClick()
+        composeRule.onNodeWithText("Vybráno: 2").assertIsDisplayed()
+        composeRule.onNodeWithText("Smazat vybrané").performClick()
+        composeRule.onNodeWithText("Smazat vybrané položky?").assertIsDisplayed()
+
+        composeRule.onNodeWithText("Zrušit").performClick() // nic se nesmaže
+        waitForNoText("Smazat vybrané položky?")
+        composeRule.onNodeWithText("Slovo B").assertIsDisplayed()
+
+        composeRule.onNodeWithText("Smazat vybrané").performClick()
+        composeRule.onNodeWithText("Smazat").performClick()
+        waitForNoText("Slovo B")
+
+        composeRule.onNodeWithText("Slovo C").assertIsDisplayed()
+        composeRule.onNodeWithText("Nová složka").assertIsDisplayed() // režim výběru skončil
     }
 }
