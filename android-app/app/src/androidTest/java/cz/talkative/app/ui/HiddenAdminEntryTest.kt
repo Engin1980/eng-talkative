@@ -7,7 +7,7 @@ import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.performTouchInput
 import androidx.compose.ui.unit.dp
 import androidx.test.ext.junit.runners.AndroidJUnit4
-import cz.talkative.app.domain.model.ClientDefaults
+import cz.talkative.app.domain.model.AppConfig
 import cz.talkative.app.ui.client.HIDDEN_ADMIN_ENTRY_TAG
 import cz.talkative.app.ui.client.HiddenAdminEntry
 import cz.talkative.app.ui.theme.TalkativeTheme
@@ -39,7 +39,7 @@ class HiddenAdminEntryTest {
 
     @Test
     fun defaultHoldIntervalIsTenSeconds() {
-        assertEquals(10_000L, ClientDefaults.ADMIN_HOLD_MILLIS)
+        assertEquals(10_000L, AppConfig().adminHoldMillis)
     }
 
     @Test
@@ -47,7 +47,7 @@ class HiddenAdminEntryTest {
         entry().performTouchInput { down(center) }
         composeRule.mainClock.advanceTimeBy(500)
         entry().performTouchInput { up() }
-        composeRule.mainClock.advanceTimeBy(ClientDefaults.ADMIN_HOLD_MILLIS * 2)
+        composeRule.mainClock.advanceTimeBy(AppConfig().adminHoldMillis * 2)
 
         assertEquals(0, entered)
     }
@@ -55,9 +55,9 @@ class HiddenAdminEntryTest {
     @Test
     fun holdJustBelowInterval_thenRelease_doesNothing() {
         entry().performTouchInput { down(center) }
-        composeRule.mainClock.advanceTimeBy(ClientDefaults.ADMIN_HOLD_MILLIS - 1_000)
+        composeRule.mainClock.advanceTimeBy(AppConfig().adminHoldMillis - 1_000)
         entry().performTouchInput { up() }
-        composeRule.mainClock.advanceTimeBy(ClientDefaults.ADMIN_HOLD_MILLIS * 2)
+        composeRule.mainClock.advanceTimeBy(AppConfig().adminHoldMillis * 2)
 
         assertEquals(0, entered)
     }
@@ -65,13 +65,13 @@ class HiddenAdminEntryTest {
     @Test
     fun holdForWholeInterval_entersAdminOnce() {
         entry().performTouchInput { down(center) }
-        composeRule.mainClock.advanceTimeBy(ClientDefaults.ADMIN_HOLD_MILLIS - 1_000)
+        composeRule.mainClock.advanceTimeBy(AppConfig().adminHoldMillis - 1_000)
         assertEquals(0, entered) // ještě nedržel dost dlouho
 
         composeRule.mainClock.advanceTimeBy(2_000)
         assertEquals(1, entered)
 
-        composeRule.mainClock.advanceTimeBy(ClientDefaults.ADMIN_HOLD_MILLIS)
+        composeRule.mainClock.advanceTimeBy(AppConfig().adminHoldMillis)
         entry().performTouchInput { up() }
         assertEquals(1, entered) // další držení vstup neopakuje
     }

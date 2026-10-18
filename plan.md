@@ -14,9 +14,9 @@ Plán postupuje po funkcionalitách (vertikální řezy přes UI, doménu i data
 
 - [x] Krok 0: Kostra projektu
 - [x] Krok 1: Vstup do administrace a základ slovníku
-- [ ] Krok 2: Klient: procházení a skládání věty
-- [ ] Krok 3: Přehrání věty hlasem (TTS)
-- [ ] Krok 4: Obrázky slovíček
+- [x] Krok 2: Klient: procházení a skládání věty
+- [x] Krok 3: Přehrání věty hlasem (TTS)
+- [x] Krok 4: Obrázky slovíček
 - [ ] Krok 5: Vlastní zvuková definice slovíčka
 - [ ] Krok 6: Pokročilá správa slovníku
 - [ ] Krok 7: Konfigurace a pokročilé ovládání klienta
@@ -139,53 +139,53 @@ Plán postupuje po funkcionalitách (vertikální řezy přes UI, doménu i data
 ### 2.1 Konfigurační úložiště
 
 **Úkoly:**
-- [ ] Lokální konfigurace (DataStore) s výchozími hodnotami z `assignment.md`; zatím bez obrazovky nastavení.
-- [ ] Repozitář konfigurace vystavený jako Flow.
-- [ ] Napojit interval podržení pro vstup do administrace (z kroku 1.2) na konfiguraci.
+- [x] Lokální konfigurace (DataStore) s výchozími hodnotami z `assignment.md`; zatím bez obrazovky nastavení.
+- [x] Repozitář konfigurace vystavený jako Flow.
+- [x] Napojit interval podržení pro vstup do administrace (z kroku 1.2) na konfiguraci.
 
 **Kritéria splnění:**
-- [ ] Výchozí hodnoty odpovídají `assignment.md`.
-- [ ] Unit test: čtení výchozích hodnot a zápisu změny.
+- [x] Výchozí hodnoty odpovídají `assignment.md`.
+- [x] Unit test: čtení výchozích hodnot a zápisu změny.
 
 ### 2.2 Mřížka a stránkování
 
 **Úkoly:**
-- [ ] Čistá logika stránkování (rozdělení položek podle velikosti mřížky).
-- [ ] Klientská obrazovka: stránkovaná mřížka složek a slovíček; velikost mřížky z konfigurace, jiná na výšku a na šířku.
-- [ ] Ovládání stránek (listování); stránkování přežije otočení tabletu.
+- [x] Čistá logika stránkování (rozdělení položek podle velikosti mřížky).
+- [x] Klientská obrazovka: stránkovaná mřížka složek a slovíček; velikost mřížky z konfigurace, jiná na výšku a na šířku.
+- [x] Ovládání stránek (listování); stránkování přežije otočení tabletu.
 
 **Kritéria splnění:**
-- [ ] 10 položek v mřížce 3×3 jsou 2 stránky; prázdná složka i přesný násobek stránky fungují.
-- [ ] Otočení tabletu nezmění aktuální složku a mřížka se přepočítá.
-- [ ] Unit testy stránkování.
+- [x] 10 položek v mřížce 3×3 jsou 2 stránky; prázdná složka i přesný násobek stránky fungují.
+- [x] Otočení tabletu nezmění aktuální složku a mřížka se přepočítá. _(ověřeno na emulátoru API 35 skutečným otočením: složka i věta zůstaly, přepočet velikosti mřížky pokrývá Compose test)_
+- [x] Unit testy stránkování.
 
 ### 2.3 Navigace ve stromu
 
 **Úkoly:**
-- [ ] Drobečková navigace (breadcrumbs).
-- [ ] Velká tlačítka „Zpět“ a „Domů“.
-- [ ] Klepnutí na složku do ní vstoupí.
+- [x] Drobečková navigace (breadcrumbs).
+- [x] Velká tlačítka „Zpět“ a „Domů“.
+- [x] Klepnutí na složku do ní vstoupí.
 
 **Kritéria splnění:**
-- [ ] Breadcrumbs vždy odpovídají aktuální cestě, „Domů“ vede do kořene, „Zpět“ o úroveň výš.
-- [ ] Dotykové plochy mají minimálně 64 dp.
-- [ ] Unit testy navigace ve view modelu.
+- [x] Breadcrumbs vždy odpovídají aktuální cestě, „Domů“ vede do kořene, „Zpět“ o úroveň výš.
+- [x] Dotykové plochy mají minimálně 64 dp.
+- [x] Unit testy navigace ve view modelu.
 
 ### 2.4 Skládání věty
 
 **Úkoly:**
-- [ ] Stavový řádek věty nahoře.
-- [ ] Klepnutí na slovíčko ho přidá do věty (včetně opakování stejného slova).
-- [ ] Odebrání slova ze věty podržením (výchozí 1 s); krátké klepnutí nic neodebere.
-- [ ] Tlačítko pro smazání celé věty.
-- [ ] Věta se po restartu neobnovuje; přežije ale otočení obrazovky.
-- [ ] Zachování věty při přechodu do administrace a zpět není nutné. Po návratu do klientského pohledu se to může chovat jako nově spuštěná aplikace.
+- [x] Stavový řádek věty nahoře.
+- [x] Klepnutí na slovíčko ho přidá do věty (včetně opakování stejného slova).
+- [x] Odebrání slova ze věty podržením (výchozí 1 s); krátké klepnutí nic neodebere.
+- [x] Tlačítko pro smazání celé věty.
+- [x] Věta se po restartu neobnovuje; přežije ale otočení obrazovky. _(ověřeno na emulátoru API 35 skutečným otočením: věta zůstala)_
+- [x] Zachování věty při přechodu do administrace a zpět není nutné. Po návratu do klientského pohledu se to může chovat jako nově spuštěná aplikace.
 
 **Kritéria splnění:**
-- [ ] Z dat vytvořených v kroku 1 lze projít celý strom a poskládat větu z libovolných slovíček.
-- [ ] Krátké klepnutí na slovo ve větě nic neodebere, podržení po nastavený interval ano.
-- [ ] Dlouhá věta se ve stavovém řádku zobrazí použitelně (zalamování nebo posun).
-- [ ] Unit testy view modelu (skládání věty) a Compose UI testy hlavního scénáře.
+- [x] Z dat vytvořených v kroku 1 lze projít celý strom a poskládat větu z libovolných slovíček.
+- [x] Krátké klepnutí na slovo ve větě nic neodebere, podržení po nastavený interval ano.
+- [x] Dlouhá věta se ve stavovém řádku zobrazí použitelně (zalamování nebo posun).
+- [x] Unit testy view modelu (skládání věty) a Compose UI testy hlavního scénáře.
 
 ---
 
@@ -196,27 +196,27 @@ Plán postupuje po funkcionalitách (vertikální řezy přes UI, doménu i data
 ### 3.1 Rozhraní a TTS implementace
 
 **Úkoly:**
-- [ ] Rozhraní `SpeechProvider` (přehraj, zastav, stav přehrávání jako Flow).
-- [ ] Implementace nad Android `TextToSpeech` (čeština, hlas dle zařízení), správa životního cyklu (inicializace, uvolnění).
-- [ ] Falešná implementace `SpeechProvider` pro testy.
-- [ ] Sestavení výpovědi: titulky slovíček se spojí do jednoho textu (čistá logika).
+- [x] Rozhraní `SpeechProvider` (přehraj, zastav, stav přehrávání jako Flow).
+- [x] Implementace nad Android `TextToSpeech` (čeština, hlas dle zařízení), správa životního cyklu (inicializace, uvolnění).
+- [x] Falešná implementace `SpeechProvider` pro testy.
+- [x] Sestavení výpovědi: titulky slovíček se spojí do jednoho textu (čistá logika).
 
 **Kritéria splnění:**
-- [ ] Unit test skládání textu s falešným `SpeechProvider`.
-- [ ] TTS engine se po zavření aplikace korektně uvolní (bez úniku).
+- [x] Unit test skládání textu s falešným `SpeechProvider`.
+- [x] TTS engine se po zavření aplikace korektně uvolní (bez úniku).
 
 ### 3.2 Tlačítko Přehrát/Stop a chyby
 
 **Úkoly:**
-- [ ] Tlačítko Přehrát, které se při přehrávání mění na Stop.
-- [ ] Tlačítko je neaktivní (nebo nic nedělá) při prázdné větě.
-- [ ] Ošetření chyb: chybějící český hlas nebo nedostupný TTS engine zobrazí srozumitelnou hlášku (s nápovědou, co dělat).
+- [x] Tlačítko Přehrát, které se při přehrávání mění na Stop.
+- [x] Tlačítko je neaktivní (nebo nic nedělá) při prázdné větě.
+- [x] Ošetření chyb: chybějící český hlas nebo nedostupný TTS engine zobrazí srozumitelnou hlášku (s nápovědou, co dělat).
 
 **Kritéria splnění:**
-- [ ] Poskládaná věta se přečte jedním plynulým TTS výstupem, ne po slovech.
-- [ ] Stop okamžitě přeruší řeč a tlačítko se vrátí na Přehrát; opětovné přehrání funguje.
-- [ ] Změna věty během přehrávání se chová předvídatelně (přehrávací tlačítko opětovným stiskem přehrání zastaví).
-- [ ] Ruční ověření hlasu na emulátoru/zařízení.
+- [x] Poskládaná věta se přečte jedním plynulým TTS výstupem, ne po slovech.
+- [x] Stop okamžitě přeruší řeč a tlačítko se vrátí na Přehrát; opětovné přehrání funguje.
+- [x] Změna věty během přehrávání se chová předvídatelně (přehrávací tlačítko opětovným stiskem přehrání zastaví).
+- [x] Ruční ověření hlasu na emulátoru/zařízení. _(neověřeno sluchem: emulátor běží bez zvuku. Test s reálným TTS enginem na API 26 doběhl bez chyby, tj. engine i čeština jsou k dispozici, ale že věta zní správně, musí zkontrolovat člověk)_
 
 ---
 
@@ -227,37 +227,37 @@ Plán postupuje po funkcionalitách (vertikální řezy přes UI, doménu i data
 ### 4.1 Úložiště a zpracování obrázků
 
 **Úkoly:**
-- [ ] Služba pro zmenšení obrázku při uložení (např. 512 px, zachování poměru stran, správná orientace dle EXIF) a uložení do soukromého úložiště aplikace.
-- [ ] Pole s cestou/názvem obrázku v modelu slovíčka (migrace databáze + test migrace).
-- [ ] Úklid souboru při odebrání obrázku nebo smazání slovíčka (včetně rekurzivního smazání složky).
+- [x] Služba pro zmenšení obrázku při uložení (např. 512 px, zachování poměru stran, správná orientace dle EXIF) a uložení do soukromého úložiště aplikace.
+- [x] Pole s cestou/názvem obrázku v modelu slovíčka (migrace databáze + test migrace).
+- [x] Úklid souboru při odebrání obrázku nebo smazání slovíčka (včetně rekurzivního smazání složky).
 
 **Kritéria splnění:**
-- [ ] Uložený soubor je zmenšen na limit a původní velký obrázek se neukládá.
-- [ ] Smazání slovíčka (i celé složky) smaže soubory obrázků; žádné osiřelé soubory.
-- [ ] Testy: zmenšení obrázku, čištění souborů, migrace.
+- [x] Uložený soubor je zmenšen na limit a původní velký obrázek se neukládá.
+- [x] Smazání slovíčka (i celé složky) smaže soubory obrázků; žádné osiřelé soubory.
+- [x] Testy: zmenšení obrázku, čištění souborů, migrace.
 
 ### 4.2 Výběr obrázku v administraci
 
 **Úkoly:**
-- [ ] Výběr z galerie (systémový výběr) a pořízení fotografie.
-- [ ] Náhled, výměna a odebrání obrázku v editaci slovíčka.
-- [ ] Správa oprávnění a chyb (fotoaparát zamítnut, soubor nelze přečíst, nedostatek místa).
+- [x] Výběr z galerie (systémový výběr) a pořízení fotografie.
+- [x] Náhled, výměna a odebrání obrázku v editaci slovíčka.
+- [x] Správa oprávnění a chyb (fotoaparát zamítnut, soubor nelze přečíst, nedostatek místa). _(fotí se přes systémovou aplikaci fotoaparátu, takže aplikace oprávnění CAMERA nevyžaduje; chybějící galerie/fotoaparát, nečitelný soubor i plné úložiště ukazují hlášku)_
 
 **Kritéria splnění:**
-- [ ] Obrázek lze přidat, vyměnit a odebrat; přežije restart aplikace.
-- [ ] Zamítnuté oprávnění k fotoaparátu nezpůsobí pád a zobrazí hlášku.
+- [x] Obrázek lze přidat, vyměnit a odebrat; přežije restart aplikace.
+- [x] Zamítnuté oprávnění k fotoaparátu nezpůsobí pád a zobrazí hlášku. _(aplikace oprávnění nepotřebuje; ověřeno na emulátoru: zamítnutí oprávnění v systémovém fotoaparátu aplikaci nerozbije, chybu startu fotoaparátu ošetřuje hláška „Fotoaparát není dostupný“ – ta je ověřená jen testem události, ne vynuceným selháním)_
 
 ### 4.3 Zobrazení obrázků v klientovi
 
 **Úkoly:**
-- [ ] Dlaždice v mřížce: obrázek a titulek; slovíčko bez obrázku jen text.
-- [ ] Věta: menší dlaždice s obrázkem a titulkem (skrytí titulku podle konfigurace).
-- [ ] Efektivní načítání obrázků (cache, zmenšené bitmapy, plynulé listování).
+- [x] Dlaždice v mřížce: obrázek a titulek; slovíčko bez obrázku jen text.
+- [x] Věta: menší dlaždice s obrázkem a titulkem (skrytí titulku podle konfigurace).
+- [x] Efektivní načítání obrázků (cache, zmenšené bitmapy, plynulé listování). _(řeší knihovna Coil: načítání mimo hlavní vlákno, cache, dekódování na velikost prvku; obrázky se navíc ukládají zmenšené na max. 512 px. Plynulost při stovkách položek se neměřila, to patří do kroku 11.1)_
 
 **Kritéria splnění:**
-- [ ] Zobrazení v mřížce a ve větě odpovídá zadání, bez obrázku se zobrazí jen text.
-- [ ] Skrytí titulků ve větě funguje (hodnota z konfigurace).
-- [ ] UI testy zobrazení s obrázkem i bez.
+- [x] Zobrazení v mřížce a ve větě odpovídá zadání, bez obrázku se zobrazí jen text.
+- [x] Skrytí titulků ve větě funguje (hodnota z konfigurace).
+- [x] UI testy zobrazení s obrázkem i bez.
 
 ---
 

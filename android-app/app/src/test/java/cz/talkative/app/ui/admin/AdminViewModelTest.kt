@@ -4,6 +4,11 @@ import cz.talkative.app.domain.model.Folder
 import cz.talkative.app.domain.usecase.CountFolderContentsUseCase
 import cz.talkative.app.domain.usecase.DeleteFolderUseCase
 import cz.talkative.app.domain.usecase.DeleteWordUseCase
+import cz.talkative.app.domain.usecase.DiscardImageUseCase
+import cz.talkative.app.domain.usecase.SaveImageUseCase
+import cz.talkative.app.domain.image.ImageError
+import cz.talkative.app.testing.FakeImageStore
+import kotlinx.coroutines.CompletableDeferred
 import cz.talkative.app.domain.usecase.GetFolderPathUseCase
 import cz.talkative.app.domain.usecase.ObserveFolderItemsUseCase
 import cz.talkative.app.domain.usecase.SaveFolderUseCase
@@ -18,6 +23,7 @@ import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
 import org.junit.After
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Before
@@ -27,6 +33,7 @@ import org.junit.Test
 class AdminViewModelTest {
 
     private val repository = FakeDictionaryRepository()
+    private val imageStore = FakeImageStore()
     private lateinit var viewModel: AdminViewModel
 
     @Before
@@ -40,6 +47,8 @@ class AdminViewModelTest {
             CountFolderContentsUseCase(repository),
             DeleteFolderUseCase(repository),
             DeleteWordUseCase(repository),
+            SaveImageUseCase(imageStore),
+            DiscardImageUseCase(imageStore),
         )
     }
 
@@ -211,5 +220,200 @@ class AdminViewModelTest {
         viewModel.onEvent(AdminEvent.ConfirmDelete)
 
         assertEquals(listOf("keep"), titles())
+    }
+
+    // ---- obrázky (krok 4.2)
+
+    private fun editDialog() = viewModel.uiState.value.dialog as AdminDialog.Edit
+
+    private fun imageOf(title: String) =
+        (viewModel.uiState.value.items.first { it.title == title } as cz.talkative.app.domain.model.Word).imageFile
+
+    @Test
+    fun pickedImage_isShownInDialog_andAssignedToNewWordOnSave() = runVmTest {
+        subscribe()
+        viewModel.onEvent(AdminEvent.AddWord)
+        viewModel.onEvent(AdminEvent.TitleChanged("jablko"))
+
+        viewModel.onEvent(AdminEvent.ImagePicked("content://foto"))
+
+        val image = editDialog().imageFile
+        assertEquals(false, editDialog().isProcessingImage)
+        assertTrue(image != null && image in imageStore.files)
+
+        viewModel.onEvent(AdminEvent.ConfirmEdit)
+
+        assertEquals(image, imageOf("jablko"))
+        assertEquals(setOf(image), imageStore.files) // soubor zůstal, je přiřazen slovíčku
+    }
+
+    @Test
+    fun cancellingDialogAfterPick_discardsTheNewFile() = runVmTest {
+        subscribe()
+        viewModel.onEvent(AdminEvent.AddWord)
+        viewModel.onEvent(AdminEvent.ImagePicked("content://foto"))
+        assertEquals(1, imageStore.files.size)
+
+        viewModel.onEvent(AdminEvent.DismissDialog)
+
+        assertTrue(imageStore.files.isEmpty())
+        assertNull(viewModel.uiState.value.dialog)
+    }
+
+    @Test
+    fun pickingAnotherImage_discardsThePreviousPendingOne() = runVmTest {
+        subscribe()
+        viewModel.onEvent(AdminEvent.AddWord)
+        viewModel.onEvent(AdminEvent.ImagePicked("content://a"))
+        val first = editDialog().imageFile
+
+        viewModel.onEvent(AdminEvent.ImagePicked("content://b"))
+
+        val second = editDialog().imageFile
+        assertTrue(first != second)
+        assertEquals(setOf(second), imageStore.files)
+    }
+
+    @Test
+    fun editingWordWithImage_removeThenSave_clearsImageOnWord() = runVmTest {
+        val original = imageStore.add("puvodni.jpg")
+        repository.createWord(null, "slovo", original)
+        subscribe()
+        viewModel.onEvent(AdminEvent.EditItem(viewModel.uiState.value.items.single()))
+        assertEquals(original, editDialog().imageFile)
+
+        viewModel.onEvent(AdminEvent.RemoveImage)
+        viewModel.onEvent(AdminEvent.ConfirmEdit)
+
+        assertNull(imageOf("slovo"))
+        // původní soubor maže repozitář (viz DictionaryRepositoryTest), view model na něj nesahá
+        assertEquals(setOf(original), imageStore.files)
+    }
+
+    @Test
+    fun editingWordWithImage_removeThenCancel_keepsEverything() = runVmTest {
+        val original = imageStore.add("puvodni.jpg")
+        repository.createWord(null, "slovo", original)
+        subscribe()
+        viewModel.onEvent(AdminEvent.EditItem(viewModel.uiState.value.items.single()))
+
+        viewModel.onEvent(AdminEvent.RemoveImage)
+        viewModel.onEvent(AdminEvent.DismissDialog)
+
+        assertEquals(original, imageOf("slovo"))
+        assertEquals(setOf(original), imageStore.files)
+    }
+
+    @Test
+    fun replacingImageOfExistingWord_cancelDiscardsOnlyTheNewOne() = runVmTest {
+        val original = imageStore.add("puvodni.jpg")
+        repository.createWord(null, "slovo", original)
+        subscribe()
+        viewModel.onEvent(AdminEvent.EditItem(viewModel.uiState.value.items.single()))
+
+        viewModel.onEvent(AdminEvent.ImagePicked("content://nova"))
+        assertEquals(2, imageStore.files.size)
+        viewModel.onEvent(AdminEvent.DismissDialog)
+
+        assertEquals(setOf(original), imageStore.files)
+        assertEquals(original, imageOf("slovo"))
+    }
+
+    @Test
+    fun replacingImageOfExistingWord_saveAssignsNewOne() = runVmTest {
+        val original = imageStore.add("puvodni.jpg")
+        repository.createWord(null, "slovo", original)
+        subscribe()
+        viewModel.onEvent(AdminEvent.EditItem(viewModel.uiState.value.items.single()))
+
+        viewModel.onEvent(AdminEvent.ImagePicked("content://nova"))
+        val picked = editDialog().imageFile
+        viewModel.onEvent(AdminEvent.ConfirmEdit)
+
+        assertEquals(picked, imageOf("slovo"))
+    }
+
+    @Test
+    fun unreadableImage_showsProblem_andKeepsDialogUsable() = runVmTest {
+        subscribe()
+        imageStore.failWith = ImageError.UNREADABLE
+        viewModel.onEvent(AdminEvent.AddWord)
+        viewModel.onEvent(AdminEvent.TitleChanged("slovo"))
+
+        viewModel.onEvent(AdminEvent.ImagePicked("content://rozbite"))
+
+        assertEquals(ImageProblem.UNREADABLE, editDialog().imageProblem)
+        assertNull(editDialog().imageFile)
+        assertEquals(false, editDialog().isProcessingImage)
+        assertTrue(imageStore.files.isEmpty())
+
+        viewModel.onEvent(AdminEvent.DismissImageProblem)
+        assertNull(editDialog().imageProblem)
+        viewModel.onEvent(AdminEvent.ConfirmEdit) // slovíčko jde uložit i bez obrázku
+        assertNull(imageOf("slovo"))
+    }
+
+    @Test
+    fun fullStorage_isReportedAsStorageFull() = runVmTest {
+        subscribe()
+        imageStore.failWith = ImageError.STORAGE_FULL
+        viewModel.onEvent(AdminEvent.AddWord)
+
+        viewModel.onEvent(AdminEvent.ImagePicked("content://velke"))
+
+        assertEquals(ImageProblem.STORAGE_FULL, editDialog().imageProblem)
+    }
+
+    @Test
+    fun launcherFailures_areShownAsProblems() = runVmTest {
+        subscribe()
+        viewModel.onEvent(AdminEvent.AddWord)
+
+        viewModel.onEvent(AdminEvent.ImageSelectionFailed(ImageProblem.NO_CAMERA))
+
+        assertEquals(ImageProblem.NO_CAMERA, editDialog().imageProblem)
+    }
+
+    @Test
+    fun saveIsIgnoredWhileImageIsBeingProcessed() = runVmTest {
+        subscribe()
+        imageStore.gate = CompletableDeferred()
+        viewModel.onEvent(AdminEvent.AddWord)
+        viewModel.onEvent(AdminEvent.TitleChanged("slovo"))
+        viewModel.onEvent(AdminEvent.ImagePicked("content://pomale"))
+        assertTrue(editDialog().isProcessingImage)
+
+        viewModel.onEvent(AdminEvent.ConfirmEdit)
+
+        assertTrue(viewModel.uiState.value.items.isEmpty())
+        assertNotNull(viewModel.uiState.value.dialog)
+
+        imageStore.gate!!.complete(Unit)
+        assertEquals(false, editDialog().isProcessingImage)
+    }
+
+    @Test
+    fun imageFinishingAfterDialogWasCancelled_isDiscarded() = runVmTest {
+        subscribe()
+        imageStore.gate = CompletableDeferred()
+        viewModel.onEvent(AdminEvent.AddWord)
+        viewModel.onEvent(AdminEvent.ImagePicked("content://pomale"))
+
+        viewModel.onEvent(AdminEvent.DismissDialog)
+        imageStore.gate!!.complete(Unit)
+
+        assertTrue(imageStore.files.isEmpty())
+        assertNull(viewModel.uiState.value.dialog)
+    }
+
+    @Test
+    fun imagesAreIgnoredForFolders() = runVmTest {
+        subscribe()
+        viewModel.onEvent(AdminEvent.AddFolder)
+
+        viewModel.onEvent(AdminEvent.ImagePicked("content://foto"))
+
+        assertTrue(imageStore.files.isEmpty())
+        assertNull(editDialog().imageFile)
     }
 }

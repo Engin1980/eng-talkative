@@ -4,8 +4,10 @@ import androidx.room.testing.MigrationTestHelper
 import androidx.test.platform.app.InstrumentationRegistry
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import cz.talkative.app.data.local.MIGRATION_1_2
+import cz.talkative.app.data.local.MIGRATION_2_3
 import cz.talkative.app.data.local.TalkativeDatabase
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -42,5 +44,33 @@ class MigrationTest {
 
     private companion object {
         const val DB_NAME = "migration-test"
+    }
+
+    @Test
+    fun migrate2To3_keepsWordsAndAddsEmptyImageColumn() {
+        helper.createDatabase(DB_NAME, 2).apply {
+            execSQL("INSERT INTO words (id, profileId, title, parentId, sortOrder, updatedAt, deleted) VALUES ('w1', 'default', 'chci', NULL, 0, 5, 0)")
+            close()
+        }
+
+        val db = helper.runMigrationsAndValidate(DB_NAME, 3, true, MIGRATION_2_3)
+
+        db.query("SELECT title, imageFile FROM words WHERE id = 'w1'").use {
+            assertTrue(it.moveToFirst())
+            assertEquals("chci", it.getString(0))
+            assertTrue(it.isNull(1))
+        }
+    }
+
+    @Test
+    fun migrate1To3_runsAllMigrationsInOrder() {
+        helper.createDatabase(DB_NAME, 1).close()
+
+        val db = helper.runMigrationsAndValidate(DB_NAME, 3, true, MIGRATION_1_2, MIGRATION_2_3)
+
+        db.query("SELECT COUNT(*) FROM words").use {
+            it.moveToFirst()
+            assertEquals(0, it.getInt(0))
+        }
     }
 }

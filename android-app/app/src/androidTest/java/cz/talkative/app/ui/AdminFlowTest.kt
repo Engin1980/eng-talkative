@@ -4,6 +4,7 @@ import android.content.Context
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.test.junit4.v2.createComposeRule
+import androidx.compose.ui.test.onAllNodesWithTag
 import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
@@ -18,16 +19,22 @@ import cz.talkative.app.data.repository.RoomDictionaryRepository
 import cz.talkative.app.domain.usecase.CountFolderContentsUseCase
 import cz.talkative.app.domain.usecase.DeleteFolderUseCase
 import cz.talkative.app.domain.usecase.DeleteWordUseCase
+import cz.talkative.app.domain.usecase.DiscardImageUseCase
+import cz.talkative.app.domain.usecase.SaveImageUseCase
 import cz.talkative.app.domain.usecase.GetFolderPathUseCase
 import cz.talkative.app.domain.usecase.ObserveFolderItemsUseCase
 import cz.talkative.app.domain.usecase.SaveFolderUseCase
 import cz.talkative.app.domain.usecase.SaveWordUseCase
+import cz.talkative.app.testing.FakeImageStore
+import cz.talkative.app.ui.admin.AdminEvent
 import cz.talkative.app.ui.admin.AdminScreen
 import cz.talkative.app.ui.admin.AdminViewModel
+import cz.talkative.app.ui.common.WORD_IMAGE_TAG
 import cz.talkative.app.ui.theme.TalkativeTheme
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Before
+import cz.talkative.app.testing.NoSoftKeyboardRule
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -39,17 +46,22 @@ import org.junit.runner.RunWith
 @RunWith(AndroidJUnit4::class)
 class AdminFlowTest {
 
-    @get:Rule
+    @get:Rule(order = 0)
+    val noSoftKeyboard = NoSoftKeyboardRule()
+
+    @get:Rule(order = 1)
     val composeRule = createComposeRule()
 
     private lateinit var database: TalkativeDatabase
+    private val imageStore = FakeImageStore()
+    private lateinit var viewModel: AdminViewModel
 
     @Before
     fun setUp() {
         val context = ApplicationProvider.getApplicationContext<Context>()
         database = Room.inMemoryDatabaseBuilder(context, TalkativeDatabase::class.java).build()
-        val repository = RoomDictionaryRepository(database.dictionaryDao()) { System.currentTimeMillis() }
-        val viewModel = AdminViewModel(
+        val repository = RoomDictionaryRepository(database.dictionaryDao(), { System.currentTimeMillis() }, imageStore)
+        viewModel = AdminViewModel(
             ObserveFolderItemsUseCase(repository),
             GetFolderPathUseCase(repository),
             SaveFolderUseCase(repository),
@@ -57,6 +69,8 @@ class AdminFlowTest {
             CountFolderContentsUseCase(repository),
             DeleteFolderUseCase(repository),
             DeleteWordUseCase(repository),
+            SaveImageUseCase(imageStore),
+            DiscardImageUseCase(imageStore),
         )
         composeRule.setContent {
             TalkativeTheme {
@@ -185,5 +199,55 @@ class AdminFlowTest {
         composeRule.onNodeWithText("Smazat").performClick()
 
         waitForText("Tato složka je prázdná")
+    }
+
+    @Test
+    fun wordWithImage_survivesInDatabase_andReplacingOrRemovingCleansFiles() {
+        waitForText("Tato složka je prázdná")
+        composeRule.onNodeWithText("Nové slovíčko").performClick()
+        composeRule.onNodeWithText("Titulek").performTextInput("jablko")
+        viewModel.onEvent(AdminEvent.ImagePicked("content://foto-1"))
+        composeRule.waitUntil(5_000) { imageStore.files.size == 1 }
+        composeRule.onNodeWithText("Odebrat obrázek").assertExists()
+        composeRule.onNodeWithText("Uložit").performClick()
+        waitForText("jablko")
+        val first = imageStore.files.single()
+
+        // výměna: nový soubor přibude, starý se smaže
+        composeRule.onNodeWithContentDescription("Upravit jablko").performClick()
+        viewModel.onEvent(AdminEvent.ImagePicked("content://foto-2"))
+        composeRule.waitUntil(5_000) { imageStore.files.size == 2 }
+        composeRule.onNodeWithText("Uložit").performClick()
+        composeRule.waitUntil(5_000) { imageStore.files.size == 1 && first !in imageStore.files }
+
+        // odebrání: smaže se i poslední soubor
+        composeRule.onNodeWithContentDescription("Upravit jablko").performClick()
+        composeRule.onNodeWithText("Odebrat obrázek").performClick()
+        composeRule.onNodeWithText("Uložit").performClick()
+        composeRule.waitUntil(5_000) { imageStore.files.isEmpty() }
+    }
+
+    @Test
+    fun deletingFolderWithImagedWords_removesAllTheirFiles() {
+        waitForText("Tato složka je prázdná")
+        create("Nová složka", "Obrázky")
+        composeRule.onNodeWithText("Obrázky").performClick()
+        waitForText("Tato složka je prázdná")
+        for (title in listOf("a", "b")) {
+            composeRule.onNodeWithText("Nové slovíčko").performClick()
+            composeRule.onNodeWithText("Titulek").performTextInput(title)
+            viewModel.onEvent(AdminEvent.ImagePicked("content://$title"))
+            composeRule.waitUntil(5_000) { imageStore.files.size == (if (title == "a") 1 else 2) }
+            composeRule.onNodeWithText("Uložit").performClick()
+            waitForText(title)
+        }
+        composeRule.onNodeWithText("Domů").performClick()
+        waitForText("Obrázky")
+
+        composeRule.onNodeWithContentDescription("Smazat Obrázky").performClick()
+        waitForText("Smazat složku?")
+        composeRule.onNodeWithText("Smazat").performClick()
+
+        composeRule.waitUntil(5_000) { imageStore.files.isEmpty() }
     }
 }

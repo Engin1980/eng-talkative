@@ -25,4 +25,6 @@ data class Word(
     val parentId: String?,
     override val sortOrder: Int,
     val updatedAt: Long,
+    /** Název souboru obrázku v soukromém úložišti ([cz.talkative.app.domain.image.ImageStore]); `null` = bez obrázku. */
+    val imageFile: String? = null,
 ) : DictionaryItem

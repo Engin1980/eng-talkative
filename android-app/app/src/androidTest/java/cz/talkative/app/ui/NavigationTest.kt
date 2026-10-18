@@ -41,7 +41,7 @@ class NavigationTest {
                 TalkativeNavHost(
                     navController = navController,
                     client = { openAdmin ->
-                        ClientScreen(ClientUiState(profileId = "default"), onOpenAdmin = openAdmin)
+                        ClientScreen(ClientUiState(isLoading = false), onEvent = {}, onOpenAdmin = openAdmin)
                     },
                     admin = { back -> AdminScreen(state = AdminUiState(isLoading = false), onEvent = {}, onBackToClient = back) },
                 )
@@ -53,7 +53,7 @@ class NavigationTest {
     fun app_startsInClientMode() {
         setUpNavHost()
 
-        composeRule.onNodeWithText("Profil: default").assertIsDisplayed()
+        composeRule.onNodeWithText("Tato složka je prázdná.").assertIsDisplayed()
         assertEquals(Routes.CLIENT, navController.currentBackStackEntry?.destination?.route)
     }
 
@@ -70,7 +70,7 @@ class NavigationTest {
         assertEquals(Routes.ADMIN, navController.currentBackStackEntry?.destination?.route)
 
         composeRule.onNodeWithText("Zpět do klienta").performClick()
-        composeRule.onNodeWithText("Profil: default").assertIsDisplayed()
+        composeRule.onNodeWithText("Tato složka je prázdná.").assertIsDisplayed()
         assertEquals(Routes.CLIENT, navController.currentBackStackEntry?.destination?.route)
     }
 }

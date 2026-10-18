@@ -19,17 +19,24 @@ interface DictionaryRepository {
     /** Nová položka se zařadí na konec složky. */
     suspend fun createFolder(parentId: String?, title: String): Folder
 
-    suspend fun createWord(parentId: String?, title: String): Word
+    suspend fun createWord(parentId: String?, title: String, imageFile: String? = null): Word
 
     suspend fun updateFolderTitle(id: String, title: String)
 
     suspend fun updateWordTitle(id: String, title: String)
 
+    /** Nastaví (nebo odebere, `null`) obrázek slovíčka; soubor původního obrázku se smaže. */
+    suspend fun updateWordImage(id: String, imageFile: String?)
+
     /** Počet složek a slovíček uvnitř složky včetně všech podsložek (složka sama se nepočítá). */
     suspend fun countFolderContents(folderId: String): Int
 
-    /** Smaže složku i celý její podstrom. */
+    /** Smaže složku i celý její podstrom včetně souborů obrázků. */
     suspend fun deleteFolder(id: String)
 
+    /** Smaže slovíčko včetně souboru jeho obrázku. */
     suspend fun deleteWord(id: String)
+
+    /** Smaže soubory obrázků, které nepatří žádnému slovíčku (po přerušeném mazání nebo zrušené úpravě). */
+    suspend fun cleanUpOrphanImages()
 }
