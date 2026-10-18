@@ -317,6 +317,17 @@ class ClientViewModelTest {
     }
 
     @Test
+    fun play_readsAlternateTextInsteadOfTitle() = runVmTest {
+        subscribe()
+        viewModel.onEvent(ClientEvent.WordSelected(repository.createWord(null, "chci")))
+        viewModel.onEvent(ClientEvent.WordSelected(repository.createWord(null, "KD", alternateText = "ká dé")))
+
+        viewModel.onEvent(ClientEvent.TogglePlayback)
+
+        assertEquals(listOf("chci ká dé"), speech.spoken)
+    }
+
+    @Test
     fun playWithEmptySentence_doesNothing() = runVmTest {
         subscribe()
 

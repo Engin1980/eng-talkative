@@ -6,7 +6,8 @@ import cz.talkative.app.domain.model.SentenceEntry
 import cz.talkative.app.domain.usecase.GetFolderPathUseCase
 import cz.talkative.app.domain.usecase.ObserveConfigUseCase
 import cz.talkative.app.domain.speech.SpeechProvider
-import cz.talkative.app.domain.speech.UtteranceBuilder
+import cz.talkative.app.domain.speech.PlaybackPlanner
+import cz.talkative.app.domain.speech.PlaybackSegment
 import cz.talkative.app.domain.usecase.ObserveFolderItemsUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -83,7 +84,8 @@ class ClientViewModel @Inject constructor(
             speech.stop()
             return
         }
-        val text = UtteranceBuilder.build(sentence.value)
+        // Přehrávání MP3 úseků přibude v podkroku 5.3; zatím se čtou jen TTS úseky.
+        val text = PlaybackPlanner.plan(sentence.value).filterIsInstance<PlaybackSegment.Tts>().joinToString(" ") { it.text }
         if (text.isNotEmpty()) speech.speak(text)
     }
 

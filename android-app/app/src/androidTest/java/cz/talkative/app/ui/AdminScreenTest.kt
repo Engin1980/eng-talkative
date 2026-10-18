@@ -12,6 +12,7 @@ import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performTextInput
 import androidx.compose.ui.test.performScrollTo
 import androidx.compose.ui.unit.dp
 import androidx.test.ext.junit.runners.AndroidJUnit4
@@ -301,5 +302,32 @@ class AdminScreenTest {
         assertEquals(1, composeRule.onAllNodesWithTag(WORD_IMAGE_TAG, useUnmergedTree = true).fetchSemanticsNodes().size)
         composeRule.onNodeWithText("rozbitý odkaz").assertIsDisplayed() // chybějící soubor nezpůsobí pád
         file.delete()
+    }
+
+    // ---- jiný text pro čtení (krok 5.1)
+
+    @Test
+    fun wordDialog_hasAlternateTextField_showingStoredValue() {
+        show(state(dialog = wordDialog().copy(alternateText = "ká dé")))
+
+        composeRule.onNodeWithText("Jiný text pro čtení").assertIsDisplayed()
+        composeRule.onNodeWithText("ká dé").assertIsDisplayed()
+        composeRule.onNodeWithText("Nepovinné. Když zůstane prázdné, čte se titulek.").assertIsDisplayed()
+    }
+
+    @Test
+    fun typingAlternateText_sendsEvent() {
+        show(state(dialog = wordDialog()))
+
+        composeRule.onNodeWithText("Jiný text pro čtení").performTextInput("ká dé")
+
+        assertEquals(listOf<AdminEvent>(AdminEvent.AlternateTextChanged("ká dé")), events)
+    }
+
+    @Test
+    fun folderDialog_hasNoAlternateTextField() {
+        show(state(dialog = wordDialog(kind = ItemKind.FOLDER)))
+
+        assertEquals(0, composeRule.onAllNodesWithTextCount("Jiný text pro čtení"))
     }
 }

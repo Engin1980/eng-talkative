@@ -5,6 +5,7 @@ import androidx.test.platform.app.InstrumentationRegistry
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import cz.talkative.app.data.local.MIGRATION_1_2
 import cz.talkative.app.data.local.MIGRATION_2_3
+import cz.talkative.app.data.local.MIGRATION_3_4
 import cz.talkative.app.data.local.TalkativeDatabase
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
@@ -66,11 +67,29 @@ class MigrationTest {
     fun migrate1To3_runsAllMigrationsInOrder() {
         helper.createDatabase(DB_NAME, 1).close()
 
-        val db = helper.runMigrationsAndValidate(DB_NAME, 3, true, MIGRATION_1_2, MIGRATION_2_3)
+        val db = helper.runMigrationsAndValidate(DB_NAME, 4, true, MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4)
 
         db.query("SELECT COUNT(*) FROM words").use {
             it.moveToFirst()
             assertEquals(0, it.getInt(0))
+        }
+    }
+
+    @Test
+    fun migrate3To4_keepsWordsAndAddsEmptySoundColumns() {
+        helper.createDatabase(DB_NAME, 3).apply {
+            execSQL("INSERT INTO words (id, profileId, title, parentId, sortOrder, updatedAt, deleted, imageFile) VALUES ('w1', 'default', 'chci', NULL, 0, 5, 0, 'a.jpg')")
+            close()
+        }
+
+        val db = helper.runMigrationsAndValidate(DB_NAME, 4, true, MIGRATION_3_4)
+
+        db.query("SELECT title, imageFile, alternateText, audioFile FROM words WHERE id = 'w1'").use {
+            assertTrue(it.moveToFirst())
+            assertEquals("chci", it.getString(0))
+            assertEquals("a.jpg", it.getString(1))
+            assertTrue(it.isNull(2))
+            assertTrue(it.isNull(3))
         }
     }
 }

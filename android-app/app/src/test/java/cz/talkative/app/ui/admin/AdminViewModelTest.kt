@@ -416,4 +416,57 @@ class AdminViewModelTest {
         assertTrue(imageStore.files.isEmpty())
         assertNull(editDialog().imageFile)
     }
+
+    // ---- jiný text pro čtení (krok 5.1)
+
+    private fun wordOf(title: String) = viewModel.uiState.value.items.first { it.title == title } as cz.talkative.app.domain.model.Word
+
+    @Test
+    fun newWord_savesAlternateText_trimmed() = runVmTest {
+        subscribe()
+        viewModel.onEvent(AdminEvent.AddWord)
+        viewModel.onEvent(AdminEvent.TitleChanged("KD"))
+        viewModel.onEvent(AdminEvent.AlternateTextChanged("  ká dé "))
+
+        viewModel.onEvent(AdminEvent.ConfirmEdit)
+
+        assertEquals("ká dé", wordOf("KD").alternateText)
+    }
+
+    @Test
+    fun blankAlternateText_isStoredAsNone() = runVmTest {
+        subscribe()
+        viewModel.onEvent(AdminEvent.AddWord)
+        viewModel.onEvent(AdminEvent.TitleChanged("slovo"))
+        viewModel.onEvent(AdminEvent.AlternateTextChanged("   "))
+
+        viewModel.onEvent(AdminEvent.ConfirmEdit)
+
+        assertNull(wordOf("slovo").alternateText)
+    }
+
+    @Test
+    fun editingWord_showsStoredAlternateText_andClearingRemovesIt() = runVmTest {
+        repository.createWord(null, "KD", alternateText = "ká dé")
+        subscribe()
+        viewModel.onEvent(AdminEvent.EditItem(viewModel.uiState.value.items.single()))
+        assertEquals("ká dé", editDialog().alternateText)
+
+        viewModel.onEvent(AdminEvent.AlternateTextChanged(""))
+        viewModel.onEvent(AdminEvent.ConfirmEdit)
+
+        assertNull(wordOf("KD").alternateText)
+    }
+
+    @Test
+    fun cancellingEdit_keepsAlternateText() = runVmTest {
+        repository.createWord(null, "KD", alternateText = "ká dé")
+        subscribe()
+        viewModel.onEvent(AdminEvent.EditItem(viewModel.uiState.value.items.single()))
+        viewModel.onEvent(AdminEvent.AlternateTextChanged("jiné"))
+
+        viewModel.onEvent(AdminEvent.DismissDialog)
+
+        assertEquals("ká dé", wordOf("KD").alternateText)
+    }
 }

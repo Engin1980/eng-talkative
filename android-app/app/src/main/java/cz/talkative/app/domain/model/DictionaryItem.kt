@@ -27,4 +27,8 @@ data class Word(
     val updatedAt: Long,
     /** Název souboru obrázku v soukromém úložišti ([cz.talkative.app.domain.image.ImageStore]); `null` = bez obrázku. */
     val imageFile: String? = null,
+    /** Jiný text, který se čte místo titulku; `null` = čte se titulek. Zvuk je buď jiný text, nebo [audioFile]. */
+    val alternateText: String? = null,
+    /** Název souboru vlastního MP3 v soukromém úložišti; `null` = bez vlastního zvuku. Má přednost před textem. */
+    val audioFile: String? = null,
 ) : DictionaryItem

@@ -302,7 +302,17 @@ private fun EditDialog(dialog: AdminDialog.Edit, onEvent: (AdminEvent) -> Unit) 
                     },
                     modifier = Modifier.fillMaxWidth(),
                 )
-                if (dialog.kind == ItemKind.WORD) ImageSection(dialog, onEvent)
+                if (dialog.kind == ItemKind.WORD) {
+                    OutlinedTextField(
+                        value = dialog.alternateText,
+                        onValueChange = { onEvent(AdminEvent.AlternateTextChanged(it)) },
+                        label = { Text(stringResource(R.string.dialog_alternate_text_label)) },
+                        supportingText = { Text(stringResource(R.string.dialog_alternate_text_hint)) },
+                        singleLine = true,
+                        modifier = Modifier.fillMaxWidth(),
+                    )
+                    ImageSection(dialog, onEvent)
+                }
             }
         },
         confirmButton = {

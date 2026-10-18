@@ -268,13 +268,13 @@ Plán postupuje po funkcionalitách (vertikální řezy přes UI, doménu i data
 ### 5.1 Alternativní text a plánování úseků
 
 **Úkoly:**
-- [ ] Pole alternativního textu pro TTS v modelu slovíčka (migrace + test) a v editaci v administraci.
-- [ ] Čistá logika plánování úseků věty (sloučení sousedních TTS slov, dělení na MP3 úseky).
-- [ ] Alternativní text nahradí titulek při sestavení výpovědi.
+- [x] Pole alternativního textu pro TTS v modelu slovíčka (migrace + test) a v editaci v administraci. _(migrace 3→4 přidává rovnou i sloupec `audioFile` pro 5.2; zvuk je buď jiný text, nebo MP3, MP3 má v plánovači přednost)_
+- [x] Čistá logika plánování úseků věty (sloučení sousedních TTS slov, dělení na MP3 úseky).
+- [x] Alternativní text nahradí titulek při sestavení výpovědi.
 
 **Kritéria splnění:**
-- [ ] Slovo s alternativním textem se čte podle něj, ne podle titulku.
-- [ ] Unit testy plánování: „A, [MP3], B, C“ → TTS(A), MP3, TTS(B C); věta jen z MP3; MP3 na začátku i na konci.
+- [x] Slovo s alternativním textem se čte podle něj, ne podle titulku.
+- [x] Unit testy plánování: „A, [MP3], B, C“ → TTS(A), MP3, TTS(B C); věta jen z MP3; MP3 na začátku i na konci.
 
 ### 5.2 Správa MP3 souborů
 

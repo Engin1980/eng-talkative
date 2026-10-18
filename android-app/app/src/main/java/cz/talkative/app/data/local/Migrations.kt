@@ -25,3 +25,11 @@ val MIGRATION_2_3 = object : Migration(2, 3) {
         db.execSQL("ALTER TABLE `words` ADD COLUMN `imageFile` TEXT")
     }
 }
+
+/** Verze 3 → 4: jiný text a vlastní MP3 slovíčka (krok 5 plánu). */
+val MIGRATION_3_4 = object : Migration(3, 4) {
+    override fun migrate(db: SupportSQLiteDatabase) {
+        db.execSQL("ALTER TABLE `words` ADD COLUMN `alternateText` TEXT")
+        db.execSQL("ALTER TABLE `words` ADD COLUMN `audioFile` TEXT")
+    }
+}

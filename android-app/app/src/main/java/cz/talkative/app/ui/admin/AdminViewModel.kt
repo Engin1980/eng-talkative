@@ -62,6 +62,7 @@ class AdminViewModel @Inject constructor(
             AdminEvent.AddWord -> dialog.value = AdminDialog.Edit(ItemKind.WORD, itemId = null, title = "", sessionId = nextSessionId++)
             is AdminEvent.EditItem -> dialog.value = editDialogFor(event)
             is AdminEvent.TitleChanged -> updateEditDialog { it.copy(title = event.title, showEmptyError = false) }
+            is AdminEvent.AlternateTextChanged -> updateEditDialog { it.copy(alternateText = event.text) }
             AdminEvent.ConfirmEdit -> confirmEdit()
             is AdminEvent.DeleteItem -> requestDelete(event)
             AdminEvent.ConfirmDelete -> confirmDelete()
@@ -82,6 +83,7 @@ class AdminViewModel @Inject constructor(
             title = item.title,
             imageFile = image,
             originalImageFile = image,
+            alternateText = (item as? Word)?.alternateText.orEmpty(),
             sessionId = nextSessionId++,
         )
     }
@@ -105,7 +107,7 @@ class AdminViewModel @Inject constructor(
             val parentId = currentFolderId.value
             val result = when (edit.kind) {
                 ItemKind.FOLDER -> saveFolder(edit.itemId, parentId, edit.title)
-                ItemKind.WORD -> saveWord(edit.itemId, parentId, edit.title, edit.imageFile, edit.originalImageFile)
+                ItemKind.WORD -> saveWord(edit.itemId, parentId, edit.title, edit.imageFile, edit.originalImageFile, edit.alternateText)
             }
             when (result) {
                 SaveResult.Saved -> dialog.value = null // nový obrázek je nyní přiřazen slovíčku, nemaže se

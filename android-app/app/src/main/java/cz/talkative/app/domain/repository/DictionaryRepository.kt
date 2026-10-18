@@ -19,7 +19,7 @@ interface DictionaryRepository {
     /** Nová položka se zařadí na konec složky. */
     suspend fun createFolder(parentId: String?, title: String): Folder
 
-    suspend fun createWord(parentId: String?, title: String, imageFile: String? = null): Word
+    suspend fun createWord(parentId: String?, title: String, imageFile: String? = null, alternateText: String? = null): Word
 
     suspend fun updateFolderTitle(id: String, title: String)
 
@@ -27,6 +27,9 @@ interface DictionaryRepository {
 
     /** Nastaví (nebo odebere, `null`) obrázek slovíčka; soubor původního obrázku se smaže. */
     suspend fun updateWordImage(id: String, imageFile: String?)
+
+    /** Nastaví (nebo odebere, `null`) jiný text, který se čte místo titulku. */
+    suspend fun updateWordAlternateText(id: String, alternateText: String?)
 
     /** Počet složek a slovíček uvnitř složky včetně všech podsložek (složka sama se nepočítá). */
     suspend fun countFolderContents(folderId: String): Int

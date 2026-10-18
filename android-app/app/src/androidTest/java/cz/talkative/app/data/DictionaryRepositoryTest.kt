@@ -306,4 +306,16 @@ class DictionaryRepositoryTest {
 
         assertEquals(setOf("other.jpg"), imageStore.files)
     }
+
+    @Test
+    fun alternateText_isStoredUpdatedAndRemoved() = runTest {
+        val word = repository.createWord(null, "KD", alternateText = "ká dé")
+        assertEquals("ká dé", (repository.observeItems(null).first().single() as Word).alternateText)
+
+        repository.updateWordAlternateText(word.id, "kádé")
+        assertEquals("kádé", (repository.observeItems(null).first().single() as Word).alternateText)
+
+        repository.updateWordAlternateText(word.id, null)
+        assertNull((repository.observeItems(null).first().single() as Word).alternateText)
+    }
 }

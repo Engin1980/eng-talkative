@@ -27,6 +27,8 @@ sealed interface AdminDialog {
         val showEmptyError: Boolean = false,
         val imageFile: String? = null,
         val originalImageFile: String? = null,
+        /** Jiný text pro čtení (slovíčko); prázdný = čte se titulek. */
+        val alternateText: String = "",
         val isProcessingImage: Boolean = false,
         val imageProblem: ImageProblem? = null,
         /** Rozlišuje jednotlivá otevření dialogu, aby pozdní výsledek zpracování obrázku nepřistál do jiného dialogu. */
@@ -54,6 +56,7 @@ sealed interface AdminEvent {
     data object AddWord : AdminEvent
     data class EditItem(val item: DictionaryItem) : AdminEvent
     data class TitleChanged(val title: String) : AdminEvent
+    data class AlternateTextChanged(val text: String) : AdminEvent
     data object ConfirmEdit : AdminEvent
     data class DeleteItem(val item: DictionaryItem) : AdminEvent
     data object ConfirmDelete : AdminEvent

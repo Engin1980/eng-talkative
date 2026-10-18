@@ -51,9 +51,9 @@ class RoomDictionaryRepository @Inject constructor(
             FolderEntity(newId(), profileId, title, parentId, sortOrder = 0, updatedAt = clock.nowMillis()),
         ).toDomain()
 
-    override suspend fun createWord(parentId: String?, title: String, imageFile: String?): Word =
+    override suspend fun createWord(parentId: String?, title: String, imageFile: String?, alternateText: String?): Word =
         dao.addWord(
-            WordEntity(newId(), profileId, title, parentId, sortOrder = 0, updatedAt = clock.nowMillis(), imageFile = imageFile),
+            WordEntity(newId(), profileId, title, parentId, sortOrder = 0, updatedAt = clock.nowMillis(), imageFile = imageFile, alternateText = alternateText),
         ).toDomain()
 
     override suspend fun updateFolderTitle(id: String, title: String) =
@@ -61,6 +61,9 @@ class RoomDictionaryRepository @Inject constructor(
 
     override suspend fun updateWordTitle(id: String, title: String) =
         dao.updateWordTitle(profileId, id, title, clock.nowMillis())
+
+    override suspend fun updateWordAlternateText(id: String, alternateText: String?) =
+        dao.updateWordAlternateText(profileId, id, alternateText, clock.nowMillis())
 
     override suspend fun countFolderContents(folderId: String): Int {
         val folders = dao.countSubtreeFolders(profileId, folderId)

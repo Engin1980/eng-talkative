@@ -39,6 +39,8 @@
     <string name="dialog_word_edit">Upravit slovíčko</string>
     <string name="dialog_title_label">Titulek</string>
     <string name="dialog_title_empty_error">Titulek nesmí být prázdný.</string>
+    <string name="dialog_alternate_text_label">Jiný text pro čtení</string>
+    <string name="dialog_alternate_text_hint">Nepovinné. Když zůstane prázdné, čte se titulek.</string>
     <string name="dialog_save">Uložit</string>
     <string name="dialog_cancel">Zrušit</string>
     <string name="dialog_ok">Rozumím</string>

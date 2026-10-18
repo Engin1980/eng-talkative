@@ -4,7 +4,7 @@ import androidx.room.Entity
 import androidx.room.Index
 import androidx.room.PrimaryKey
 
-/** Slovíčko; pravidla stejná jako u [FolderEntity]. [imageFile] je název souboru v úložišti obrázků. Zvuk přibude v kroku 5. */
+/** Slovíčko; pravidla stejná jako u [FolderEntity]. [imageFile] je název souboru v úložišti obrázků, [alternateText] jiný text pro čtení a [audioFile] soubor vlastního MP3. */
 @Entity(tableName = "words", indices = [Index("profileId", "parentId")])
 data class WordEntity(
     @PrimaryKey val id: String,
@@ -15,4 +15,6 @@ data class WordEntity(
     val updatedAt: Long,
     val deleted: Boolean = false,
     val imageFile: String? = null,
+    val alternateText: String? = null,
+    val audioFile: String? = null,
 )

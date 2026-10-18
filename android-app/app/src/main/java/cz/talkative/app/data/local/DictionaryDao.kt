@@ -116,6 +116,9 @@ abstract class DictionaryDao {
     @Query("UPDATE words SET imageFile = :imageFile, updatedAt = :now WHERE profileId = :profileId AND id = :id AND deleted = 0")
     abstract suspend fun updateWordImage(profileId: String, id: String, imageFile: String?, now: Long)
 
+    @Query("UPDATE words SET alternateText = :alternateText, updatedAt = :now WHERE profileId = :profileId AND id = :id AND deleted = 0")
+    abstract suspend fun updateWordAlternateText(profileId: String, id: String, alternateText: String?, now: Long)
+
     /** Všechny obrázky, které nesmazaná slovíčka používají (zbytek souborů je osiřelý). */
     @Query("SELECT imageFile FROM words WHERE profileId = :profileId AND deleted = 0 AND imageFile IS NOT NULL")
     abstract suspend fun allImageFiles(profileId: String): List<String>
