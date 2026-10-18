@@ -5,6 +5,7 @@ import cz.talkative.app.domain.usecase.CountFolderContentsUseCase
 import cz.talkative.app.domain.usecase.DeleteFolderUseCase
 import cz.talkative.app.domain.usecase.DeleteItemsUseCase
 import cz.talkative.app.domain.usecase.DeleteWordUseCase
+import cz.talkative.app.domain.usecase.MoveItemsUseCase
 import cz.talkative.app.domain.usecase.DiscardImageUseCase
 import cz.talkative.app.domain.usecase.SaveImageUseCase
 import cz.talkative.app.domain.image.ImageError
@@ -57,6 +58,7 @@ class AdminViewModelTest {
             DeleteFolderUseCase(repository),
             DeleteWordUseCase(repository),
             DeleteItemsUseCase(repository),
+            MoveItemsUseCase(repository),
             SaveImageUseCase(imageStore),
             DiscardImageUseCase(imageStore),
             SaveAudioUseCase(audioStore),
@@ -873,6 +875,105 @@ class AdminViewModelTest {
         viewModel.onEvent(AdminEvent.ToggleSelecting)
 
         viewModel.onEvent(AdminEvent.DeleteSelected)
+
+        assertNull(viewModel.uiState.value.dialog)
+    }
+
+    // --- hromadný přesun (6.2)
+
+    private fun moveDialog() = viewModel.uiState.value.dialog as AdminDialog.MoveTarget
+
+    private fun selectInRoot(vararg titles: String) {
+        viewModel.onEvent(AdminEvent.ToggleSelecting)
+        titles.forEach { viewModel.onEvent(AdminEvent.ToggleSelected(itemByTitle(it).id)) }
+    }
+
+    @Test
+    fun moveSelected_browsesFoldersAndMovesEverythingOnConfirm() = runVmTest {
+        subscribe()
+        create(AdminEvent.AddFolder, "Cíl")
+        create(AdminEvent.AddFolder, "Přesunu")
+        create(AdminEvent.AddWord, "slovo")
+        create(AdminEvent.AddWord, "zůstane")
+        selectInRoot("Přesunu", "slovo")
+
+        viewModel.onEvent(AdminEvent.MoveSelected)
+        assertEquals(2, moveDialog().movingCount)
+        assertEquals(null, moveDialog().targetId)
+        assertEquals(listOf("Cíl", "Přesunu"), moveDialog().folders.map { it.title })
+
+        viewModel.onEvent(AdminEvent.BrowseMoveTarget(itemByTitle("Cíl").id))
+        assertEquals(listOf("Cíl"), moveDialog().path.map { it.title })
+        assertTrue(moveDialog().folders.isEmpty())
+
+        viewModel.onEvent(AdminEvent.ConfirmMove)
+
+        assertNull(viewModel.uiState.value.dialog)
+        assertEquals(false, viewModel.uiState.value.isSelecting)
+        assertEquals(listOf("Cíl", "zůstane"), titles())
+        viewModel.onEvent(AdminEvent.GoToFolder(itemByTitle("Cíl").id))
+        assertEquals(listOf("Přesunu", "slovo"), titles())
+    }
+
+    @Test
+    fun moveFolderIntoItsOwnSubfolder_showsProblem_andChangesNothing() = runVmTest {
+        subscribe()
+        create(AdminEvent.AddFolder, "A")
+        create(AdminEvent.AddWord, "w")
+        viewModel.onEvent(AdminEvent.GoToFolder(itemByTitle("A").id))
+        create(AdminEvent.AddFolder, "Vnitřní")
+        viewModel.onEvent(AdminEvent.GoToFolder(null))
+        selectInRoot("A", "w")
+        viewModel.onEvent(AdminEvent.MoveSelected)
+        viewModel.onEvent(AdminEvent.BrowseMoveTarget(itemByTitle("A").id))
+        viewModel.onEvent(AdminEvent.BrowseMoveTarget(moveDialog().folders.single().id)) // Vnitřní
+
+        viewModel.onEvent(AdminEvent.ConfirmMove)
+
+        assertEquals(MoveProblem.INTO_ITSELF, moveDialog().problem)
+        assertTrue(viewModel.uiState.value.isSelecting)
+        assertEquals(2, selected().size)
+        assertEquals(listOf("A", "w"), titles())
+        assertEquals(1, repository.allFolders.count { it.parentId == null })
+    }
+
+    @Test
+    fun confirmMoveToTheFolderWhereTheItemsAre_doesNothing() = runVmTest {
+        subscribe()
+        create(AdminEvent.AddWord, "a")
+        create(AdminEvent.AddWord, "b")
+        selectInRoot("a")
+        viewModel.onEvent(AdminEvent.MoveSelected)
+
+        viewModel.onEvent(AdminEvent.ConfirmMove)
+
+        assertTrue(viewModel.uiState.value.dialog is AdminDialog.MoveTarget)
+        assertEquals(listOf("a", "b"), titles())
+    }
+
+    @Test
+    fun moveDialog_cancelKeepsSelectionAndMovesNothing() = runVmTest {
+        subscribe()
+        create(AdminEvent.AddFolder, "Cíl")
+        create(AdminEvent.AddWord, "a")
+        selectInRoot("a")
+        viewModel.onEvent(AdminEvent.MoveSelected)
+        viewModel.onEvent(AdminEvent.BrowseMoveTarget(itemByTitle("Cíl").id))
+
+        viewModel.onEvent(AdminEvent.DismissDialog)
+
+        assertNull(viewModel.uiState.value.dialog)
+        assertEquals(1, selected().size)
+        assertEquals(listOf("Cíl", "a"), titles())
+    }
+
+    @Test
+    fun moveSelected_withNothingSelected_opensNoDialog() = runVmTest {
+        subscribe()
+        create(AdminEvent.AddWord, "a")
+        viewModel.onEvent(AdminEvent.ToggleSelecting)
+
+        viewModel.onEvent(AdminEvent.MoveSelected)
 
         assertNull(viewModel.uiState.value.dialog)
     }

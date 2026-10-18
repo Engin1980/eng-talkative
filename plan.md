@@ -322,14 +322,14 @@ Plán postupuje po funkcionalitách (vertikální řezy přes UI, doménu i data
 ### 6.2 Hromadný přesun
 
 **Úkoly:**
-- [ ] Výběr cílové složky (procházení stromu).
-- [ ] Přesun jako jedna transakce; aktualizace `updatedAt` přesunutých položek.
-- [ ] Ochrana proti přesunu složky do sebe sama nebo do vlastního podstromu.
+- [x] Výběr cílové složky (procházení stromu).
+- [x] Přesun jako jedna transakce; aktualizace `updatedAt` přesunutých položek.
+- [x] Ochrana proti přesunu složky do sebe sama nebo do vlastního podstromu. _(pozn.: kontrola cyklů je v `MoveItemsUseCase`, přesun do neexistující složky se také odmítne)_
 
 **Kritéria splnění:**
-- [ ] Označení více položek a přesun do jiné složky je jedna operace; po ní je vše na novém místě a ve staré složce zmizelo.
-- [ ] Pokus o přesun složky do jejího potomka je odmítnut s hláškou a nic se nezmění.
-- [ ] Unit testy přesunů a ochrany cyklů.
+- [x] Označení více položek a přesun do jiné složky je jedna operace; po ní je vše na novém místě a ve staré složce zmizelo.
+- [x] Pokus o přesun složky do jejího potomka je odmítnut s hláškou a nic se nezmění.
+- [x] Unit testy přesunů a ochrany cyklů.
 
 ### 6.3 Ruční řazení
 

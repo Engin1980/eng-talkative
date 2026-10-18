@@ -157,6 +157,27 @@ abstract class DictionaryDao {
         return previous
     }
 
+    @Query("UPDATE folders SET parentId = :parentId, sortOrder = :sortOrder, updatedAt = :now WHERE profileId = :profileId AND id = :id AND deleted = 0")
+    abstract suspend fun moveFolder(profileId: String, id: String, parentId: String?, sortOrder: Int, now: Long)
+
+    @Query("UPDATE words SET parentId = :parentId, sortOrder = :sortOrder, updatedAt = :now WHERE profileId = :profileId AND id = :id AND deleted = 0")
+    abstract suspend fun moveWord(profileId: String, id: String, parentId: String?, sortOrder: Int, now: Long)
+
+    /**
+     * Přesune složky a slovíčka na konec složky [targetParentId] a zachová jejich dosavadní pořadí
+     * (podle `sortOrder`, ne podle pořadí v [ids]). Přesunuté položky dostanou nové `updatedAt`.
+     */
+    @Transaction
+    open suspend fun moveItems(profileId: String, ids: Collection<String>, targetParentId: String?, now: Long) {
+        val folders = ids.mapNotNull { getFolder(profileId, it) }.filter { it.parentId != targetParentId }
+        val words = ids.mapNotNull { getWord(profileId, it) }.filter { it.parentId != targetParentId }
+        val moving = folders.map { Triple(it.sortOrder, it.id, true) } + words.map { Triple(it.sortOrder, it.id, false) }
+        var order = nextSortOrder(profileId, targetParentId)
+        for ((_, id, isFolder) in moving.sortedWith(compareBy({ it.first }, { it.second }))) {
+            if (isFolder) moveFolder(profileId, id, targetParentId, order++, now) else moveWord(profileId, id, targetParentId, order++, now)
+        }
+    }
+
     /** Smaže složky (s podstromy) i slovíčka podle ID v jedné transakci a vrátí soubory k úklidu. */
     @Transaction
     open suspend fun deleteItems(profileId: String, ids: Collection<String>, now: Long): List<WordFiles> {

@@ -49,6 +49,13 @@ interface DictionaryRepository {
     /** Smaže slovíčko včetně souborů jeho obrázku a MP3. */
     suspend fun deleteWord(id: String)
 
+    /**
+     * Přesune složky a slovíčka s [ids] na konec složky [targetParentId] (`null` = kořen) v jedné transakci;
+     * zachová jejich dosavadní vzájemné pořadí. Položky, které už v cíli jsou, a neexistující ID se přeskočí.
+     * Kontrolu cyklů (složka do vlastního podstromu) dělá volající, viz `MoveItemsUseCase`.
+     */
+    suspend fun moveItems(ids: Collection<String>, targetParentId: String?)
+
     /** Smaže vybrané složky (i s podstromy) a slovíčka v jedné transakci; neexistující ID se přeskočí. */
     suspend fun deleteItems(ids: Collection<String>)
 

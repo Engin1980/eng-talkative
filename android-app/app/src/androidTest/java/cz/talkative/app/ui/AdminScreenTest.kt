@@ -503,4 +503,66 @@ class AdminScreenTest {
         show(state(dialog = AdminDialog.ConfirmDeleteSelected(selectedCount = 3, totalCount = 3)))
         composeRule.onNodeWithText("Počet vybraných položek: 3. Smažou se a nelze to vrátit zpět.").assertIsDisplayed()
     }
+
+    // --- hromadný přesun (6.2)
+
+    @Test
+    fun selectionBar_moveButtonIsDisabledWithoutSelection_andSendsEvent() {
+        show(selectingState(setOf("w1")))
+        composeRule.onNodeWithText("Přesunout").assertHeightIsAtLeast(64.dp).assertIsEnabled().performClick()
+        assertEquals(listOf<AdminEvent>(AdminEvent.MoveSelected), events)
+    }
+
+    @Test
+    fun selectionBar_moveButtonIsDisabledWhenNothingSelected() {
+        show(selectingState(emptySet()))
+        composeRule.onNodeWithText("Přesunout").assertIsNotEnabled()
+    }
+
+    private fun moveDialog(
+        targetId: String? = null,
+        path: List<Folder> = emptyList(),
+        folders: List<Folder> = emptyList(),
+        problem: cz.talkative.app.ui.admin.MoveProblem? = null,
+    ) = AdminDialog.MoveTarget(targetId, path, folders, movingCount = 2, problem = problem)
+
+    @Test
+    fun moveDialog_listsSubfolders_andClickingOneBrowsesIntoIt() {
+        show(state(dialog = moveDialog(folders = listOf(folder("f2", "Cílová A"), folder("f3", "Cílová B")))))
+
+        composeRule.onNodeWithText("Přesunout vybrané položky (2)").assertIsDisplayed()
+        composeRule.onNodeWithText("Cílová B").assertHeightIsAtLeast(64.dp).performClick()
+
+        assertEquals(listOf<AdminEvent>(AdminEvent.BrowseMoveTarget("f3")), events)
+    }
+
+    @Test
+    fun moveDialog_breadcrumbsGoBackUp_andEmptyFolderSaysSo() {
+        val a = folder("f2", "Cílová A")
+        show(state(path = emptyList(), dialog = moveDialog(targetId = "f2", path = listOf(a))))
+
+        composeRule.onNodeWithText("Tato složka nemá žádné podsložky.").assertIsDisplayed()
+        composeRule.onAllNodesWithText("Domů")[1].performClick() // [0] je cesta pod hlavním obsahem
+        assertEquals(listOf<AdminEvent>(AdminEvent.BrowseMoveTarget(null)), events)
+    }
+
+    @Test
+    fun moveDialog_confirmIsDisabledInTheFolderWhereTheItemsAre() {
+        show(state(dialog = moveDialog())) // cíl = kořen = aktuální složka
+        composeRule.onNodeWithText("Přesunout sem").assertIsNotEnabled()
+        composeRule.onNodeWithText("Vybrané položky už v této složce jsou. Vyberte jinou složku.").assertIsDisplayed()
+    }
+
+    @Test
+    fun moveDialog_confirmSendsEvent_inAnotherFolder() {
+        show(state(dialog = moveDialog(targetId = "f2", path = listOf(folder("f2", "Cílová A")))))
+        composeRule.onNodeWithText("Přesunout sem").assertHeightIsAtLeast(64.dp).assertIsEnabled().performClick()
+        assertEquals(listOf<AdminEvent>(AdminEvent.ConfirmMove), events)
+    }
+
+    @Test
+    fun moveDialog_explainsRejectedMove() {
+        show(state(dialog = moveDialog(targetId = "f2", path = listOf(folder("f2", "A")), problem = cz.talkative.app.ui.admin.MoveProblem.INTO_ITSELF)))
+        composeRule.onNodeWithText("Složku nelze přesunout do sebe samé ani do její podsložky. Nic se nepřesunulo.").assertIsDisplayed()
+    }
 }

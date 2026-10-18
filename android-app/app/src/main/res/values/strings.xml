@@ -37,6 +37,7 @@
     <string name="admin_selected_count">Vybráno: %1$d</string>
     <string name="admin_select_all">Vybrat vše</string>
     <string name="admin_select_none">Zrušit výběr</string>
+    <string name="admin_move_selected">Přesunout</string>
     <string name="admin_delete_selected">Smazat vybrané</string>
     <string name="admin_selection_done">Hotovo</string>
 
@@ -89,4 +90,10 @@
     <string name="delete_selected_title">Smazat vybrané položky?</string>
     <string name="delete_selected_message">Počet vybraných položek: %1$d. Smažou se a nelze to vrátit zpět.</string>
     <string name="delete_selected_message_with_contents">Počet vybraných položek: %1$d. Včetně obsahu vybraných složek se smaže celkem %2$d položek. Nelze to vrátit zpět.</string>
+    <string name="move_title">Přesunout vybrané položky (%1$d)</string>
+    <string name="move_no_subfolders">Tato složka nemá žádné podsložky.</string>
+    <string name="move_here">Přesunout sem</string>
+    <string name="move_already_here">Vybrané položky už v této složce jsou. Vyberte jinou složku.</string>
+    <string name="move_problem_into_itself">Složku nelze přesunout do sebe samé ani do její podsložky. Nic se nepřesunulo.</string>
+    <string name="move_problem_missing">Cílová složka už neexistuje. Nic se nepřesunulo.</string>
 </resources>

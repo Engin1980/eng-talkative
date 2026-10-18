@@ -66,6 +66,8 @@ import cz.talkative.app.domain.model.Word
 import cz.talkative.app.ui.common.WordImage
 import cz.talkative.app.ui.theme.TalkativeTheme
 
+const val MOVE_PROBLEM_TAG = "move_problem"
+
 /** Napojení obrazovky na view model. */
 @Composable
 fun AdminRoute(onBackToClient: () -> Unit, viewModel: AdminViewModel = hiltViewModel()) {
@@ -167,7 +169,7 @@ fun AdminScreen(
         }
     }
 
-    state.dialog?.let { AdminDialogHost(dialog = it, onEvent = onEvent) }
+    state.dialog?.let { AdminDialogHost(dialog = it, currentFolderId = state.path.lastOrNull()?.id, onEvent = onEvent) }
 }
 
 /** Lišta režimu výběru: počet označených, „vybrat vše“, smazání a konec výběru. */
@@ -190,6 +192,13 @@ private fun SelectionBar(state: AdminUiState, onEvent: (AdminEvent) -> Unit) {
         ) {
             val allSelected = state.items.isNotEmpty() && state.items.all { it.id in state.selectedIds }
             Text(stringResource(if (allSelected) R.string.admin_select_none else R.string.admin_select_all))
+        }
+        Button(
+            onClick = { onEvent(AdminEvent.MoveSelected) },
+            enabled = state.selectedIds.isNotEmpty(),
+            modifier = Modifier.heightIn(min = dimens.minTouchTarget),
+        ) {
+            Text(stringResource(R.string.admin_move_selected))
         }
         Button(
             onClick = { onEvent(AdminEvent.DeleteSelected) },
@@ -323,11 +332,12 @@ private fun ItemRow(
 }
 
 @Composable
-private fun AdminDialogHost(dialog: AdminDialog, onEvent: (AdminEvent) -> Unit) {
+private fun AdminDialogHost(dialog: AdminDialog, currentFolderId: String?, onEvent: (AdminEvent) -> Unit) {
     when (dialog) {
         is AdminDialog.Edit -> EditDialog(dialog, onEvent)
         is AdminDialog.ConfirmDelete -> ConfirmDeleteDialog(dialog, onEvent)
         is AdminDialog.ConfirmDeleteSelected -> ConfirmDeleteSelectedDialog(dialog, onEvent)
+        is AdminDialog.MoveTarget -> MoveTargetDialog(dialog, currentFolderId, onEvent)
     }
 }
 
@@ -629,6 +639,67 @@ private fun ConfirmDeleteSelectedDialog(dialog: AdminDialog.ConfirmDeleteSelecte
                 modifier = Modifier.heightIn(min = dimens.minTouchTarget),
             ) {
                 Text(stringResource(R.string.delete_confirm))
+            }
+        },
+        dismissButton = {
+            TextButton(
+                onClick = { onEvent(AdminEvent.DismissDialog) },
+                modifier = Modifier.heightIn(min = dimens.minTouchTarget),
+            ) {
+                Text(stringResource(R.string.dialog_cancel))
+            }
+        },
+    )
+}
+
+/** Procházení stromu složek a výběr cíle přesunu; tlačítko „Přesunout sem“ je pro složku, kde položky už jsou, vypnuté. */
+@Composable
+private fun MoveTargetDialog(dialog: AdminDialog.MoveTarget, currentFolderId: String?, onEvent: (AdminEvent) -> Unit) {
+    val dimens = TalkativeTheme.dimens
+    val alreadyHere = dialog.targetId == currentFolderId
+    AlertDialog(
+        onDismissRequest = { onEvent(AdminEvent.DismissDialog) },
+        title = { Text(stringResource(R.string.move_title, dialog.movingCount)) },
+        text = {
+            Column(
+                modifier = Modifier.verticalScroll(rememberScrollState()),
+                verticalArrangement = Arrangement.spacedBy(dimens.spaceSmall),
+            ) {
+                Breadcrumbs(path = dialog.path, onGoToFolder = { onEvent(AdminEvent.BrowseMoveTarget(it)) })
+                if (dialog.folders.isEmpty()) {
+                    Text(stringResource(R.string.move_no_subfolders), style = MaterialTheme.typography.bodyLarge)
+                }
+                dialog.folders.forEach { folder ->
+                    OutlinedButton(
+                        onClick = { onEvent(AdminEvent.BrowseMoveTarget(folder.id)) },
+                        modifier = Modifier.fillMaxWidth().heightIn(min = dimens.minTouchTarget),
+                    ) {
+                        Text(text = folder.title, modifier = Modifier.weight(1f))
+                        Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, contentDescription = null)
+                    }
+                }
+                if (alreadyHere) {
+                    Text(stringResource(R.string.move_already_here), style = MaterialTheme.typography.bodyMedium)
+                }
+                dialog.problem?.let { problem ->
+                    Text(
+                        text = stringResource(
+                            if (problem == MoveProblem.INTO_ITSELF) R.string.move_problem_into_itself else R.string.move_problem_missing,
+                        ),
+                        color = MaterialTheme.colorScheme.error,
+                        style = MaterialTheme.typography.bodyLarge,
+                        modifier = Modifier.testTag(MOVE_PROBLEM_TAG),
+                    )
+                }
+            }
+        },
+        confirmButton = {
+            Button(
+                onClick = { onEvent(AdminEvent.ConfirmMove) },
+                enabled = !alreadyHere,
+                modifier = Modifier.heightIn(min = dimens.minTouchTarget),
+            ) {
+                Text(stringResource(R.string.move_here))
             }
         },
         dismissButton = {

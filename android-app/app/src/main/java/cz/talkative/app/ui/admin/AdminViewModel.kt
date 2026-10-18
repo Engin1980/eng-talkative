@@ -9,6 +9,7 @@ import cz.talkative.app.domain.audio.AudioSaveResult
 import cz.talkative.app.domain.image.ImageError
 import cz.talkative.app.domain.image.ImageSaveResult
 import cz.talkative.app.domain.model.Folder
+import cz.talkative.app.domain.model.MoveResult
 import cz.talkative.app.domain.model.SaveResult
 import cz.talkative.app.domain.model.Word
 import cz.talkative.app.domain.usecase.CountFolderContentsUseCase
@@ -19,6 +20,7 @@ import cz.talkative.app.domain.usecase.DeleteItemsUseCase
 import cz.talkative.app.domain.usecase.DeleteWordUseCase
 import cz.talkative.app.domain.usecase.DiscardImageUseCase
 import cz.talkative.app.domain.usecase.GetFolderPathUseCase
+import cz.talkative.app.domain.usecase.MoveItemsUseCase
 import cz.talkative.app.domain.usecase.ObserveFolderItemsUseCase
 import cz.talkative.app.domain.usecase.SaveFolderUseCase
 import cz.talkative.app.domain.usecase.SaveImageUseCase
@@ -31,6 +33,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
@@ -40,7 +43,7 @@ import javax.inject.Inject
 @OptIn(ExperimentalCoroutinesApi::class)
 @HiltViewModel
 class AdminViewModel @Inject constructor(
-    observeItems: ObserveFolderItemsUseCase,
+    private val observeItems: ObserveFolderItemsUseCase,
     private val getPath: GetFolderPathUseCase,
     private val saveFolder: SaveFolderUseCase,
     private val saveWord: SaveWordUseCase,
@@ -48,6 +51,7 @@ class AdminViewModel @Inject constructor(
     private val deleteFolder: DeleteFolderUseCase,
     private val deleteWord: DeleteWordUseCase,
     private val deleteItems: DeleteItemsUseCase,
+    private val moveItems: MoveItemsUseCase,
     private val saveImage: SaveImageUseCase,
     private val discardImage: DiscardImageUseCase,
     private val saveAudio: SaveAudioUseCase,
@@ -96,6 +100,9 @@ class AdminViewModel @Inject constructor(
             AdminEvent.ToggleSelectAll -> toggleSelectAll()
             AdminEvent.DeleteSelected -> requestDeleteSelected()
             AdminEvent.ConfirmDeleteSelected -> confirmDeleteSelected()
+            AdminEvent.MoveSelected -> requestMove()
+            is AdminEvent.BrowseMoveTarget -> browseMoveTarget(event.folderId)
+            AdminEvent.ConfirmMove -> confirmMove()
         }
     }
 
@@ -122,6 +129,40 @@ class AdminViewModel @Inject constructor(
             val folders = uiState.value.items.filter { it.id in selected && it is Folder }
             val total = selected.size + folders.sumOf { countContents(it.id) }
             dialog.value = AdminDialog.ConfirmDeleteSelected(selected.size, total)
+        }
+    }
+
+    /** Dialog přesunu začíná ve složce, ve které se právě výběr dělá. */
+    private fun requestMove() {
+        val selected = selection.value?.takeIf { it.isNotEmpty() } ?: return
+        viewModelScope.launch { dialog.value = moveDialogFor(currentFolderId.value, selected.size) }
+    }
+
+    private fun browseMoveTarget(folderId: String?) {
+        val current = dialog.value as? AdminDialog.MoveTarget ?: return
+        viewModelScope.launch { dialog.value = moveDialogFor(folderId, current.movingCount) }
+    }
+
+    private suspend fun moveDialogFor(folderId: String?, movingCount: Int) = AdminDialog.MoveTarget(
+        targetId = folderId,
+        path = getPath(folderId),
+        folders = observeItems(folderId).first().filterIsInstance<Folder>(),
+        movingCount = movingCount,
+    )
+
+    private fun confirmMove() {
+        val move = dialog.value as? AdminDialog.MoveTarget ?: return
+        val selected = selection.value ?: return
+        if (move.targetId == currentFolderId.value) return // položky už v cíli jsou
+        viewModelScope.launch {
+            when (moveItems(selected, move.targetId)) {
+                MoveResult.Moved -> {
+                    selection.value = null
+                    closeDialog()
+                }
+                MoveResult.TargetInsideMovedFolder -> dialog.value = move.copy(problem = MoveProblem.INTO_ITSELF)
+                MoveResult.TargetNotFound -> dialog.value = move.copy(problem = MoveProblem.TARGET_MISSING)
+            }
         }
     }
 

@@ -22,6 +22,7 @@ import cz.talkative.app.domain.usecase.CountFolderContentsUseCase
 import cz.talkative.app.domain.usecase.DeleteFolderUseCase
 import cz.talkative.app.domain.usecase.DeleteItemsUseCase
 import cz.talkative.app.domain.usecase.DeleteWordUseCase
+import cz.talkative.app.domain.usecase.MoveItemsUseCase
 import cz.talkative.app.domain.usecase.DiscardAudioUseCase
 import cz.talkative.app.domain.usecase.DiscardImageUseCase
 import cz.talkative.app.domain.usecase.SaveAudioUseCase
@@ -79,6 +80,7 @@ class AdminFlowTest {
             DeleteFolderUseCase(repository),
             DeleteWordUseCase(repository),
             DeleteItemsUseCase(repository),
+            MoveItemsUseCase(repository),
             SaveImageUseCase(imageStore),
             DiscardImageUseCase(imageStore),
             SaveAudioUseCase(audioStore),
@@ -340,5 +342,37 @@ class AdminFlowTest {
 
         composeRule.onNodeWithText("Slovo C").assertIsDisplayed()
         composeRule.onNodeWithText("Nová složka").assertIsDisplayed() // režim výběru skončil
+    }
+
+    @Test
+    fun selectionMode_movesItemsIntoAnotherFolder_andRefusesMovingFolderIntoItself() {
+        waitForText("Tato složka je prázdná")
+        create("Nová složka", "Cíl")
+        create("Nová složka", "Zdroj")
+        create("Nové slovíčko", "Slovo")
+
+        // Zdroj do sebe samého se odmítne, nic se nezmění.
+        composeRule.onNodeWithText("Vybrat").performClick()
+        composeRule.onNodeWithText("Zdroj").performClick()
+        composeRule.onNodeWithText("Přesunout").performClick()
+        composeRule.onNodeWithText("Přesunout vybrané položky (1)").assertIsDisplayed()
+        composeRule.onAllNodesWithText("Zdroj")[1].performClick() // tlačítko složky v dialogu
+        composeRule.onNodeWithText("Přesunout sem").performClick()
+        waitForText("Složku nelze přesunout do sebe samé ani do její podsložky. Nic se nepřesunulo.")
+        composeRule.onNodeWithText("Zrušit").performClick()
+        waitForNoText("Přesunout vybrané položky (1)")
+        composeRule.onNodeWithText("Slovo").assertIsDisplayed()
+
+        // Slovo i Zdroj do složky Cíl.
+        composeRule.onNodeWithText("Slovo").performClick()
+        composeRule.onNodeWithText("Vybráno: 2").assertIsDisplayed()
+        composeRule.onNodeWithText("Přesunout").performClick()
+        composeRule.onAllNodesWithText("Cíl")[1].performClick()
+        composeRule.onNodeWithText("Přesunout sem").performClick()
+        waitForNoText("Slovo")
+
+        composeRule.onNodeWithText("Cíl").performClick()
+        waitForText("Slovo")
+        composeRule.onNodeWithText("Zdroj").assertIsDisplayed()
     }
 }

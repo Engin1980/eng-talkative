@@ -102,6 +102,9 @@ class RoomDictionaryRepository @Inject constructor(
         dao.deleteWord(profileId, id, clock.nowMillis())?.let { deleteFiles(it) }
     }
 
+    override suspend fun moveItems(ids: Collection<String>, targetParentId: String?) =
+        dao.moveItems(profileId, ids, targetParentId, clock.nowMillis())
+
     override suspend fun deleteItems(ids: Collection<String>) {
         dao.deleteItems(profileId, ids, clock.nowMillis()).forEach { deleteFiles(it) }
     }

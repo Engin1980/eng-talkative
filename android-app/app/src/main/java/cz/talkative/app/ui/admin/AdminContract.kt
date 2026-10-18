@@ -24,6 +24,12 @@ enum class AudioProblem {
     PLAYBACK_FAILED,
 }
 
+/** Proč se přesun nepodařil; nic se přitom nepřesunulo. */
+enum class MoveProblem {
+    INTO_ITSELF,
+    TARGET_MISSING,
+}
+
 /** Otevřený dialog nad administrací. */
 sealed interface AdminDialog {
     /**
@@ -50,6 +56,18 @@ sealed interface AdminDialog {
         val imageProblem: ImageProblem? = null,
         /** Rozlišuje jednotlivá otevření dialogu, aby pozdní výsledek zpracování obrázku nepřistál do jiného dialogu. */
         val sessionId: Int = 0,
+    ) : AdminDialog
+
+    /**
+     * Výběr cílové složky přesunu: [targetId] je složka, kterou dialog právě ukazuje (`null` = kořen),
+     * [path] cesta k ní, [folders] její podsložky a [movingCount] počet přesouvaných položek.
+     */
+    data class MoveTarget(
+        val targetId: String?,
+        val path: List<Folder>,
+        val folders: List<Folder>,
+        val movingCount: Int,
+        val problem: MoveProblem? = null,
     ) : AdminDialog
 
     /**
@@ -121,4 +139,11 @@ sealed interface AdminEvent {
     data object ToggleSelectAll : AdminEvent
     data object DeleteSelected : AdminEvent
     data object ConfirmDeleteSelected : AdminEvent
+
+    /** Otevře výběr cílové složky pro přesun označených položek. */
+    data object MoveSelected : AdminEvent
+
+    /** V dialogu přesunu ukáže jinou složku (`null` = kořen). */
+    data class BrowseMoveTarget(val folderId: String?) : AdminEvent
+    data object ConfirmMove : AdminEvent
 }

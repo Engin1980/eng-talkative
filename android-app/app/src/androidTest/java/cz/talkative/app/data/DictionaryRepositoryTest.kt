@@ -410,4 +410,65 @@ class DictionaryRepositoryTest {
         assertTrue(audioStore.files.isEmpty())
         assertEquals(keepWord.id, repository.observeItems(null).first().last().id)
     }
+
+    @Test
+    fun moveItems_appendsToTargetInTheirCurrentOrder_andBumpsUpdatedAt() = runTest {
+        val target = repository.createFolder(null, "Cíl")
+        repository.createWord(target.id, "už tam je")
+        val a = repository.createWord(null, "a")
+        val folder = repository.createFolder(null, "B")
+        val c = repository.createWord(null, "c")
+        val stays = repository.createWord(null, "zůstane")
+        now = 5_000L
+
+        repository.moveItems(listOf(c.id, folder.id, a.id), target.id)
+
+        assertEquals(listOf("už tam je", "a", "B", "c"), titles(target.id))
+        assertEquals(listOf("Cíl", "zůstane"), titles(null))
+        assertEquals(listOf(0, 1, 2, 3), repository.observeItems(target.id).first().map { it.sortOrder })
+        val dao = database.dictionaryDao()
+        assertEquals(5_000L, dao.getWord("default", a.id)?.updatedAt)
+        assertEquals(5_000L, dao.getFolder("default", folder.id)?.updatedAt)
+        assertEquals(1_000L, dao.getWord("default", stays.id)?.updatedAt) // nepřesunutá položka zůstala beze změny
+    }
+
+    @Test
+    fun moveItems_movesWholeSubtreeWithTheFolder_andKeepsIdsAndFiles() = runTest {
+        val outer = repository.createFolder(null, "Vnější")
+        val inner = repository.createFolder(outer.id, "Vnitřní")
+        repository.createWord(inner.id, "i1", imageFile = imageStore.add("i1.jpg"))
+        val target = repository.createFolder(null, "Cíl")
+
+        repository.moveItems(listOf(outer.id), target.id)
+
+        assertEquals(listOf("Vnější"), titles(target.id))
+        assertEquals(listOf("Cíl", "Vnější", "Vnitřní"), repository.getPath(inner.id).map { it.title })
+        assertEquals(listOf("i1"), titles(inner.id))
+        assertEquals(setOf("i1.jpg"), imageStore.files)
+    }
+
+    @Test
+    fun moveItems_ignoresItemsAlreadyInTargetAndUnknownIds() = runTest {
+        val a = repository.createWord(null, "a")
+        val b = repository.createWord(null, "b")
+
+        repository.moveItems(listOf(a.id, "neexistuje"), null)
+
+        assertEquals(listOf("a", "b"), titles(null))
+        assertEquals(listOf(0, 1), repository.observeItems(null).first().map { it.sortOrder })
+        assertEquals(b.id, repository.observeItems(null).first().last().id)
+    }
+
+    @Test
+    fun moveItems_toRoot_andDeletedItemsAreNotMoved() = runTest {
+        val folder = repository.createFolder(null, "F")
+        val live = repository.createWord(folder.id, "živé")
+        val dead = repository.createWord(folder.id, "mrtvé")
+        repository.deleteWord(dead.id)
+
+        repository.moveItems(listOf(live.id, dead.id), null)
+
+        assertEquals(listOf("F", "živé"), titles(null))
+        assertTrue(titles(folder.id).isEmpty())
+    }
 }
