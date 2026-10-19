@@ -70,6 +70,9 @@ sealed interface AdminDialog {
         val problem: MoveProblem? = null,
     ) : AdminDialog
 
+    /** Potvrzení abecedního řazení: přepíše ručně nastavené pořadí a nelze ho vrátit. */
+    data object ConfirmSort : AdminDialog
+
     /**
      * Potvrzení hromadného smazání: [selectedCount] vybraných položek, [totalCount] jich je celkem
      * (vybrané plus obsah vybraných složek).
@@ -144,8 +147,11 @@ sealed interface AdminEvent {
     data class MoveItemUp(val itemId: String) : AdminEvent
     data class MoveItemDown(val itemId: String) : AdminEvent
 
-    /** Seřadí obsah aktuální složky podle abecedy (podle kolace z konfigurace). */
+    /** Zeptá se, zda seřadit obsah aktuální složky podle abecedy (přepíše ruční pořadí). */
     data object SortAlphabetically : AdminEvent
+
+    /** Potvrzení dotazu: seřadí obsah aktuální složky podle abecedy (podle kolace z konfigurace). */
+    data object ConfirmSortAlphabetically : AdminEvent
 
     /** Otevře výběr cílové složky pro přesun označených položek. */
     data object MoveSelected : AdminEvent

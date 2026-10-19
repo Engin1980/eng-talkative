@@ -366,6 +366,7 @@ private fun AdminDialogHost(dialog: AdminDialog, currentFolderId: String?, onEve
         is AdminDialog.Edit -> EditDialog(dialog, onEvent)
         is AdminDialog.ConfirmDelete -> ConfirmDeleteDialog(dialog, onEvent)
         is AdminDialog.ConfirmDeleteSelected -> ConfirmDeleteSelectedDialog(dialog, onEvent)
+        AdminDialog.ConfirmSort -> ConfirmSortDialog(onEvent)
         is AdminDialog.MoveTarget -> MoveTargetDialog(dialog, currentFolderId, onEvent)
     }
 }
@@ -729,6 +730,32 @@ private fun MoveTargetDialog(dialog: AdminDialog.MoveTarget, currentFolderId: St
                 modifier = Modifier.heightIn(min = dimens.minTouchTarget),
             ) {
                 Text(stringResource(R.string.move_here))
+            }
+        },
+        dismissButton = {
+            TextButton(
+                onClick = { onEvent(AdminEvent.DismissDialog) },
+                modifier = Modifier.heightIn(min = dimens.minTouchTarget),
+            ) {
+                Text(stringResource(R.string.dialog_cancel))
+            }
+        },
+    )
+}
+
+@Composable
+private fun ConfirmSortDialog(onEvent: (AdminEvent) -> Unit) {
+    val dimens = TalkativeTheme.dimens
+    AlertDialog(
+        onDismissRequest = { onEvent(AdminEvent.DismissDialog) },
+        title = { Text(stringResource(R.string.sort_title)) },
+        text = { Text(stringResource(R.string.sort_message)) },
+        confirmButton = {
+            Button(
+                onClick = { onEvent(AdminEvent.ConfirmSortAlphabetically) },
+                modifier = Modifier.heightIn(min = dimens.minTouchTarget),
+            ) {
+                Text(stringResource(R.string.sort_confirm))
             }
         },
         dismissButton = {

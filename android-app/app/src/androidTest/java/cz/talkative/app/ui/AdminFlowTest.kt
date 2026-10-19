@@ -2,6 +2,7 @@ package cz.talkative.app.ui
 
 import android.content.Context
 import androidx.compose.runtime.getValue
+import org.junit.Assert.assertTrue
 import androidx.compose.ui.layout.positionInRoot
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.test.junit4.v2.createComposeRule
@@ -401,6 +402,12 @@ class AdminFlowTest {
         composeRule.waitUntil(5_000) { listedTitles("dům", "cibule", "chléb") }
 
         composeRule.onNodeWithText("Seřadit podle abecedy").performClick()
+        composeRule.onNodeWithText("Zrušit").performClick() // po zrušení zůstane ruční pořadí
+        waitForNoText("Seřadit podle abecedy?")
+        assertTrue(listedTitles("dům", "cibule", "chléb"))
+
+        composeRule.onNodeWithText("Seřadit podle abecedy").performClick()
+        composeRule.onNodeWithText("Seřadit").performClick()
         composeRule.waitUntil(5_000) { listedTitles("cibule", "dům", "chléb") } // česky: c, d, ch
     }
 }

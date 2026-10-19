@@ -1025,11 +1025,42 @@ class AdminViewModelTest {
         subscribe()
         listOf("dům", "chléb", "cibule").forEach { create(AdminEvent.AddWord, it) }
 
-        viewModel.onEvent(AdminEvent.SortAlphabetically)
+        sortAndConfirm()
         assertEquals(listOf("cibule", "dům", "chléb"), titles())
 
         config.update { it.copy(collationLanguageTag = "en") }
-        viewModel.onEvent(AdminEvent.SortAlphabetically)
+        sortAndConfirm()
         assertEquals(listOf("chléb", "cibule", "dům"), titles())
+    }
+
+    private fun sortAndConfirm() {
+        viewModel.onEvent(AdminEvent.SortAlphabetically)
+        viewModel.onEvent(AdminEvent.ConfirmSortAlphabetically)
+    }
+
+    @Test
+    fun sortAlphabetically_asksFirst_andCancelKeepsManualOrder() = runVmTest {
+        subscribe()
+        listOf("dům", "chléb", "cibule").forEach { create(AdminEvent.AddWord, it) }
+
+        viewModel.onEvent(AdminEvent.SortAlphabetically)
+
+        assertEquals(AdminDialog.ConfirmSort, viewModel.uiState.value.dialog)
+        assertEquals(listOf("dům", "chléb", "cibule"), titles()) // zatím se nic nezměnilo
+
+        viewModel.onEvent(AdminEvent.DismissDialog)
+
+        assertNull(viewModel.uiState.value.dialog)
+        assertEquals(listOf("dům", "chléb", "cibule"), titles())
+    }
+
+    @Test
+    fun confirmSortWithoutDialog_doesNothing() = runVmTest {
+        subscribe()
+        listOf("dům", "cibule").forEach { create(AdminEvent.AddWord, it) }
+
+        viewModel.onEvent(AdminEvent.ConfirmSortAlphabetically)
+
+        assertEquals(listOf("dům", "cibule"), titles())
     }
 }

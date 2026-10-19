@@ -99,4 +99,7 @@
     <string name="move_already_here">Vybrané položky už v této složce jsou. Vyberte jinou složku.</string>
     <string name="move_problem_into_itself">Složku nelze přesunout do sebe samé ani do její podsložky. Nic se nepřesunulo.</string>
     <string name="move_problem_missing">Cílová složka už neexistuje. Nic se nepřesunulo.</string>
+    <string name="sort_title">Seřadit podle abecedy?</string>
+    <string name="sort_message">Obsah této složky se seřadí podle abecedy. Dosavadní ruční pořadí se přepíše a nelze ho vrátit zpět.</string>
+    <string name="sort_confirm">Seřadit</string>
 </resources>

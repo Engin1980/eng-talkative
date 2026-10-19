@@ -588,6 +588,25 @@ class AdminScreenTest {
     }
 
     @Test
+    fun sortDialog_explainsOverwrite_andConfirmSendsEvent() {
+        show(state(dialog = AdminDialog.ConfirmSort))
+
+        composeRule.onNodeWithText("Seřadit podle abecedy?").assertIsDisplayed()
+        composeRule.onNodeWithText(
+            "Obsah této složky se seřadí podle abecedy. Dosavadní ruční pořadí se přepíše a nelze ho vrátit zpět.",
+        ).assertIsDisplayed()
+        composeRule.onNodeWithText("Seřadit").assertHeightIsAtLeast(64.dp).performClick()
+        assertEquals(listOf<AdminEvent>(AdminEvent.ConfirmSortAlphabetically), events)
+    }
+
+    @Test
+    fun sortDialog_cancelSendsDismiss() {
+        show(state(dialog = AdminDialog.ConfirmSort))
+        composeRule.onNodeWithText("Zrušit").performClick()
+        assertEquals(listOf<AdminEvent>(AdminEvent.DismissDialog), events)
+    }
+
+    @Test
     fun sortButton_isDisabledWithOneItem() {
         show(state(word("w1", "A")))
         composeRule.onNodeWithText("Seřadit podle abecedy").assertIsNotEnabled()

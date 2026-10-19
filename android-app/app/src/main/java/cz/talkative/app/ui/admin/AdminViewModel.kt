@@ -106,7 +106,8 @@ class AdminViewModel @Inject constructor(
             AdminEvent.ConfirmDeleteSelected -> confirmDeleteSelected()
             is AdminEvent.MoveItemUp -> moveInOrder(event.itemId, offset = -1)
             is AdminEvent.MoveItemDown -> moveInOrder(event.itemId, offset = 1)
-            AdminEvent.SortAlphabetically -> viewModelScope.launch { sortAlphabetically(currentFolderId.value) }
+            AdminEvent.SortAlphabetically -> dialog.value = AdminDialog.ConfirmSort
+            AdminEvent.ConfirmSortAlphabetically -> confirmSort()
             AdminEvent.MoveSelected -> requestMove()
             is AdminEvent.BrowseMoveTarget -> browseMoveTarget(event.folderId)
             AdminEvent.ConfirmMove -> confirmMove()
@@ -136,6 +137,14 @@ class AdminViewModel @Inject constructor(
             val folders = uiState.value.items.filter { it.id in selected && it is Folder }
             val total = selected.size + folders.sumOf { countContents(it.id) }
             dialog.value = AdminDialog.ConfirmDeleteSelected(selected.size, total)
+        }
+    }
+
+    private fun confirmSort() {
+        if (dialog.value !is AdminDialog.ConfirmSort) return
+        viewModelScope.launch {
+            sortAlphabetically(currentFolderId.value)
+            closeDialog()
         }
     }
 
