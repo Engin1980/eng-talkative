@@ -2,6 +2,13 @@ package cz.talkative.app.ui
 
 import android.content.Context
 import androidx.compose.runtime.collectAsState
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.test.SemanticsNodeInteraction
+import androidx.compose.ui.test.onNodeWithTag
+import androidx.compose.ui.test.onRoot
+import androidx.compose.ui.test.performTouchInput
+import androidx.compose.ui.test.swipe
+import cz.talkative.app.domain.model.AddWordMode
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.hasAnyAncestor
@@ -190,5 +197,39 @@ class ClientFlowTest {
         composeRule.waitUntil(5_000) { composeRule.onAllNodesWithText("Přehrát").fetchSemanticsNodes().isNotEmpty() }
 
         assertEquals(1, sentenceWordCount())
+    }
+
+    private fun dragTo(from: SemanticsNodeInteraction, target: Offset) {
+        val start = from.fetchSemanticsNode().boundsInRoot.center
+        from.performTouchInput { swipe(center, center + (target - start), durationMillis = 400) }
+    }
+
+    @Test
+    fun dragMode_tapDoesNotAdd_dragAddsAndDraggingOutRemoves() {
+        configFlow.value = AppConfig(addWordMode = AddWordMode.DRAG)
+        waitForText("Jídlo")
+
+        tile("chci").performClick()
+        composeRule.waitForIdle()
+        assertEquals(0, sentenceWordCount()) // v režimu tažení klepnutí slovo nepřidá
+
+        val bar = composeRule.onNodeWithTag(SENTENCE_BAR_TAG).fetchSemanticsNode().boundsInRoot.center
+        dragTo(tile("chci"), bar)
+        waitForSentenceWords(1)
+
+        val root = composeRule.onRoot().fetchSemanticsNode().boundsInRoot
+        dragTo(composeRule.onAllNodesWithTag(SENTENCE_WORD_TAG)[0], Offset(root.center.x, root.bottom - 20f))
+        waitForSentenceWords(0)
+    }
+
+    @Test
+    fun tapMode_dragDoesNotAdd() {
+        waitForText("Jídlo")
+
+        val bar = composeRule.onNodeWithTag(SENTENCE_BAR_TAG).fetchSemanticsNode().boundsInRoot.center
+        dragTo(tile("chci"), bar)
+        composeRule.waitForIdle()
+
+        assertEquals(0, sentenceWordCount())
     }
 }

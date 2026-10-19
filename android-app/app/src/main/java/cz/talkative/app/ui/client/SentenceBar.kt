@@ -50,6 +50,9 @@ fun SentenceBar(
     hideCaptions: Boolean,
     onRemove: (entryId: Int) -> Unit,
     modifier: Modifier = Modifier,
+    drag: SentenceDragState? = null,
+    dragEnabled: Boolean = false,
+    emptyHintRes: Int = R.string.client_sentence_hint,
 ) {
     val dimens = TalkativeTheme.dimens
     val colors = MaterialTheme.colorScheme
@@ -57,7 +60,7 @@ fun SentenceBar(
     LaunchedEffect(sentence.size) { scrollState.animateScrollTo(scrollState.maxValue) }
 
     Surface(
-        modifier = modifier.testTag(SENTENCE_BAR_TAG),
+        modifier = modifier.testTag(SENTENCE_BAR_TAG).let { if (drag != null) it.dropTarget(drag) else it },
         shape = MaterialTheme.shapes.large,
         color = colors.background,
         border = BorderStroke(dimens.borderWidth, colors.outline),
@@ -71,7 +74,7 @@ fun SentenceBar(
         ) {
             if (sentence.isEmpty()) {
                 Text(
-                    text = stringResource(R.string.client_sentence_hint),
+                    text = stringResource(emptyHintRes),
                     style = MaterialTheme.typography.bodyLarge,
                     modifier = Modifier.padding(horizontal = dimens.spaceSmall),
                 )
@@ -89,6 +92,12 @@ fun SentenceBar(
                                 hideCaption = hideCaptions,
                                 onHold = { onRemove(entry.entryId) },
                                 holdMillis = removeHoldMillis,
+                                dragModifier = if (drag == null) {
+                                    Modifier
+                                } else {
+                                    // V režimu tažení lze slovo odtáhnout z věty pryč a tím odebrat.
+                                    Modifier.dragSource(dragEnabled, DragSource.SentenceWord(entry.entryId, entry.word.title), drag)
+                                },
                             )
                         }
                     }
@@ -105,12 +114,13 @@ private fun SentenceChip(
     hideCaption: Boolean,
     holdMillis: Long,
     onHold: () -> Unit,
+    dragModifier: Modifier = Modifier,
 ) {
     val dimens = TalkativeTheme.dimens
     val colors = MaterialTheme.colorScheme
     val hasImage = hasWordImage(imageFile)
     Surface(
-        modifier = Modifier.testTag(SENTENCE_WORD_TAG).onHold(holdMillis, onHold),
+        modifier = Modifier.testTag(SENTENCE_WORD_TAG).then(dragModifier).onHold(holdMillis, onHold),
         shape = MaterialTheme.shapes.medium,
         color = colors.surfaceVariant,
         contentColor = colors.onSurfaceVariant,

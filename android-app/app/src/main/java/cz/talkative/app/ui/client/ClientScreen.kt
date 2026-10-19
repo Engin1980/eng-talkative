@@ -27,6 +27,18 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.foundation.layout.offset
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.layout.positionInWindow
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.unit.IntOffset
+import cz.talkative.app.domain.model.AddWordMode
+import kotlin.math.roundToInt
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalConfiguration
@@ -44,6 +56,8 @@ import cz.talkative.app.domain.model.Word
 import cz.talkative.app.domain.paging.Pagination
 import cz.talkative.app.ui.common.WordImage
 import cz.talkative.app.ui.theme.TalkativeTheme
+
+const val DRAGGED_WORD_TAG = "dragged-word"
 
 /** Napojení obrazovky na view model. */
 @Composable
@@ -65,71 +79,103 @@ fun ClientScreen(
     isLandscape: Boolean = LocalConfiguration.current.orientation == Configuration.ORIENTATION_LANDSCAPE,
 ) {
     val dimens = TalkativeTheme.dimens
-    Column(
-        modifier = modifier
-            .fillMaxSize()
-            .safeDrawingPadding()
-            .padding(dimens.spaceMedium),
-        verticalArrangement = Arrangement.spacedBy(dimens.spaceMedium),
-    ) {
-        // Skrytý prvek má vlastní buňku vedle řádku věty, aby nepřekrýval žádné ovládání.
-        Row(
-            modifier = Modifier.fillMaxWidth().heightIn(min = dimens.minTouchTarget),
-            verticalAlignment = Alignment.CenterVertically,
+    val drag = rememberSentenceDragState(state.config.addWordMode, onEvent)
+    var rootOrigin by remember { mutableStateOf(Offset.Zero) }
+    Box(modifier = modifier.fillMaxSize().onGloballyPositioned { rootOrigin = it.positionInWindow() }) {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .safeDrawingPadding()
+                .padding(dimens.spaceMedium),
+            verticalArrangement = Arrangement.spacedBy(dimens.spaceMedium),
         ) {
-            SentenceBar(
-                sentence = state.sentence,
-                removeHoldMillis = state.config.removeHoldMillis,
-                hideCaptions = state.config.hideCaptionsInSentence,
-                onRemove = { onEvent(ClientEvent.RemoveFromSentence(it)) },
-                modifier = Modifier.weight(1f),
-            )
-            PlayStopButton(
-                isSpeaking = state.isSpeaking,
-                enabled = state.sentence.isNotEmpty() || state.isSpeaking,
-                onClick = { onEvent(ClientEvent.TogglePlayback) },
-                modifier = Modifier.padding(start = dimens.spaceMedium),
-            )
-            ClearSentenceButton(
-                enabled = state.sentence.isNotEmpty(),
-                onClick = { onEvent(ClientEvent.ClearSentence) },
-                modifier = Modifier.padding(start = dimens.spaceMedium),
-            )
-            HiddenAdminEntry(onEntered = onOpenAdmin, holdMillis = state.config.adminHoldMillis)
-        }
-
-        NavigationRow(path = state.path, onEvent = onEvent)
-        state.speechError?.let { SpeechErrorDialog(it) { onEvent(ClientEvent.DismissSpeechError) } }
-
-        val grid = if (isLandscape) state.config.gridLandscape else state.config.gridPortrait
-        when {
-            state.isLoading -> Box(modifier = Modifier.weight(1f))
-            state.items.isEmpty() -> Box(modifier = Modifier.weight(1f).fillMaxWidth(), contentAlignment = Alignment.Center) {
-                Text(
-                    text = stringResource(R.string.client_empty_folder),
-                    style = MaterialTheme.typography.headlineMedium,
-                    textAlign = TextAlign.Center,
-                )
-            }
-            else -> {
-                val page = Pagination.clampPage(state.pageIndex, state.items.size, grid.pageSize)
-                ItemGrid(
-                    items = Pagination.pageItems(state.items, page, grid.pageSize),
-                    grid = grid,
-                    onFolderClick = { onEvent(ClientEvent.OpenFolder(it.id)) },
-                    onWordClick = { onEvent(ClientEvent.WordSelected(it)) },
+            // Skrytý prvek má vlastní buňku vedle řádku věty, aby nepřekrýval žádné ovládání.
+            Row(
+                modifier = Modifier.fillMaxWidth().heightIn(min = dimens.minTouchTarget),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                SentenceBar(
+                    sentence = state.sentence,
+                    removeHoldMillis = state.config.removeHoldMillis,
+                    hideCaptions = state.config.hideCaptionsInSentence,
+                    onRemove = { onEvent(ClientEvent.RemoveFromSentence(it)) },
+                    drag = drag,
+                    dragEnabled = state.config.addWordMode == AddWordMode.DRAG,
+                    emptyHintRes = if (state.config.addWordMode == AddWordMode.DRAG) R.string.client_sentence_hint_drag else R.string.client_sentence_hint,
                     modifier = Modifier.weight(1f),
                 )
-                val pageCount = Pagination.pageCount(state.items.size, grid.pageSize)
-                if (pageCount > 1) {
-                    PageControls(
-                        page = page,
-                        pageCount = pageCount,
-                        onPageChange = { onEvent(ClientEvent.PageChanged(it)) },
+                PlayStopButton(
+                    isSpeaking = state.isSpeaking,
+                    enabled = state.sentence.isNotEmpty() || state.isSpeaking,
+                    onClick = { onEvent(ClientEvent.TogglePlayback) },
+                    modifier = Modifier.padding(start = dimens.spaceMedium),
+                )
+                ClearSentenceButton(
+                    enabled = state.sentence.isNotEmpty(),
+                    onClick = { onEvent(ClientEvent.ClearSentence) },
+                    modifier = Modifier.padding(start = dimens.spaceMedium),
+                )
+                HiddenAdminEntry(onEntered = onOpenAdmin, holdMillis = state.config.adminHoldMillis)
+            }
+
+            NavigationRow(path = state.path, onEvent = onEvent)
+            state.speechError?.let { SpeechErrorDialog(it) { onEvent(ClientEvent.DismissSpeechError) } }
+
+            val grid = if (isLandscape) state.config.gridLandscape else state.config.gridPortrait
+            when {
+                state.isLoading -> Box(modifier = Modifier.weight(1f))
+                state.items.isEmpty() -> Box(modifier = Modifier.weight(1f).fillMaxWidth(), contentAlignment = Alignment.Center) {
+                    Text(
+                        text = stringResource(R.string.client_empty_folder),
+                        style = MaterialTheme.typography.headlineMedium,
+                        textAlign = TextAlign.Center,
                     )
+                }
+                else -> {
+                    val page = Pagination.clampPage(state.pageIndex, state.items.size, grid.pageSize)
+                    ItemGrid(
+                        items = Pagination.pageItems(state.items, page, grid.pageSize),
+                        grid = grid,
+                        onFolderClick = { onEvent(ClientEvent.OpenFolder(it.id)) },
+                        onWordClick = { onEvent(ClientEvent.WordSelected(it)) },
+                        drag = drag,
+                        dragEnabled = state.config.addWordMode == AddWordMode.DRAG,
+                        modifier = Modifier.weight(1f),
+                    )
+                    val pageCount = Pagination.pageCount(state.items.size, grid.pageSize)
+                    if (pageCount > 1) {
+                        PageControls(
+                            page = page,
+                            pageCount = pageCount,
+                            onPageChange = { onEvent(ClientEvent.PageChanged(it)) },
+                        )
+                    }
                 }
             }
         }
+        drag.dragged?.let { DraggedWord(title = it.title, pointer = drag.pointer - rootOrigin) }
+    }
+}
+
+/** Dlaždice, která se při tažení vznáší pod prstem. */
+@Composable
+private fun DraggedWord(title: String, pointer: Offset) {
+    val dimens = TalkativeTheme.dimens
+    val shift = with(LocalDensity.current) { (dimens.minTouchTarget / 2).roundToPx() }
+    Surface(
+        modifier = Modifier
+            .offset { IntOffset(pointer.x.roundToInt() - shift, pointer.y.roundToInt() - shift) }
+            .testTag(DRAGGED_WORD_TAG),
+        shape = MaterialTheme.shapes.medium,
+        color = MaterialTheme.colorScheme.primary,
+        contentColor = MaterialTheme.colorScheme.onPrimary,
+        shadowElevation = dimens.borderWidth * 4,
+    ) {
+        Text(
+            text = title,
+            style = MaterialTheme.typography.titleLarge,
+            modifier = Modifier.padding(horizontal = dimens.spaceMedium, vertical = dimens.spaceSmall),
+        )
     }
 }
 
@@ -201,6 +247,8 @@ private fun ItemGrid(
     grid: GridSize,
     onFolderClick: (Folder) -> Unit,
     onWordClick: (Word) -> Unit,
+    drag: SentenceDragState,
+    dragEnabled: Boolean,
     modifier: Modifier = Modifier,
 ) {
     val dimens = TalkativeTheme.dimens
@@ -213,7 +261,7 @@ private fun ItemGrid(
                 repeat(grid.columns) { column ->
                     Box(modifier = Modifier.weight(1f).fillMaxHeight()) {
                         items.getOrNull(row * grid.columns + column)?.let { item ->
-                            ItemTile(item = item, onFolderClick = onFolderClick, onWordClick = onWordClick)
+                            ItemTile(item = item, onFolderClick = onFolderClick, onWordClick = onWordClick, drag = drag, dragEnabled = dragEnabled)
                         }
                     }
                 }
@@ -223,7 +271,7 @@ private fun ItemGrid(
 }
 
 @Composable
-private fun ItemTile(item: DictionaryItem, onFolderClick: (Folder) -> Unit, onWordClick: (Word) -> Unit) {
+private fun ItemTile(item: DictionaryItem, onFolderClick: (Folder) -> Unit, onWordClick: (Word) -> Unit, drag: SentenceDragState, dragEnabled: Boolean) {
     val dimens = TalkativeTheme.dimens
     val isFolder = item is Folder
     val colors = MaterialTheme.colorScheme
@@ -234,7 +282,10 @@ private fun ItemTile(item: DictionaryItem, onFolderClick: (Folder) -> Unit, onWo
                 is Word -> onWordClick(item)
             }
         },
-        modifier = Modifier.fillMaxSize(),
+        modifier = Modifier.fillMaxSize().let {
+            // Táhnout lze jen slovíčka a jen v režimu tažení; složky se otevírají klepnutím.
+            if (item is Word) it.dragSource(dragEnabled, DragSource.GridWord(item), drag) else it
+        },
         shape = MaterialTheme.shapes.large,
         color = if (isFolder) colors.primary else colors.surfaceVariant,
         contentColor = if (isFolder) colors.onPrimary else colors.onSurfaceVariant,

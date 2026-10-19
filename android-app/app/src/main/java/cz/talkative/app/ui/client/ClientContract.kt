@@ -39,8 +39,11 @@ sealed interface ClientEvent {
 
     data class PageChanged(val pageIndex: Int) : ClientEvent
 
-    /** Klepnutí na slovíčko v mřížce: přidá ho na konec věty (i opakovaně). */
+    /** Klepnutí na slovíčko v mřížce: v režimu klepnutí ho přidá na konec věty (i opakovaně). */
     data class WordSelected(val word: Word) : ClientEvent
+
+    /** Slovíčko z mřížky puštěné do věty: v režimu tažení ho přidá na konec věty. */
+    data class WordDropped(val word: Word) : ClientEvent
 
     /** Podržení slova ve větě: odebere právě tento výskyt. */
     data class RemoveFromSentence(val entryId: Int) : ClientEvent

@@ -382,13 +382,13 @@ Plán postupuje po funkcionalitách (vertikální řezy přes UI, doménu i data
 ### 7.3 Režim tažení
 
 **Úkoly:**
-- [ ] Přetažení slova do stavového řádku přidá slovo.
-- [ ] Odtažení slova pryč z řádku jej odebere.
-- [ ] V režimu tažení klepnutí slovo nepřidá, v režimu klepnutí tažení nepřidá.
+- [x] Přetažení slova do stavového řádku přidá slovo. _(pozn.: slovo se přidá na konec věty; tažená dlaždice se vznáší pod prstem)_
+- [x] Odtažení slova pryč z řádku jej odebere.
+- [x] V režimu tažení klepnutí slovo nepřidá, v režimu klepnutí tažení nepřidá.
 
 **Kritéria splnění:**
-- [ ] Obě varianty ovládání fungují podle nastavení a vzájemně se nerušají.
-- [ ] Compose UI testy pro oba režimy.
+- [x] Obě varianty ovládání fungují podle nastavení a vzájemně se nerušají.
+- [x] Compose UI testy pro oba režimy.
 
 ### 7.4 Změna pořadí ve větě
 

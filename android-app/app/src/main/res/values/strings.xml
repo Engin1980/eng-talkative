@@ -10,6 +10,7 @@
     <string name="client_folder_marker">Složka</string>
     <string name="client_sentence_hint">Klepnutím na slovo ho přidáte do věty.</string>
     <string name="client_clear_sentence">Smazat větu</string>
+    <string name="client_sentence_hint_drag">Přetažením slova sem ho přidáte do věty.</string>
     <string name="client_play">Přehrát</string>
     <string name="client_stop">Zastavit</string>
     <string name="client_speech_error_title">Čtení nahlas se nepodařilo</string>

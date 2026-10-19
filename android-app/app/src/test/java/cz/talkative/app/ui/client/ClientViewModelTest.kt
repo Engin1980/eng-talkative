@@ -1,5 +1,6 @@
 package cz.talkative.app.ui.client
 
+import cz.talkative.app.domain.model.AddWordMode
 import cz.talkative.app.domain.model.AppConfig
 import cz.talkative.app.domain.model.Folder
 import cz.talkative.app.domain.repository.ConfigRepository
@@ -624,5 +625,72 @@ class ClientViewModelTest {
         speech.finishSpeaking()
 
         assertEquals(1, viewModel.uiState.value.sentence.size)
+    }
+
+    // --- režim tažení (7.3)
+
+    private fun sentenceTitles() = viewModel.uiState.value.sentence.map { it.word.title }
+
+    @Test
+    fun tapMode_tapAdds_dropIsIgnored() = runVmTest {
+        val word = repository.createWord(null, "Ahoj")
+        subscribe()
+
+        viewModel.onEvent(ClientEvent.WordDropped(word))
+        assertTrue(sentenceTitles().isEmpty())
+
+        viewModel.onEvent(ClientEvent.WordSelected(word))
+        assertEquals(listOf("Ahoj"), sentenceTitles())
+    }
+
+    @Test
+    fun dragMode_dropAdds_tapDoesNot() = runVmTest {
+        val word = repository.createWord(null, "Ahoj")
+        configFlow.value = AppConfig(addWordMode = AddWordMode.DRAG)
+        subscribe()
+
+        viewModel.onEvent(ClientEvent.WordSelected(word))
+        assertTrue(sentenceTitles().isEmpty())
+
+        viewModel.onEvent(ClientEvent.WordDropped(word))
+        viewModel.onEvent(ClientEvent.WordDropped(word)) // stejné slovo lze přidat opakovaně
+        assertEquals(listOf("Ahoj", "Ahoj"), sentenceTitles())
+    }
+
+    @Test
+    fun dragMode_tapStillReadsTheWordWhenEnabled_butDoesNotAddIt() = runVmTest {
+        val word = repository.createWord(null, "Ahoj")
+        configFlow.value = AppConfig(addWordMode = AddWordMode.DRAG, speakWordOnTap = true)
+        subscribe()
+
+        viewModel.onEvent(ClientEvent.WordSelected(word))
+
+        assertEquals(listOf("Ahoj"), speech.spoken)
+        assertTrue(sentenceTitles().isEmpty())
+    }
+
+    @Test
+    fun modeChange_takesEffectImmediately() = runVmTest {
+        val word = repository.createWord(null, "Ahoj")
+        subscribe()
+        viewModel.onEvent(ClientEvent.WordSelected(word))
+
+        configFlow.value = AppConfig(addWordMode = AddWordMode.DRAG)
+        viewModel.onEvent(ClientEvent.WordSelected(word))
+        viewModel.onEvent(ClientEvent.WordDropped(word))
+
+        assertEquals(2, sentenceTitles().size) // tap v režimu klepnutí + drop v režimu tažení
+    }
+
+    @Test
+    fun removeFromSentence_worksInBothModes() = runVmTest {
+        val word = repository.createWord(null, "Ahoj")
+        subscribe()
+        viewModel.onEvent(ClientEvent.WordSelected(word))
+        configFlow.value = AppConfig(addWordMode = AddWordMode.DRAG)
+
+        viewModel.onEvent(ClientEvent.RemoveFromSentence(viewModel.uiState.value.sentence.single().entryId))
+
+        assertTrue(sentenceTitles().isEmpty())
     }
 }

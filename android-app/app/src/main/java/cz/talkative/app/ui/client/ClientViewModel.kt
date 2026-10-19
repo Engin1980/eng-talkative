@@ -3,6 +3,7 @@ package cz.talkative.app.ui.client
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import cz.talkative.app.domain.audio.AudioPlayer
+import cz.talkative.app.domain.model.AddWordMode
 import cz.talkative.app.domain.model.AppConfig
 import cz.talkative.app.domain.model.SentenceEntry
 import cz.talkative.app.domain.model.Word
@@ -81,6 +82,7 @@ class ClientViewModel @Inject constructor(
             }
             is ClientEvent.PageChanged -> pageIndex.value = event.pageIndex
             is ClientEvent.WordSelected -> onWordTapped(event.word)
+            is ClientEvent.WordDropped -> onWordDropped(event.word)
             is ClientEvent.RemoveFromSentence -> sentence.value = sentence.value.filterNot { it.entryId == event.entryId }
             ClientEvent.ClearSentence -> sentence.value = emptyList()
             ClientEvent.TogglePlayback -> togglePlayback()
@@ -88,11 +90,20 @@ class ClientViewModel @Inject constructor(
         }
     }
 
-    /** Klepnutí na slovo: přidá ho do věty a je-li to zapnuté, hned ho přečte. */
+    /**
+     * Klepnutí na slovo: v režimu klepnutí ho přidá do věty a je-li to zapnuté, přečte ho
+     * (čtení platí i v režimu tažení, kde klepnutí slovo nepřidává).
+     */
     private fun onWordTapped(word: Word) {
         val entry = SentenceEntry(nextEntryId++, word)
-        sentence.value += entry
+        if (config.value.addWordMode == AddWordMode.TAP) sentence.value += entry
         if (config.value.speakWordOnTap) player.play(PlaybackPlanner.plan(listOf(entry)))
+    }
+
+    /** Přetažení slova do věty přidává jen v režimu tažení; v režimu klepnutí se ignoruje. */
+    private fun onWordDropped(word: Word) {
+        if (config.value.addWordMode != AddWordMode.DRAG) return
+        sentence.value += SentenceEntry(nextEntryId++, word)
     }
 
     /** Při přehrávání tlačítko zastaví; jinak přehraje větu po úsecích (prázdná věta se nepřehrává). */

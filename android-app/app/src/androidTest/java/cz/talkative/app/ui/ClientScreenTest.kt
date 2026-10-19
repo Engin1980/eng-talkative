@@ -3,7 +3,13 @@ package cz.talkative.app.ui
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.test.assertHeightIsAtLeast
 import androidx.compose.ui.test.getUnclippedBoundsInRoot
+import androidx.compose.ui.test.SemanticsNodeInteraction
+import androidx.compose.ui.test.assertCountEquals
 import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.onRoot
+import androidx.compose.ui.test.swipe
+import cz.talkative.app.domain.model.AddWordMode
+import cz.talkative.app.ui.client.DRAGGED_WORD_TAG
 import androidx.compose.ui.test.hasAnyAncestor
 import androidx.compose.ui.test.hasTestTag
 import androidx.compose.ui.test.assertIsEnabled
@@ -439,5 +445,125 @@ class ClientScreenTest {
         composeRule.onNodeWithText("jablko").performClick()
 
         assertEquals(listOf<ClientEvent>(ClientEvent.WordSelected(jablko)), events)
+    }
+
+    // --- režim tažení (7.3)
+
+    private val dragWord = Word("w1", "default", "chci", null, 0, 0)
+
+    private fun dragState(mode: AddWordMode, sentenceWords: Int = 0) = ClientUiState(
+        items = listOf(dragWord),
+        sentence = entries(*Array(sentenceWords) { "věta${it + 1}" }),
+        config = AppConfig(addWordMode = mode),
+        isLoading = false,
+    )
+
+    private fun dragBetween(from: SemanticsNodeInteraction, to: androidx.compose.ui.geometry.Offset) {
+        val start = from.fetchSemanticsNode().boundsInRoot.center
+        from.performTouchInput { swipe(center, center + (to - start), durationMillis = 400) }
+    }
+
+    private fun barCenter() = composeRule.onNodeWithTag(SENTENCE_BAR_TAG).fetchSemanticsNode().boundsInRoot.center
+
+    private fun belowBar(): androidx.compose.ui.geometry.Offset {
+        val root = composeRule.onRoot().fetchSemanticsNode().boundsInRoot
+        return androidx.compose.ui.geometry.Offset(root.center.x, root.bottom - 20f)
+    }
+
+    @Test
+    fun dragMode_draggingGridWordOntoTheSentenceBar_sendsWordDropped() {
+        show(dragState(AddWordMode.DRAG))
+
+        dragBetween(composeRule.onNodeWithText("chci"), barCenter())
+
+        assertEquals(listOf<ClientEvent>(ClientEvent.WordDropped(dragWord)), events)
+    }
+
+    @Test
+    fun dragMode_draggingGridWordElsewhere_doesNothing() {
+        show(dragState(AddWordMode.DRAG))
+
+        dragBetween(composeRule.onNodeWithText("chci"), belowBar())
+
+        assertEquals(emptyList<ClientEvent>(), events)
+    }
+
+    @Test
+    fun tapMode_draggingGridWordOntoTheBar_doesNothing() {
+        show(dragState(AddWordMode.TAP))
+
+        dragBetween(composeRule.onNodeWithText("chci"), barCenter())
+
+        assertEquals(emptyList<ClientEvent>(), events)
+    }
+
+    @Test
+    fun dragMode_tapOnGridWord_stillSendsWordSelected_andViewModelDecides() {
+        show(dragState(AddWordMode.DRAG))
+
+        composeRule.onNodeWithText("chci").performClick()
+
+        assertEquals(listOf<ClientEvent>(ClientEvent.WordSelected(dragWord)), events)
+    }
+
+    @Test
+    fun dragMode_whileDragging_aTileFollowsTheFinger_andDisappearsOnRelease() {
+        show(dragState(AddWordMode.DRAG))
+        val tile = composeRule.onNodeWithText("chci")
+
+        tile.performTouchInput {
+            down(center)
+            moveBy(androidx.compose.ui.geometry.Offset(40f, 40f))
+            moveBy(androidx.compose.ui.geometry.Offset(40f, 40f))
+        }
+        composeRule.onNodeWithTag(DRAGGED_WORD_TAG).assertIsDisplayed()
+
+        composeRule.onAllNodesWithText("chci")[0].performTouchInput { up() } // [0] je dlaždice v mřížce, [1] ta tažená
+        composeRule.onAllNodesWithTag(DRAGGED_WORD_TAG).assertCountEquals(0)
+    }
+
+    @Test
+    fun dragMode_draggingSentenceWordAwayFromTheBar_removesIt() {
+        show(dragState(AddWordMode.DRAG, sentenceWords = 2))
+
+        dragBetween(composeRule.onAllNodesWithTag(SENTENCE_WORD_TAG)[1], belowBar())
+
+        assertEquals(listOf<ClientEvent>(ClientEvent.RemoveFromSentence(1)), events)
+    }
+
+    @Test
+    fun tapMode_draggingSentenceWordAway_removesNothing() {
+        show(dragState(AddWordMode.TAP, sentenceWords = 2))
+
+        dragBetween(composeRule.onAllNodesWithTag(SENTENCE_WORD_TAG)[1], belowBar())
+
+        assertEquals(emptyList<ClientEvent>(), events)
+    }
+
+    @Test
+    fun dragMode_holdingSentenceWordStillRemovesIt() {
+        show(dragState(AddWordMode.DRAG, sentenceWords = 1))
+        composeRule.mainClock.autoAdvance = false
+
+        composeRule.onAllNodesWithTag(SENTENCE_WORD_TAG)[0].performTouchInput { down(center) }
+        composeRule.mainClock.advanceTimeBy(1_200)
+
+        assertEquals(listOf<ClientEvent>(ClientEvent.RemoveFromSentence(0)), events)
+    }
+
+    @Test
+    fun dragMode_emptySentenceHintExplainsDragging() {
+        show(dragState(AddWordMode.DRAG))
+        composeRule.onNodeWithText("Přetažením slova sem ho přidáte do věty.").assertIsDisplayed()
+    }
+
+    @Test
+    fun foldersAreNeverDraggable() {
+        val folder = Folder("f1", "default", "Jídlo", null, 0, 0)
+        show(ClientUiState(items = listOf(folder), config = AppConfig(addWordMode = AddWordMode.DRAG), isLoading = false))
+
+        dragBetween(composeRule.onNodeWithText("Jídlo"), barCenter())
+
+        assertEquals(emptyList<ClientEvent>(), events)
     }
 }
