@@ -208,4 +208,59 @@ class SentencePlayerTest {
         assertTrue(speech.isShutdown)
         assertTrue(speech.spoken.isEmpty())
     }
+
+    @Test
+    fun onCompleted_isCalledOnlyAfterTheLastSegmentFinishes() = runPlayerTest { player ->
+        var completed = 0
+        player.play(listOf(Tts("A"), Audio("m.mp3"))) { completed++ }
+
+        assertEquals(0, completed)
+        speech.finishSpeaking()
+        assertEquals(0, completed)
+        audio.finishPlaying()
+
+        assertEquals(1, completed)
+        assertFalse(player.isPlaying)
+    }
+
+    @Test
+    fun onCompleted_isNotCalledAfterStop() = runPlayerTest { player ->
+        var completed = 0
+        player.play(listOf(Tts("A"), Audio("m.mp3"))) { completed++ }
+
+        player.stop()
+
+        assertEquals(0, completed)
+    }
+
+    @Test
+    fun onCompleted_isNotCalledAfterStopDuringMp3() = runPlayerTest { player ->
+        var completed = 0
+        player.play(listOf(Audio("m.mp3"))) { completed++ }
+
+        player.stop()
+
+        assertEquals(0, completed)
+    }
+
+    @Test
+    fun onCompleted_isNotCalledAfterAnError() = runPlayerTest { player ->
+        var completed = 0
+        audio.failingFiles += "rozbite.mp3"
+        player.play(listOf(Tts("A"), Audio("rozbite.mp3"))) { completed++ }
+        speech.finishSpeaking()
+
+        assertEquals(0, completed)
+        assertEquals(SpeechError.AUDIO_FAILED, player.error())
+    }
+
+    @Test
+    fun onCompleted_isNotCalledAfterTtsError() = runPlayerTest { player ->
+        var completed = 0
+        player.play(listOf(Tts("A"))) { completed++ }
+
+        speech.fail(SpeechError.ENGINE_UNAVAILABLE)
+
+        assertEquals(0, completed)
+    }
 }

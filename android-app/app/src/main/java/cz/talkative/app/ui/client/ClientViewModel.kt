@@ -3,7 +3,9 @@ package cz.talkative.app.ui.client
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import cz.talkative.app.domain.audio.AudioPlayer
+import cz.talkative.app.domain.model.AppConfig
 import cz.talkative.app.domain.model.SentenceEntry
+import cz.talkative.app.domain.model.Word
 import cz.talkative.app.domain.usecase.GetFolderPathUseCase
 import cz.talkative.app.domain.usecase.ObserveConfigUseCase
 import cz.talkative.app.domain.speech.SpeechProvider
@@ -43,20 +45,23 @@ class ClientViewModel @Inject constructor(
     private val sentence = MutableStateFlow<List<SentenceEntry>>(emptyList())
     private var nextEntryId = 0
 
+    /** Aktuální konfigurace i pro obsluhu událostí (např. čtení slova po klepnutí). */
+    private val config = observeConfig().stateIn(viewModelScope, SharingStarted.Eagerly, AppConfig())
+
     private val browsingState: Flow<ClientUiState> = combine(
         currentFolderId.flatMapLatest { folderId ->
             observeItems(folderId).map { items -> getPath(folderId) to items }
         },
         pageIndex,
         sentence,
-        observeConfig(),
-    ) { (path, items), page, sentenceEntries, config ->
+        config,
+    ) { (path, items), page, sentenceEntries, currentConfig ->
         ClientUiState(
             path = path,
             items = items,
             pageIndex = page,
             sentence = sentenceEntries,
-            config = config,
+            config = currentConfig,
             isLoading = false,
         )
     }
@@ -75,7 +80,7 @@ class ClientViewModel @Inject constructor(
                 goTo(path.getOrNull(path.size - 2)?.id)
             }
             is ClientEvent.PageChanged -> pageIndex.value = event.pageIndex
-            is ClientEvent.WordSelected -> sentence.value += SentenceEntry(nextEntryId++, event.word)
+            is ClientEvent.WordSelected -> onWordTapped(event.word)
             is ClientEvent.RemoveFromSentence -> sentence.value = sentence.value.filterNot { it.entryId == event.entryId }
             ClientEvent.ClearSentence -> sentence.value = emptyList()
             ClientEvent.TogglePlayback -> togglePlayback()
@@ -83,12 +88,22 @@ class ClientViewModel @Inject constructor(
         }
     }
 
+    /** Klepnutí na slovo: přidá ho do věty a je-li to zapnuté, hned ho přečte. */
+    private fun onWordTapped(word: Word) {
+        val entry = SentenceEntry(nextEntryId++, word)
+        sentence.value += entry
+        if (config.value.speakWordOnTap) player.play(PlaybackPlanner.plan(listOf(entry)))
+    }
+
     /** Při přehrávání tlačítko zastaví; jinak přehraje větu po úsecích (prázdná věta se nepřehrává). */
     private fun togglePlayback() {
         if (player.isPlaying) {
             player.stop()
         } else {
-            player.play(PlaybackPlanner.plan(sentence.value))
+            player.play(PlaybackPlanner.plan(sentence.value)) {
+                // Jen po dohrání celé věty: po Stopu nebo chybě věta zůstane.
+                if (config.value.autoClearAfterPlayback) sentence.value = emptyList()
+            }
         }
     }
 

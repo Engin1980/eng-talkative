@@ -49,6 +49,8 @@ class ClientFlowTest {
     val composeRule = createComposeRule()
 
     private lateinit var database: TalkativeDatabase
+    private val speech = FakeSpeechProvider()
+    private val configFlow = MutableStateFlow(AppConfig())
 
     @Before
     fun setUp() {
@@ -63,7 +65,6 @@ class ClientFlowTest {
             repository.createWord(fruit.id, "jablko")
             repository.createWord(fruit.id, "hruška")
         }
-        val configFlow = MutableStateFlow(AppConfig())
         val configRepository = object : ConfigRepository {
             override val config: Flow<AppConfig> = configFlow
             override suspend fun update(transform: (AppConfig) -> AppConfig) {
@@ -74,7 +75,7 @@ class ClientFlowTest {
             ObserveFolderItemsUseCase(repository),
             GetFolderPathUseCase(repository),
             ObserveConfigUseCase(configRepository),
-            FakeSpeechProvider(),
+            speech,
             FakeAudioPlayer(),
         )
         composeRule.setContent {
@@ -140,5 +141,54 @@ class ClientFlowTest {
         waitForSentenceWords(1)
         composeRule.onNodeWithText("Smazat větu").performClick()
         waitForSentenceWords(0)
+    }
+
+    @Test
+    fun speakOnTap_readsTheTappedWord_onlyWhenEnabled() {
+        waitForText("Jídlo")
+        tile("chci").performClick()
+        waitForSentenceWords(1)
+        assertEquals(emptyList<String>(), speech.spoken)
+
+        configFlow.value = AppConfig(speakWordOnTap = true)
+        composeRule.waitForIdle()
+        tile("chci").performClick()
+        waitForSentenceWords(2)
+
+        assertEquals(listOf("chci"), speech.spoken)
+    }
+
+    @Test
+    fun autoClear_emptiesTheSentenceAfterPlayback_butNotAfterStop() {
+        configFlow.value = AppConfig(autoClearAfterPlayback = true)
+        waitForText("Jídlo")
+        tile("chci").performClick()
+        waitForSentenceWords(1)
+
+        composeRule.onNodeWithText("Přehrát").performClick()
+        composeRule.waitUntil(5_000) { speech.spoken.size == 1 }
+        composeRule.onNodeWithText("Zastavit").performClick()
+        speech.finishSpeaking()
+        composeRule.waitForIdle()
+        assertEquals(1, sentenceWordCount()) // po Stopu věta zůstala
+
+        composeRule.onNodeWithText("Přehrát").performClick()
+        composeRule.waitUntil(5_000) { speech.spoken.size == 2 }
+        speech.finishSpeaking()
+        waitForSentenceWords(0) // po dohrání se smazala
+    }
+
+    @Test
+    fun withoutAutoClear_sentenceStaysAfterPlayback() {
+        waitForText("Jídlo")
+        tile("chci").performClick()
+        waitForSentenceWords(1)
+
+        composeRule.onNodeWithText("Přehrát").performClick()
+        composeRule.waitUntil(5_000) { speech.spoken.size == 1 }
+        speech.finishSpeaking()
+        composeRule.waitUntil(5_000) { composeRule.onAllNodesWithText("Přehrát").fetchSemanticsNodes().isNotEmpty() }
+
+        assertEquals(1, sentenceWordCount())
     }
 }

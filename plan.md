@@ -372,12 +372,12 @@ Plán postupuje po funkcionalitách (vertikální řezy přes UI, doménu i data
 ### 7.2 Přehrání slova při klepnutí a automatické mazání
 
 **Úkoly:**
-- [ ] Přehrání jednotlivého slova při klepnutí (pokud zapnuto).
-- [ ] Automatické smazání věty po přehrání (pokud zapnuto).
+- [x] Přehrání jednotlivého slova při klepnutí (pokud zapnuto). _(pozn.: čte se i slovo s jiným textem nebo vlastním MP3; ověřeno se skutečným TTS jen dříve v kroku 3, tady falešným)_
+- [x] Automatické smazání věty po přehrání (pokud zapnuto).
 
 **Kritéria splnění:**
-- [ ] Při zapnutém nastavení se slovo po klepnutí přečte, při vypnutém ne.
-- [ ] Věta se po dokončení přehrávání smaže jen při zapnutém nastavení; po Stopu se nesmaže.
+- [x] Při zapnutém nastavení se slovo po klepnutí přečte, při vypnutém ne.
+- [x] Věta se po dokončení přehrávání smaže jen při zapnutém nastavení; po Stopu se nesmaže.
 
 ### 7.3 Režim tažení
 

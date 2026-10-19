@@ -476,4 +476,153 @@ class ClientViewModelTest {
         assertEquals(0, audioPlayer.activePlays)
         assertTrue(speech.isShutdown)
     }
+
+    // --- čtení slova po klepnutí a automatické mazání věty (7.2)
+
+    @Test
+    fun tapOnWord_withSpeakOnTapEnabled_readsTheWordAndAddsIt() = runVmTest {
+        val word = repository.createWord(null, "Ahoj")
+        configFlow.value = AppConfig(speakWordOnTap = true)
+        subscribe()
+
+        viewModel.onEvent(ClientEvent.WordSelected(word))
+
+        assertEquals(listOf("Ahoj"), speech.spoken)
+        assertEquals(listOf("Ahoj"), viewModel.uiState.value.sentence.map { it.word.title })
+    }
+
+    @Test
+    fun tapOnWord_withSpeakOnTapDisabled_staysSilent() = runVmTest {
+        val word = repository.createWord(null, "Ahoj")
+        subscribe()
+
+        viewModel.onEvent(ClientEvent.WordSelected(word))
+
+        assertTrue(speech.spoken.isEmpty())
+        assertEquals(1, viewModel.uiState.value.sentence.size)
+    }
+
+    @Test
+    fun tapOnWord_readsItsAlternateText_andPlaysItsMp3() = runVmTest {
+        val alternate = repository.createWord(null, "Ahoj", alternateText = "Nazdar")
+        val custom = repository.createWord(null, "Pes", audioFile = "pes.mp3")
+        configFlow.value = AppConfig(speakWordOnTap = true)
+        subscribe()
+
+        viewModel.onEvent(ClientEvent.WordSelected(alternate))
+        speech.finishSpeaking()
+        viewModel.onEvent(ClientEvent.WordSelected(custom))
+
+        assertEquals(listOf("Nazdar"), speech.spoken)
+        assertEquals(listOf("pes.mp3"), audioPlayer.played)
+    }
+
+    @Test
+    fun speakOnTap_isSwitchedOnLive() = runVmTest {
+        val word = repository.createWord(null, "Ahoj")
+        subscribe()
+        viewModel.onEvent(ClientEvent.WordSelected(word))
+        assertTrue(speech.spoken.isEmpty())
+
+        configFlow.value = AppConfig(speakWordOnTap = true)
+        speech.finishSpeaking()
+        viewModel.onEvent(ClientEvent.WordSelected(word))
+
+        assertEquals(listOf("Ahoj"), speech.spoken)
+    }
+
+    @Test
+    fun tapWhileTheSentenceIsPlaying_doesNotInterruptIt() = runVmTest {
+        val a = repository.createWord(null, "Ahoj")
+        val b = repository.createWord(null, "Pes")
+        configFlow.value = AppConfig(speakWordOnTap = true)
+        subscribe()
+        viewModel.onEvent(ClientEvent.WordSelected(a))
+        speech.finishSpeaking()
+        viewModel.onEvent(ClientEvent.TogglePlayback) // věta "Ahoj" hraje
+        assertEquals(listOf("Ahoj", "Ahoj"), speech.spoken)
+
+        viewModel.onEvent(ClientEvent.WordSelected(b))
+
+        assertEquals(listOf("Ahoj", "Ahoj"), speech.spoken) // "Pes" se nepřidalo do přehrávání
+        assertTrue(viewModel.uiState.value.isSpeaking)
+    }
+
+    private suspend fun playSentenceOf(vararg titles: String) {
+        titles.forEach { viewModel.onEvent(ClientEvent.WordSelected(repository.createWord(null, it))) }
+        viewModel.onEvent(ClientEvent.TogglePlayback)
+    }
+
+    @Test
+    fun autoClear_enabled_clearsTheSentenceAfterItFinishedPlaying() = runVmTest {
+        configFlow.value = AppConfig(autoClearAfterPlayback = true)
+        subscribe()
+        playSentenceOf("Ahoj", "Pes")
+        assertEquals(2, viewModel.uiState.value.sentence.size) // zatím hraje
+
+        speech.finishSpeaking()
+
+        assertTrue(viewModel.uiState.value.sentence.isEmpty())
+        assertEquals(false, viewModel.uiState.value.isSpeaking)
+    }
+
+    @Test
+    fun autoClear_disabled_keepsTheSentence() = runVmTest {
+        subscribe()
+        playSentenceOf("Ahoj", "Pes")
+
+        speech.finishSpeaking()
+
+        assertEquals(2, viewModel.uiState.value.sentence.size)
+    }
+
+    @Test
+    fun autoClear_enabled_doesNotClearAfterStop() = runVmTest {
+        configFlow.value = AppConfig(autoClearAfterPlayback = true)
+        subscribe()
+        playSentenceOf("Ahoj", "Pes")
+
+        viewModel.onEvent(ClientEvent.TogglePlayback) // Stop
+        speech.finishSpeaking()
+
+        assertEquals(2, viewModel.uiState.value.sentence.size)
+    }
+
+    @Test
+    fun autoClear_enabled_doesNotClearAfterAnError() = runVmTest {
+        configFlow.value = AppConfig(autoClearAfterPlayback = true)
+        subscribe()
+        playSentenceOf("Ahoj")
+
+        speech.fail(SpeechError.ENGINE_UNAVAILABLE)
+
+        assertEquals(1, viewModel.uiState.value.sentence.size)
+    }
+
+    @Test
+    fun autoClear_waitsForTheLastSegmentOfASentenceWithMp3() = runVmTest {
+        configFlow.value = AppConfig(autoClearAfterPlayback = true)
+        subscribe()
+        viewModel.onEvent(ClientEvent.WordSelected(repository.createWord(null, "Ahoj")))
+        viewModel.onEvent(ClientEvent.WordSelected(repository.createWord(null, "Pes", audioFile = "pes.mp3")))
+        viewModel.onEvent(ClientEvent.TogglePlayback)
+
+        speech.finishSpeaking()
+        assertEquals(2, viewModel.uiState.value.sentence.size) // MP3 ještě hraje
+        audioPlayer.finishPlaying()
+
+        assertTrue(viewModel.uiState.value.sentence.isEmpty())
+    }
+
+    @Test
+    fun autoClear_doesNotClearAfterReadingASingleWordOnTap() = runVmTest {
+        val word = repository.createWord(null, "Ahoj")
+        configFlow.value = AppConfig(speakWordOnTap = true, autoClearAfterPlayback = true)
+        subscribe()
+
+        viewModel.onEvent(ClientEvent.WordSelected(word))
+        speech.finishSpeaking()
+
+        assertEquals(1, viewModel.uiState.value.sentence.size)
+    }
 }

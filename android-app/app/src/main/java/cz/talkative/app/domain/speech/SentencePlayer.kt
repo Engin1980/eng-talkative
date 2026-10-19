@@ -37,17 +37,19 @@ class SentencePlayer(
         SpeechState(isSpeaking = isPlaying, error = if (mp3Failed) SpeechError.AUDIO_FAILED else ttsState.error)
     }
 
-    /** Spustí přehrávání [segments]; prázdný seznam nebo už běžící přehrávání se ignoruje. */
-    fun play(segments: List<PlaybackSegment>) {
+    /**
+     * Spustí přehrávání [segments]; prázdný seznam nebo už běžící přehrávání se ignoruje.
+     * [onCompleted] se zavolá jen tehdy, když se přehrály všechny úseky; po [stop] ani po chybě ne.
+     */
+    fun play(segments: List<PlaybackSegment>, onCompleted: () -> Unit = {}) {
         if (segments.isEmpty() || playing.value) return
         audioFailed.value = false
         playing.value = true
         val newJob = scope.launch(start = CoroutineStart.LAZY) {
             val self = currentCoroutineContext()[Job]
             try {
-                for (segment in segments) {
-                    if (!playSegment(segment)) break
-                }
+                val allPlayed = segments.all { playSegment(it) }
+                if (allPlayed) onCompleted()
             } finally {
                 // Po stop() mohlo mezitím začít nové přehrávání; jeho stav se nesmí přepsat.
                 if (job == null || job === self) playing.value = false
