@@ -11,6 +11,7 @@ import androidx.datastore.preferences.core.stringPreferencesKey
 import cz.talkative.app.domain.model.AddWordMode
 import cz.talkative.app.domain.model.AppConfig
 import cz.talkative.app.domain.model.GridSize
+import cz.talkative.app.domain.model.sanitized
 import cz.talkative.app.domain.repository.ConfigRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
@@ -47,7 +48,7 @@ class DataStoreConfigRepository @Inject constructor(
             collationLanguageTag = this[COLLATION] ?: defaults.collationLanguageTag,
             hideCaptionsInSentence = this[HIDE_CAPTIONS] ?: defaults.hideCaptionsInSentence,
             autoClearAfterPlayback = this[AUTO_CLEAR] ?: defaults.autoClearAfterPlayback,
-        )
+        ).sanitized() // poškozená nebo ručně upravená hodnota nesmí rozbít klienta
     }
 
     private fun MutablePreferences.write(config: AppConfig) {

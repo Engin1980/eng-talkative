@@ -360,14 +360,14 @@ Plán postupuje po funkcionalitách (vertikální řezy přes UI, doménu i data
 ### 7.1 Obrazovka konfigurace
 
 **Úkoly:**
-- [ ] Obrazovka konfigurace v administraci: způsob přidání slova (klepnutí/tažení), povolení změny pořadí, interval podržení, přehrání slova při klepnutí, velikost mřížky (na výšku i na šířku), kolace, skrytí titulků ve větě, automatické smazání věty po přehrání.
-- [ ] Validace hodnot (rozumné meze intervalů a velikostí mřížky) a tlačítko „obnovit výchozí“.
+- [x] Obrazovka konfigurace v administraci: způsob přidání slova (klepnutí/tažení), povolení změny pořadí, interval podržení, přehrání slova při klepnutí, velikost mřížky (na výšku i na šířku), kolace, skrytí titulků ve větě, automatické smazání věty po přehrání.
+- [x] Validace hodnot (rozumné meze intervalů a velikostí mřížky) a tlačítko „obnovit výchozí“. _(pozn.: meze v `ConfigLimits`, změna hodnot krokovými tlačítky − a +; mimo meze se hodnota při uložení i čtení srazí)_
 
 **Kritéria splnění:**
-- [ ] Každé nastavení má viditelný efekt v klientovi hned po návratu z administrace a přežije restart.
-- [ ] Výchozí hodnoty odpovídají `assignment.md`.
-- [ ] Konfigurace je lokální a nesynchronizuje se.
-- [ ] Compose UI test nastavení.
+- [ ] Každé nastavení má viditelný efekt v klientovi hned po návratu z administrace a přežije restart. _(zatím ověřeno: mřížka, interval odebrání, titulky, vstup do administrace a uložení všech hodnot přes restart; efekt čtení po klepnutí, mazání věty, režimu tažení a pořadí přijde v 7.2–7.4)_
+- [x] Výchozí hodnoty odpovídají `assignment.md`.
+- [x] Konfigurace je lokální a nesynchronizuje se.
+- [x] Compose UI test nastavení.
 
 ### 7.2 Přehrání slova při klepnutí a automatické mazání
 

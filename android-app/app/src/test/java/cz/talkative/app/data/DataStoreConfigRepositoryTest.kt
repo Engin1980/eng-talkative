@@ -71,4 +71,17 @@ class DataStoreConfigRepositoryTest {
 
         assertEquals(AddWordMode.TAP, repository.config.first().addWordMode)
     }
+
+    @Test
+    fun storedValuesOutsideLimits_areClampedWhenRead() = runTest {
+        dataStore.edit {
+            it[androidx.datastore.preferences.core.intPreferencesKey("grid_portrait_columns")] = 99
+            it[androidx.datastore.preferences.core.longPreferencesKey("remove_hold_millis")] = 0L
+        }
+
+        val config = repository.config.first()
+
+        assertEquals(6, config.gridPortrait.columns)
+        assertEquals(500L, config.removeHoldMillis)
+    }
 }

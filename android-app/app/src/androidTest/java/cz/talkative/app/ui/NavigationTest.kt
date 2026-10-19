@@ -16,6 +16,8 @@ import cz.talkative.app.ui.admin.AdminUiState
 import cz.talkative.app.ui.client.ClientScreen
 import cz.talkative.app.ui.client.ClientUiState
 import cz.talkative.app.ui.client.HIDDEN_ADMIN_ENTRY_TAG
+import cz.talkative.app.ui.config.ConfigScreen
+import cz.talkative.app.ui.config.ConfigUiState
 import cz.talkative.app.ui.navigation.Routes
 import cz.talkative.app.ui.navigation.TalkativeNavHost
 import cz.talkative.app.ui.theme.TalkativeTheme
@@ -43,7 +45,10 @@ class NavigationTest {
                     client = { openAdmin ->
                         ClientScreen(ClientUiState(isLoading = false), onEvent = {}, onOpenAdmin = openAdmin)
                     },
-                    admin = { back -> AdminScreen(state = AdminUiState(isLoading = false), onEvent = {}, onBackToClient = back) },
+                    admin = { back, openConfig ->
+                        AdminScreen(state = AdminUiState(isLoading = false), onEvent = {}, onBackToClient = back, onOpenConfig = openConfig)
+                    },
+                    config = { back -> ConfigScreen(ConfigUiState(isLoading = false), onEvent = {}, onBack = back) },
                 )
             }
         }
@@ -72,5 +77,19 @@ class NavigationTest {
         composeRule.onNodeWithText("Zpět do klienta").performClick()
         composeRule.onNodeWithText("Tato složka je prázdná.").assertIsDisplayed()
         assertEquals(Routes.CLIENT, navController.currentBackStackEntry?.destination?.route)
+    }
+
+    @Test
+    fun adminOpensConfig_andBackReturnsToAdmin() {
+        setUpNavHost()
+        composeRule.runOnUiThread { navController.navigate(Routes.ADMIN) }
+        composeRule.onNodeWithText("Administrace").assertIsDisplayed()
+
+        composeRule.onNodeWithText("Nastavení").performClick()
+        assertEquals(Routes.CONFIG, navController.currentBackStackEntry?.destination?.route)
+        composeRule.onNodeWithText("Nastavení platí jen pro toto zařízení a nesynchronizuje se.").assertIsDisplayed()
+
+        composeRule.onNodeWithText("Zpět do administrace").performClick()
+        assertEquals(Routes.ADMIN, navController.currentBackStackEntry?.destination?.route)
     }
 }

@@ -7,6 +7,7 @@ import androidx.test.ext.junit.runners.AndroidJUnit4
 import cz.talkative.app.data.repository.DataStoreConfigRepository
 import cz.talkative.app.domain.model.AddWordMode
 import cz.talkative.app.domain.model.AppConfig
+import cz.talkative.app.domain.model.GridSize
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -31,6 +32,16 @@ class ConfigPersistenceTest {
         val first = DataStoreConfigRepository(PreferenceDataStoreFactory.create(scope = firstScope) { file })
         first.update { it.copy(addWordMode = AddWordMode.DRAG, speakWordOnTap = true, collationLanguageTag = "sk") }
         first.update { it.copy(adminHoldMillis = 5_000L) }
+        first.update {
+            it.copy(
+                allowReorderInSentence = false,
+                removeHoldMillis = 2_500L,
+                gridPortrait = GridSize(2, 4),
+                gridLandscape = GridSize(5, 2),
+                hideCaptionsInSentence = true,
+                autoClearAfterPlayback = true,
+            )
+        }
         firstScope.cancel() // jedna aktivní instance na soubor
 
         val secondScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
@@ -45,6 +56,12 @@ class ConfigPersistenceTest {
                 speakWordOnTap = true,
                 collationLanguageTag = "sk",
                 adminHoldMillis = 5_000L,
+                allowReorderInSentence = false,
+                removeHoldMillis = 2_500L,
+                gridPortrait = GridSize(2, 4),
+                gridLandscape = GridSize(5, 2),
+                hideCaptionsInSentence = true,
+                autoClearAfterPlayback = true,
             ),
             config,
         )
