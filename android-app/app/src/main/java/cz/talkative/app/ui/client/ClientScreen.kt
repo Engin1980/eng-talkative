@@ -79,7 +79,12 @@ fun ClientScreen(
     isLandscape: Boolean = LocalConfiguration.current.orientation == Configuration.ORIENTATION_LANDSCAPE,
 ) {
     val dimens = TalkativeTheme.dimens
-    val drag = rememberSentenceDragState(state.config.addWordMode, onEvent)
+    val drag = rememberSentenceDragState(
+        addMode = state.config.addWordMode,
+        allowReorder = state.config.allowReorderInSentence,
+        sentenceIds = state.sentence.map { it.entryId },
+        onEvent = onEvent,
+    )
     var rootOrigin by remember { mutableStateOf(Offset.Zero) }
     Box(modifier = modifier.fillMaxSize().onGloballyPositioned { rootOrigin = it.positionInWindow() }) {
         Column(
@@ -100,7 +105,7 @@ fun ClientScreen(
                     hideCaptions = state.config.hideCaptionsInSentence,
                     onRemove = { onEvent(ClientEvent.RemoveFromSentence(it)) },
                     drag = drag,
-                    dragEnabled = state.config.addWordMode == AddWordMode.DRAG,
+                    dragEnabled = state.config.addWordMode == AddWordMode.DRAG || state.config.allowReorderInSentence,
                     emptyHintRes = if (state.config.addWordMode == AddWordMode.DRAG) R.string.client_sentence_hint_drag else R.string.client_sentence_hint,
                     modifier = Modifier.weight(1f),
                 )

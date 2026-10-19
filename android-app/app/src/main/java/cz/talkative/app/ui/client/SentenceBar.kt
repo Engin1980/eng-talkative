@@ -95,8 +95,10 @@ fun SentenceBar(
                                 dragModifier = if (drag == null) {
                                     Modifier
                                 } else {
-                                    // V režimu tažení lze slovo odtáhnout z věty pryč a tím odebrat.
-                                    Modifier.dragSource(dragEnabled, DragSource.SentenceWord(entry.entryId, entry.word.title), drag)
+                                    // Slovo lze přetáhnout na jiné místo ve větě; v režimu tažení i odtáhnout pryč a tím odebrat.
+                                    Modifier
+                                        .sentenceChipPosition(drag, entry.entryId)
+                                        .dragSource(dragEnabled, DragSource.SentenceWord(entry.entryId, entry.word.title), drag)
                                 },
                             )
                         }

@@ -566,4 +566,81 @@ class ClientScreenTest {
 
         assertEquals(emptyList<ClientEvent>(), events)
     }
+
+    // --- změna pořadí ve větě (7.4)
+
+    private fun reorderState(allow: Boolean, mode: AddWordMode = AddWordMode.TAP) = ClientUiState(
+        items = emptyList(),
+        sentence = entries("jedna", "dva", "tři"),
+        config = AppConfig(allowReorderInSentence = allow, addWordMode = mode),
+        isLoading = false,
+    )
+
+    private fun chip(index: Int) = composeRule.onAllNodesWithTag(SENTENCE_WORD_TAG)[index]
+
+    private fun dragChipTo(from: Int, to: androidx.compose.ui.geometry.Offset) = dragBetween(chip(from), to)
+
+    @Test
+    fun draggingFirstWordPastTheLastOne_sendsMoveToTheEnd() {
+        show(reorderState(allow = true))
+        val last = chip(2).fetchSemanticsNode().boundsInRoot
+
+        dragChipTo(0, androidx.compose.ui.geometry.Offset(last.right - 4f, last.center.y))
+
+        assertEquals(listOf<ClientEvent>(ClientEvent.MoveInSentence(0, 2)), events)
+    }
+
+    @Test
+    fun draggingLastWordBeforeTheFirstOne_sendsMoveToTheFront() {
+        show(reorderState(allow = true))
+        val first = chip(0).fetchSemanticsNode().boundsInRoot
+
+        dragChipTo(2, androidx.compose.ui.geometry.Offset(first.left + 4f, first.center.y))
+
+        assertEquals(listOf<ClientEvent>(ClientEvent.MoveInSentence(2, 0)), events)
+    }
+
+    @Test
+    fun draggingWordBetweenTheOtherTwo_sendsMoveToTheMiddle() {
+        show(reorderState(allow = true))
+        val second = chip(1).fetchSemanticsNode().boundsInRoot
+
+        dragChipTo(0, androidx.compose.ui.geometry.Offset(second.right + 2f, second.center.y))
+
+        assertEquals(listOf<ClientEvent>(ClientEvent.MoveInSentence(0, 1)), events)
+    }
+
+    @Test
+    fun reorderDisabled_draggingWordsInsideTheBar_doesNothing() {
+        show(reorderState(allow = false))
+        val last = chip(2).fetchSemanticsNode().boundsInRoot
+
+        dragChipTo(0, androidx.compose.ui.geometry.Offset(last.right - 4f, last.center.y))
+
+        assertEquals(emptyList<ClientEvent>(), events)
+    }
+
+    @Test
+    fun reorderAllowed_inDragMode_draggingOutStillRemoves_andInsideStillReorders() {
+        show(reorderState(allow = true, mode = AddWordMode.DRAG))
+
+        dragChipTo(1, belowBar())
+        val last = chip(2).fetchSemanticsNode().boundsInRoot
+        dragChipTo(0, androidx.compose.ui.geometry.Offset(last.right - 4f, last.center.y))
+
+        assertEquals(
+            listOf<ClientEvent>(ClientEvent.RemoveFromSentence(1), ClientEvent.MoveInSentence(0, 2)),
+            events,
+        )
+    }
+
+    @Test
+    fun reorderAllowed_shortTapOnWordStillDoesNothing() {
+        show(reorderState(allow = true))
+
+        chip(0).performClick()
+        composeRule.mainClock.advanceTimeBy(5_000)
+
+        assertEquals(emptyList<ClientEvent>(), events)
+    }
 }

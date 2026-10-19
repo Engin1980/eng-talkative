@@ -19,7 +19,7 @@ Plán postupuje po funkcionalitách (vertikální řezy přes UI, doménu i data
 - [x] Krok 4: Obrázky slovíček
 - [ ] Krok 5: Vlastní zvuková definice slovíčka
 - [x] Krok 6: Pokročilá správa slovníku
-- [ ] Krok 7: Konfigurace a pokročilé ovládání klienta
+- [x] Krok 7: Konfigurace a pokročilé ovládání klienta
 - [ ] Krok 8: Export a import
 - [ ] Krok 9: Synchronizace s Google Drive
 - [ ] Krok 10: Nekonzistence a zotavení
@@ -364,7 +364,7 @@ Plán postupuje po funkcionalitách (vertikální řezy přes UI, doménu i data
 - [x] Validace hodnot (rozumné meze intervalů a velikostí mřížky) a tlačítko „obnovit výchozí“. _(pozn.: meze v `ConfigLimits`, změna hodnot krokovými tlačítky − a +; mimo meze se hodnota při uložení i čtení srazí)_
 
 **Kritéria splnění:**
-- [ ] Každé nastavení má viditelný efekt v klientovi hned po návratu z administrace a přežije restart. _(zatím ověřeno: mřížka, interval odebrání, titulky, vstup do administrace a uložení všech hodnot přes restart; efekt čtení po klepnutí, mazání věty, režimu tažení a pořadí přijde v 7.2–7.4)_
+- [x] Každé nastavení má viditelný efekt v klientovi hned po návratu z administrace a přežije restart. _(pozn.: efekt ověřen testy s view modelem klienta nad sdílenou konfigurací: mřížka, interval odebrání, vstup do administrace, titulky, čtení po klepnutí, mazání věty, režim tažení i pořadí; uložení všech hodnot přes restart ověřuje `ConfigPersistenceTest`; kolace se projeví při řazení v administraci)_
 - [x] Výchozí hodnoty odpovídají `assignment.md`.
 - [x] Konfigurace je lokální a nesynchronizuje se.
 - [x] Compose UI test nastavení.
@@ -393,13 +393,13 @@ Plán postupuje po funkcionalitách (vertikální řezy přes UI, doménu i data
 ### 7.4 Změna pořadí ve větě
 
 **Úkoly:**
-- [ ] Změna pořadí slov ve větě posunováním vlevo/vpravo.
-- [ ] Možnost změnu pořadí zakázat v konfiguraci.
+- [x] Změna pořadí slov ve větě posunováním vlevo/vpravo. _(pozn.: přetažením slova na jiné místo ve větě, i mezi řádky zalomené věty)_
+- [x] Možnost změnu pořadí zakázat v konfiguraci.
 
 **Kritéria splnění:**
-- [ ] Zakázaná změna pořadí opravdu nejde provést.
-- [ ] Při povolení lze slovo přesunout na libovolnou pozici ve větě.
-- [ ] Unit testy přesunu ve větě.
+- [x] Zakázaná změna pořadí opravdu nejde provést.
+- [x] Při povolení lze slovo přesunout na libovolnou pozici ve větě.
+- [x] Unit testy přesunu ve větě.
 
 ---
 

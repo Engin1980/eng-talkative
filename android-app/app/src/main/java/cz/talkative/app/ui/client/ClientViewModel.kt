@@ -7,6 +7,7 @@ import cz.talkative.app.domain.model.AddWordMode
 import cz.talkative.app.domain.model.AppConfig
 import cz.talkative.app.domain.model.SentenceEntry
 import cz.talkative.app.domain.model.Word
+import cz.talkative.app.domain.ordering.SentenceOrdering
 import cz.talkative.app.domain.usecase.GetFolderPathUseCase
 import cz.talkative.app.domain.usecase.ObserveConfigUseCase
 import cz.talkative.app.domain.speech.SpeechProvider
@@ -84,6 +85,7 @@ class ClientViewModel @Inject constructor(
             is ClientEvent.WordSelected -> onWordTapped(event.word)
             is ClientEvent.WordDropped -> onWordDropped(event.word)
             is ClientEvent.RemoveFromSentence -> sentence.value = sentence.value.filterNot { it.entryId == event.entryId }
+            is ClientEvent.MoveInSentence -> moveInSentence(event)
             ClientEvent.ClearSentence -> sentence.value = emptyList()
             ClientEvent.TogglePlayback -> togglePlayback()
             ClientEvent.DismissSpeechError -> player.clearError()
@@ -104,6 +106,12 @@ class ClientViewModel @Inject constructor(
     private fun onWordDropped(word: Word) {
         if (config.value.addWordMode != AddWordMode.DRAG) return
         sentence.value += SentenceEntry(nextEntryId++, word)
+    }
+
+    /** Změna pořadí ve větě se při zakázání v konfiguraci ignoruje. */
+    private fun moveInSentence(event: ClientEvent.MoveInSentence) {
+        if (!config.value.allowReorderInSentence) return
+        sentence.value = SentenceOrdering.moved(sentence.value, event.entryId, event.toIndex)
     }
 
     /** Při přehrávání tlačítko zastaví; jinak přehraje větu po úsecích (prázdná věta se nepřehrává). */

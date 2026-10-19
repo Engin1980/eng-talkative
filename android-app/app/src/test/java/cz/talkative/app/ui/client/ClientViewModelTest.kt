@@ -693,4 +693,79 @@ class ClientViewModelTest {
 
         assertTrue(sentenceTitles().isEmpty())
     }
+
+    // --- změna pořadí ve větě (7.4)
+
+    private suspend fun sentenceOf(vararg titles: String) {
+        titles.forEach { viewModel.onEvent(ClientEvent.WordSelected(repository.createWord(null, it))) }
+    }
+
+    private fun entryId(title: String) = viewModel.uiState.value.sentence.first { it.word.title == title }.entryId
+
+    @Test
+    fun moveInSentence_movesTheWordToAnyPosition() = runVmTest {
+        subscribe()
+        sentenceOf("a", "b", "c", "d")
+
+        viewModel.onEvent(ClientEvent.MoveInSentence(entryId("d"), 0))
+        assertEquals(listOf("d", "a", "b", "c"), sentenceTitles())
+
+        viewModel.onEvent(ClientEvent.MoveInSentence(entryId("a"), 3))
+        assertEquals(listOf("d", "b", "c", "a"), sentenceTitles())
+
+        viewModel.onEvent(ClientEvent.MoveInSentence(entryId("b"), 2))
+        assertEquals(listOf("d", "c", "b", "a"), sentenceTitles())
+    }
+
+    @Test
+    fun moveInSentence_whenDisabled_changesNothing() = runVmTest {
+        configFlow.value = AppConfig(allowReorderInSentence = false)
+        subscribe()
+        sentenceOf("a", "b", "c")
+
+        viewModel.onEvent(ClientEvent.MoveInSentence(entryId("c"), 0))
+
+        assertEquals(listOf("a", "b", "c"), sentenceTitles())
+    }
+
+    @Test
+    fun moveInSentence_isEnabledAndDisabledLive() = runVmTest {
+        subscribe()
+        sentenceOf("a", "b")
+
+        configFlow.value = AppConfig(allowReorderInSentence = false)
+        viewModel.onEvent(ClientEvent.MoveInSentence(entryId("b"), 0))
+        assertEquals(listOf("a", "b"), sentenceTitles())
+
+        configFlow.value = AppConfig(allowReorderInSentence = true)
+        viewModel.onEvent(ClientEvent.MoveInSentence(entryId("b"), 0))
+        assertEquals(listOf("b", "a"), sentenceTitles())
+    }
+
+    @Test
+    fun reorderedSentence_isPlayedInTheNewOrder() = runVmTest {
+        subscribe()
+        sentenceOf("jedna", "dva", "tři")
+        viewModel.onEvent(ClientEvent.MoveInSentence(entryId("tři"), 0))
+
+        viewModel.onEvent(ClientEvent.TogglePlayback)
+
+        assertEquals(listOf("tři jedna dva"), speech.spoken)
+    }
+
+    @Test
+    fun moveInSentence_withSameWordTwice_movesOnlyThatOccurrence() = runVmTest {
+        subscribe()
+        val word = repository.createWord(null, "a")
+        repository.createWord(null, "b")
+        viewModel.onEvent(ClientEvent.WordSelected(word))
+        sentenceOf("b")
+        viewModel.onEvent(ClientEvent.WordSelected(word))
+        val last = viewModel.uiState.value.sentence.last().entryId
+
+        viewModel.onEvent(ClientEvent.MoveInSentence(last, 0))
+
+        assertEquals(listOf("a", "a", "b"), sentenceTitles())
+        assertEquals(last, viewModel.uiState.value.sentence.first().entryId)
+    }
 }

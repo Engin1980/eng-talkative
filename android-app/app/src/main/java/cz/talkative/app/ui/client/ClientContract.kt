@@ -45,6 +45,9 @@ sealed interface ClientEvent {
     /** Slovíčko z mřížky puštěné do věty: v režimu tažení ho přidá na konec věty. */
     data class WordDropped(val word: Word) : ClientEvent
 
+    /** Slovo ve větě přetažené na jinou pozici ([toIndex] je pozice ve větě bez něj); jen když je změna pořadí povolená. */
+    data class MoveInSentence(val entryId: Int, val toIndex: Int) : ClientEvent
+
     /** Podržení slova ve větě: odebere právě tento výskyt. */
     data class RemoveFromSentence(val entryId: Int) : ClientEvent
 

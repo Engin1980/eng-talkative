@@ -3,6 +3,7 @@ package cz.talkative.app.ui
 import android.content.Context
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.semantics.getOrNull
 import androidx.compose.ui.test.SemanticsNodeInteraction
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onRoot
@@ -231,5 +232,42 @@ class ClientFlowTest {
         composeRule.waitForIdle()
 
         assertEquals(0, sentenceWordCount())
+    }
+
+    /** Text slova ve větě je v potomku dlaždice, proto se hledá v celém jejím podstromu. */
+    private fun textOf(node: androidx.compose.ui.semantics.SemanticsNode): String =
+        node.config.getOrNull(androidx.compose.ui.semantics.SemanticsProperties.Text)?.joinToString { it.text }
+            ?: node.children.joinToString("") { textOf(it) }
+
+    private fun sentenceTitles() = composeRule.onAllNodesWithTag(SENTENCE_WORD_TAG).fetchSemanticsNodes().map { textOf(it) }
+
+    @Test
+    fun reorderingTheSentenceByDragging_changesWhatIsPlayed_andCanBeDisabled() {
+        waitForText("Jídlo")
+        tile("chci").performClick()
+        composeRule.onNodeWithText("Jídlo").performClick()
+        waitForText("chleba")
+        tile("chleba").performClick()
+        waitForSentenceWords(2)
+        assertEquals(listOf("chci", "chleba"), sentenceTitles())
+
+        val chips = composeRule.onAllNodesWithTag(SENTENCE_WORD_TAG)
+        val first = chips[0].fetchSemanticsNode().boundsInRoot
+        dragTo(chips[1], Offset(first.left + 4f, first.center.y)) // "chleba" před "chci"
+        composeRule.waitUntil(5_000) { sentenceTitles() == listOf("chleba", "chci") }
+
+        composeRule.onNodeWithText("Přehrát").performClick()
+        composeRule.waitUntil(5_000) { speech.spoken.isNotEmpty() }
+        assertEquals(listOf("chleba chci"), speech.spoken)
+        speech.finishSpeaking()
+        composeRule.waitUntil(5_000) { composeRule.onAllNodesWithText("Přehrát").fetchSemanticsNodes().isNotEmpty() }
+
+        configFlow.value = AppConfig(allowReorderInSentence = false)
+        composeRule.waitForIdle()
+        val again = composeRule.onAllNodesWithTag(SENTENCE_WORD_TAG)
+        val lastAgain = again[1].fetchSemanticsNode().boundsInRoot
+        dragTo(again[0], Offset(lastAgain.right - 4f, lastAgain.center.y))
+        composeRule.waitForIdle()
+        assertEquals(listOf("chleba", "chci"), sentenceTitles()) // zakázáno, nic se nezměnilo
     }
 }

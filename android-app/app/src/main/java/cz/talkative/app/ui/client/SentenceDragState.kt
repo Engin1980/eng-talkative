@@ -33,7 +33,14 @@ class SentenceDragState(private val onEvent: (ClientEvent) -> Unit) {
     /** Jen pro rozhodnutí při puštění; zda se dlaždice dají táhnout, předává kompozice parametrem. */
     var addMode: AddWordMode = AddWordMode.TAP
 
+    /** Jen pro rozhodnutí při puštění: smí se měnit pořadí slov ve větě a v jakém pořadí slova jsou. */
+    var allowReorder: Boolean = false
+    var sentenceIds: List<Int> = emptyList()
+
     var barCoordinates: LayoutCoordinates? = null
+
+    /** Polohy slov ve větě podle `entryId`; slova se v nich hlásí sama a při zmizení odhlásí. */
+    val chipCoordinates = mutableMapOf<Int, LayoutCoordinates>()
 
     internal fun start(source: DragSource, position: Offset) {
         dragged = source
@@ -47,7 +54,8 @@ class SentenceDragState(private val onEvent: (ClientEvent) -> Unit) {
     internal fun drop() {
         val source = dragged ?: return
         dragged = null
-        resolveDrop(source, pointer, barCoordinates.windowBounds(), addMode)?.let(onEvent)
+        val chips = sentenceIds.mapNotNull { id -> chipCoordinates[id].windowBounds()?.let { id to it } }
+        resolveDrop(source, pointer, barCoordinates.windowBounds(), addMode, allowReorder, chips)?.let(onEvent)
     }
 
     internal fun cancel() {
@@ -59,15 +67,29 @@ internal fun LayoutCoordinates?.windowBounds(): Rect? =
     this?.takeIf { it.isAttached }?.let { Rect(it.positionInWindow(), it.size.toSize()) }
 
 @Composable
-fun rememberSentenceDragState(addMode: AddWordMode, onEvent: (ClientEvent) -> Unit): SentenceDragState {
+fun rememberSentenceDragState(
+    addMode: AddWordMode,
+    allowReorder: Boolean,
+    sentenceIds: List<Int>,
+    onEvent: (ClientEvent) -> Unit,
+): SentenceDragState {
     val currentOnEvent by rememberUpdatedState(onEvent)
     val state = remember { SentenceDragState { currentOnEvent(it) } }
     state.addMode = addMode
+    state.allowReorder = allowReorder
+    state.sentenceIds = sentenceIds
     return state
 }
 
 /** Plocha řádku věty, kam se slova pouštějí. */
 fun Modifier.dropTarget(state: SentenceDragState): Modifier = onGloballyPositioned { state.barCoordinates = it }
+
+/** Slovo ve větě hlásí svou polohu stavu tažení, aby se dalo poznat, mezi která slova se jiné pustilo. */
+@Composable
+fun Modifier.sentenceChipPosition(state: SentenceDragState, entryId: Int): Modifier {
+    DisposableEffect(entryId) { onDispose { state.chipCoordinates.remove(entryId) } }
+    return onGloballyPositioned { state.chipCoordinates[entryId] = it }
+}
 
 /**
  * Prvek, který lze táhnout prstem ([source]). Gesto začne až po překonání prahu pohybu, takže klepnutí
