@@ -20,7 +20,7 @@ Plán postupuje po funkcionalitách (vertikální řezy přes UI, doménu i data
 - [ ] Krok 5: Vlastní zvuková definice slovíčka
 - [x] Krok 6: Pokročilá správa slovníku
 - [x] Krok 7: Konfigurace a pokročilé ovládání klienta
-- [x] Krok 8: Export a import _(neověřeno: celý `connectedAndroidTest` po kroku 8 nedoběhl, systém ho ukončil pro nedostatek paměti; třídy kroku 8 a `NavigationTest` prošly samostatně)_
+- [x] Krok 8: Export a import _(všech 22 instrumentovaných tříd, 260 testů, prošlo po jedné; jeden společný běh systém ukončil pro nedostatek paměti)_
 - [ ] Krok 9: Synchronizace s Google Drive
 - [ ] Krok 10: Nekonzistence a zotavení
 - [ ] Krok 11: Dokončení a předání
