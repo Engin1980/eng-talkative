@@ -8,7 +8,7 @@ Kroky jsou označené **E1–E3** (Extensions), aby se nepletly s kroky `plan.md
 
 - [x] Krok E1: Obrazovka „O aplikaci“ (About)
 - [x] Krok E1a: Obrazovka "O aplikaci" se musí zobrazit při prvním spuštění aplikace a uživatel ji musí "odsouhlasit".
-- [ ] Krok E2: Piktogramy ARASAAC (hledání a výběr uživatelem)
+- [x] Krok E2: Piktogramy ARASAAC (hledání a výběr uživatelem)
 - [ ] Krok E3: Kreslení ikon prstem
 
 ## Rozhodnutí a předpoklady
