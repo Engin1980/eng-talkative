@@ -127,6 +127,7 @@ fun ExchangeScreen(
                 enabled = !running,
                 modifier = Modifier.heightIn(min = dimens.minTouchTarget),
             ) { Text(stringResource(R.string.exchange_export_button)) }
+            Text(stringResource(R.string.exchange_license_note), style = MaterialTheme.typography.bodyMedium)
             ExportStatusText(state.export)
 
             HorizontalDivider(modifier = Modifier.padding(vertical = dimens.spaceMedium))

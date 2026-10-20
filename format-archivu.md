@@ -5,9 +5,10 @@ Archiv je běžný ZIP soubor. Implementace: `domain/exchange` (`ArchiveManifest
 ## Obsah
 
 ```
-manifest.json      popis slovníku (vždy)
-images/<soubor>    obrázky slovíček (jen použité)
-audio/<soubor>     vlastní MP3 slovíček (jen použité)
+manifest.json          popis slovníku (vždy)
+LICENSE-ARASAAC.txt    uvedení autora a licence ARASAAC (vždy, jen text pro lidi)
+images/<soubor>        obrázky slovíček (jen použité)
+audio/<soubor>         vlastní MP3 slovíček (jen použité)
 ```
 
 Názvy souborů v `images/` a `audio/` jsou holé názvy bez cesty; slovíčko na ně odkazuje z `manifest.json`.
@@ -37,6 +38,10 @@ Názvy souborů v `images/` a `audio/` jsou holé názvy bez cesty; slovíčko n
 - `imageFile`, `alternateText`, `audioFile` jsou nepovinné. Chybějící hodnota se v souboru vynechává.
 - `config` je jen tehdy, když uživatel při exportu zaškrtl, že ho chce. Obsahuje nastavení z obrazovky konfigurace; hodnoty mimo povolené meze se při importu srazí na nejbližší povolenou.
 - Neznámá pole se ignorují (starší aplikace přečte archiv se stejnou verzí schématu), neznámá hodnota výčtu se nahradí výchozí.
+
+## LICENSE-ARASAAC.txt
+
+Textový soubor (UTF-8) s uvedením autora a licence piktogramů ARASAAC (CC BY-NC-SA): obě znění uvedení podle podmínek ARASAAC, věta, že se archiv smí šířit jen nekomerčně a se stejným uvedením, a odkazy. Je v každém exportu, protože aplikace neeviduje, která slovíčka mají obrázek z ARASAAC, a text proto říká obecně, že archiv může piktogramy obsahovat. `manifest.json` o něm nic neví a verze schématu se kvůli němu nezměnila. Import soubor ignoruje (nečte ho, nepočítá do kontroly a nic z něj nezapisuje), takže archivy bez něj se importují stejně.
 
 ## Co archiv neobsahuje
 

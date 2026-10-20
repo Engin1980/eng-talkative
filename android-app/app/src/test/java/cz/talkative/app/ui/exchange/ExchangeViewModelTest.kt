@@ -13,6 +13,7 @@ import cz.talkative.app.domain.model.AppConfig
 import cz.talkative.app.domain.usecase.GetFolderPathUseCase
 import cz.talkative.app.domain.usecase.ObserveFolderItemsUseCase
 import cz.talkative.app.testing.FakeAudioStore
+import cz.talkative.app.testing.FakeArchiveNotice
 import cz.talkative.app.testing.FakeConfigRepository
 import cz.talkative.app.testing.FakeImageStore
 import cz.talkative.app.ui.admin.FakeDictionaryRepository
@@ -57,7 +58,7 @@ class ExchangeViewModelTest {
     @Before
     fun setUp() {
         Dispatchers.setMain(UnconfinedTestDispatcher())
-        val export = ExportDictionaryUseCase(repository, FakeImageStore(), FakeAudioStore(), FakeConfigRepository(AppConfig()))
+        val export = ExportDictionaryUseCase(repository, FakeImageStore(), FakeAudioStore(), FakeConfigRepository(AppConfig()), FakeArchiveNotice())
         viewModel = ExchangeViewModel(
             ObserveFolderItemsUseCase(repository),
             GetFolderPathUseCase(repository),
@@ -110,7 +111,7 @@ class ExchangeViewModelTest {
 
         assertEquals(listOf("content://soubor"), requestedUris)
         assertEquals(ExportStatus.Done(folders = 1, words = 2, missingMedia = 0), state.export)
-        assertEquals(listOf(ArchiveLayout.MANIFEST), zipNames())
+        assertEquals(listOf(ArchiveLayout.MANIFEST, ArchiveLayout.LICENSE), zipNames())
     }
 
     @Test

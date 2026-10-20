@@ -10,6 +10,7 @@ import cz.talkative.app.domain.exchange.ImportError
 import cz.talkative.app.domain.usecase.GetFolderPathUseCase
 import cz.talkative.app.domain.usecase.ObserveFolderItemsUseCase
 import cz.talkative.app.testing.FakeAudioStore
+import cz.talkative.app.testing.FakeArchiveNotice
 import cz.talkative.app.testing.FakeConfigRepository
 import cz.talkative.app.testing.FakeImageStore
 import cz.talkative.app.ui.admin.FakeDictionaryRepository
@@ -49,7 +50,7 @@ class ExchangeViewModelImportTest {
         viewModel = ExchangeViewModel(
             ObserveFolderItemsUseCase(repository),
             GetFolderPathUseCase(repository),
-            ExportDictionaryUseCase(repository, images, audio, config),
+            ExportDictionaryUseCase(repository, images, audio, config, FakeArchiveNotice()),
             { error("export se tu nepoužívá") },
             ArchiveReader(),
             ImportArchiveUseCase(ArchiveReader(), repository, images, audio, config),

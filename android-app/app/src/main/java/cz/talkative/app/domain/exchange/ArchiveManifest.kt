@@ -6,9 +6,12 @@ import cz.talkative.app.domain.model.GridSize
 import cz.talkative.app.domain.model.sanitized
 import kotlinx.serialization.Serializable
 
-/** Rozložení ZIP archivu: `manifest.json` v kořeni, obrázky v `images/`, zvuky v `audio/`. */
+/** Rozložení ZIP archivu: `manifest.json` a `LICENSE-ARASAAC.txt` v kořeni, obrázky v `images/`, zvuky v `audio/`. */
 object ArchiveLayout {
     const val MANIFEST = "manifest.json"
+
+    /** Uvedení autora a licence ARASAAC; jen text pro lidi, import ho ignoruje. */
+    const val LICENSE = "LICENSE-ARASAAC.txt"
     const val IMAGES_DIR = "images/"
     const val AUDIO_DIR = "audio/"
 }

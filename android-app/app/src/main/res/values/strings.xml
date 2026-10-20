@@ -75,6 +75,8 @@
     <string name="arasaac_error_server">Server ARASAAC je nedostupný nebo odpověděl chybou. Zkuste to později.</string>
     <string name="arasaac_error_bad_response">Odpověď serveru ARASAAC se nepodařilo přečíst. Zkuste to znovu.</string>
     <string name="arasaac_about_link">O aplikaci a licenci piktogramů</string>
+    <string name="arasaac_license_file_note">Tento archiv může obsahovat piktogramy ARASAAC. Smí se šířit jen nekomerčně, pod licencí CC BY-NC-SA a se stejným uvedením autora.</string>
+    <string name="exchange_license_note">Do archivu se přidá soubor s uvedením autora a licencí ARASAAC. Archiv, který obsahuje piktogramy ARASAAC, lze šířit jen nekomerčně, pod stejnou licencí a se stejným uvedením.</string>
     <string name="admin_select">Vybrat</string>
     <string name="admin_selected_count">Vybráno: %1$d</string>
     <string name="admin_select_all">Vybrat vše</string>

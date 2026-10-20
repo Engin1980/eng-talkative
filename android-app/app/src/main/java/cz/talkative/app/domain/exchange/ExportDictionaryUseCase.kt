@@ -52,13 +52,14 @@ sealed interface ExportResult {
 
 /**
  * Zapíše slovník (celý, nebo složku [rootFolderId] i s podstromem) jako ZIP do [ExportDestination].
- * Při jakékoli chybě i při zrušení se cíl smaže, takže po neúspěchu nezůstane poškozený částečný soubor.
+ * V archivu je `manifest.json`, `LICENSE-ARASAAC.txt` a média. Při jakékoli chybě i při zrušení se cíl smaže, takže po neúspěchu nezůstane poškozený částečný soubor.
  */
 class ExportDictionaryUseCase @Inject constructor(
     private val repository: DictionaryRepository,
     private val imageStore: ImageStore,
     private val audioStore: AudioStore,
     private val configRepository: ConfigRepository,
+    private val notice: ArchiveNotice,
 ) {
     /** [onProgress] dostává počet už zapsaných souborů médií a jejich celkový počet. */
     suspend operator fun invoke(
@@ -118,6 +119,10 @@ class ExportDictionaryUseCase @Inject constructor(
         ZipOutputStream(destination.open()).use { zip ->
             zip.putNextEntry(ZipEntry(ArchiveLayout.MANIFEST))
             zip.write(ManifestCodec.encode(manifest).toByteArray(Charsets.UTF_8))
+            zip.closeEntry()
+            // Uvedení autora a licence ARASAAC je v každém exportu (aplikace neeviduje, která slovíčka jsou z ARASAAC).
+            zip.putNextEntry(ZipEntry(ArchiveLayout.LICENSE))
+            zip.write(notice.arasaacLicenseText().toByteArray(Charsets.UTF_8))
             zip.closeEntry()
             onProgress(0, media.size)
             var done = 0

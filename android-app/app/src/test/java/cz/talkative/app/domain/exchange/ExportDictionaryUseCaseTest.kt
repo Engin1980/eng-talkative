@@ -6,6 +6,7 @@ import cz.talkative.app.domain.image.ImageSaveResult
 import cz.talkative.app.domain.image.ImageStore
 import cz.talkative.app.domain.model.AddWordMode
 import cz.talkative.app.domain.model.AppConfig
+import cz.talkative.app.testing.FakeArchiveNotice
 import cz.talkative.app.testing.FakeConfigRepository
 import cz.talkative.app.ui.admin.FakeDictionaryRepository
 import kotlinx.coroutines.runBlocking
@@ -77,7 +78,7 @@ class ExportDictionaryUseCaseTest {
     fun setUp() {
         images = DirectoryImageStore(temp.newFolder("images"))
         audio = DirectoryAudioStore(temp.newFolder("audio"))
-        export = ExportDictionaryUseCase(repository, images, audio, configRepository)
+        export = ExportDictionaryUseCase(repository, images, audio, configRepository, FakeArchiveNotice())
     }
 
     private fun run(rootFolderId: String? = null, includeConfig: Boolean = false, destination: ExportDestination = MemoryDestination()) =
@@ -119,10 +120,10 @@ class ExportDictionaryUseCaseTest {
         assertEquals(ExportResult.Success(folders = 2, words = 3, missingMedia = 0), result)
         val entries = unzip(destination)
         assertEquals(
-            setOf("manifest.json", "images/chleba.jpg", "images/jablko.png", "audio/jablko.mp3"),
+            setOf("manifest.json", "LICENSE-ARASAAC.txt", "images/chleba.jpg", "images/jablko.png", "audio/jablko.mp3"),
             entries.keys,
         )
-        assertEquals("manifest.json", entries.keys.first())
+        assertEquals(listOf("manifest.json", "LICENSE-ARASAAC.txt"), entries.keys.take(2)) // manifest první, hned za ním uvedení
         assertArrayEquals("JPEG-CHLEBA".toByteArray(), entries.getValue("images/chleba.jpg"))
         assertArrayEquals("MP3".toByteArray(), entries.getValue("audio/jablko.mp3"))
         assertFalse(destination.discarded)
@@ -156,7 +157,7 @@ class ExportDictionaryUseCaseTest {
 
         assertEquals(ExportResult.Success(folders = 1, words = 1, missingMedia = 0), result)
         val entries = unzip(destination)
-        assertEquals(setOf("manifest.json", "images/jablko.png", "audio/jablko.mp3"), entries.keys)
+        assertEquals(setOf("manifest.json", "LICENSE-ARASAAC.txt", "images/jablko.png", "audio/jablko.mp3"), entries.keys)
         val manifest = manifestOf(entries)
         assertEquals("Ovoce", manifest.folders.single().title)
         assertNull(manifest.folders.single().parentId)
@@ -191,7 +192,7 @@ class ExportDictionaryUseCaseTest {
         val result = run(destination = destination)
 
         assertEquals(ExportResult.Success(0, 0, 0), result)
-        assertEquals(setOf("manifest.json"), unzip(destination).keys)
+        assertEquals(setOf("manifest.json", "LICENSE-ARASAAC.txt"), unzip(destination).keys)
         assertEquals(0, manifestOf(unzip(destination)).words.size)
     }
 
@@ -221,7 +222,7 @@ class ExportDictionaryUseCaseTest {
 
         run(destination = destination)
 
-        assertEquals(setOf("manifest.json", "images/spolecny.jpg"), unzip(destination).keys)
+        assertEquals(setOf("manifest.json", "LICENSE-ARASAAC.txt", "images/spolecny.jpg"), unzip(destination).keys)
     }
 
     @Test
@@ -310,5 +311,45 @@ class ExportDictionaryUseCaseTest {
 
         assertEquals(ExportResult.Success(0, 1, 0), result)
         assertNotNull(manifestOf(unzip(destination)))
+    }
+
+    @Test
+    fun licenseFile_isInEveryExport_withTheExactTextInUtf8() {
+        val expected = FakeArchiveNotice.LICENSE_TEXT.toByteArray(Charsets.UTF_8)
+        val ids = buildDictionary()
+        val cases = listOf(
+            "celý slovník" to null,
+            "jedna složka" to ids.getValue("fruit"),
+        )
+        for ((name, root) in cases) {
+            val destination = MemoryDestination()
+            run(rootFolderId = root, destination = destination)
+            assertArrayEquals(name, expected, unzip(destination).getValue(ArchiveLayout.LICENSE))
+        }
+    }
+
+    @Test
+    fun licenseFile_isThereEvenForAnEmptyDictionary() {
+        val destination = MemoryDestination()
+        run(destination = destination)
+
+        val text = unzip(destination).getValue(ArchiveLayout.LICENSE).toString(Charsets.UTF_8)
+
+        assertEquals(FakeArchiveNotice.LICENSE_TEXT, text)
+        assertTrue(text.contains("ěščřžýáíé")) // čeština se uložila správně
+    }
+
+    @Test
+    fun manifest_hasNoReferenceToTheLicenseFile_andTheSchemaIsUnchanged() {
+        buildDictionary()
+        val destination = MemoryDestination()
+        run(destination = destination, includeConfig = true)
+
+        val text = unzip(destination).getValue(ArchiveLayout.MANIFEST).toString(Charsets.UTF_8)
+
+        assertFalse(text.contains("LICENSE", ignoreCase = true))
+        assertFalse(text.contains("ARASAAC", ignoreCase = true))
+        assertEquals(1, manifestOf(unzip(destination)).schemaVersion)
+        assertEquals(ARCHIVE_SCHEMA_VERSION, 1) // verze schématu se přidáním textu nezvýšila
     }
 }

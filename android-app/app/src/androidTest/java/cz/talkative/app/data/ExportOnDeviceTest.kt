@@ -8,6 +8,7 @@ import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import cz.talkative.app.data.audio.FileAudioStore
 import cz.talkative.app.data.exchange.ContentUriExportDestination
+import cz.talkative.app.data.exchange.ResourceArchiveNotice
 import cz.talkative.app.data.image.FileImageStore
 import cz.talkative.app.data.local.TalkativeDatabase
 import cz.talkative.app.data.repository.RoomDictionaryRepository
@@ -49,7 +50,7 @@ class ExportOnDeviceTest {
         imageStore = FileImageStore(context)
         audioStore = FileAudioStore(context)
         repository = RoomDictionaryRepository(database.dictionaryDao(), { 1_000L }, imageStore, audioStore)
-        export = ExportDictionaryUseCase(repository, imageStore, audioStore, FakeConfigRepository())
+        export = ExportDictionaryUseCase(repository, imageStore, audioStore, FakeConfigRepository(), ResourceArchiveNotice(context))
         target.delete()
     }
 
@@ -90,12 +91,15 @@ class ExportOnDeviceTest {
         assertEquals(ExportResult.Success(folders = 1, words = 2, missingMedia = 0), result)
         ZipFile(target).use { zip ->
             assertEquals(
-                setOf(ArchiveLayout.MANIFEST, ArchiveLayout.IMAGES_DIR + image, ArchiveLayout.AUDIO_DIR + audio),
+                setOf(ArchiveLayout.MANIFEST, ArchiveLayout.LICENSE, ArchiveLayout.IMAGES_DIR + image, ArchiveLayout.AUDIO_DIR + audio),
                 zip.entries().asSequence().map { it.name }.toSet(),
             )
             assertArrayEquals(audioBytes, zip.getInputStream(zip.getEntry(ArchiveLayout.AUDIO_DIR + audio)).readBytes())
             assertTrue(zip.getInputStream(zip.getEntry(ArchiveLayout.IMAGES_DIR + image)).readBytes().isNotEmpty())
 
+            val license = zip.getInputStream(zip.getEntry(ArchiveLayout.LICENSE)).readBytes().toString(Charsets.UTF_8)
+            assertTrue(license.startsWith("Autor piktogramů: Sergio Palao. Původ: ARASAAC (http://www.arasaac.org). Licence: CC (BY-NC-SA). Majitel: vláda Aragonu (Španělsko)"))
+            assertTrue(license.contains("https://arasaac.org/terms-of-use"))
             val manifest = (ManifestCodec.decode(zip.getInputStream(zip.getEntry(ArchiveLayout.MANIFEST)).readBytes().toString(Charsets.UTF_8))
                 as ManifestResult.Success).manifest
             assertEquals(listOf("Jídlo"), manifest.folders.map { it.title })

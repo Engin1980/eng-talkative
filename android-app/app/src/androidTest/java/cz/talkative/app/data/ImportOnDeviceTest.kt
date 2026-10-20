@@ -11,6 +11,7 @@ import androidx.test.ext.junit.runners.AndroidJUnit4
 import cz.talkative.app.data.audio.FileAudioStore
 import cz.talkative.app.data.exchange.ContentUriArchiveSource
 import cz.talkative.app.data.exchange.ContentUriExportDestination
+import cz.talkative.app.data.exchange.ResourceArchiveNotice
 import cz.talkative.app.data.image.FileImageStore
 import cz.talkative.app.data.local.TalkativeDatabase
 import cz.talkative.app.data.repository.RoomDictionaryRepository
@@ -72,7 +73,7 @@ class ImportOnDeviceTest {
         audioStore = FileAudioStore(context)
         configRepository = FakeConfigRepository()
         repository = RoomDictionaryRepository(database.dictionaryDao(), { 1_000L }, imageStore, audioStore)
-        export = ExportDictionaryUseCase(repository, imageStore, audioStore, configRepository)
+        export = ExportDictionaryUseCase(repository, imageStore, audioStore, configRepository, ResourceArchiveNotice(context))
         import = ImportArchiveUseCase(ArchiveReader(), repository, imageStore, audioStore, configRepository)
         archiveFile.delete()
     }

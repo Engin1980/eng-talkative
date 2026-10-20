@@ -184,4 +184,14 @@ class ExchangeScreenTest {
             events,
         )
     }
+
+    @Test
+    fun exportSection_explainsTheLicenseFileAndTheNonCommercialRule() {
+        show()
+
+        composeRule.onNodeWithText(
+            "Do archivu se přidá soubor s uvedením autora a licencí ARASAAC. Archiv, který obsahuje piktogramy ARASAAC, " +
+                "lze šířit jen nekomerčně, pod stejnou licencí a se stejným uvedením.",
+        ).assertIsDisplayed()
+    }
 }

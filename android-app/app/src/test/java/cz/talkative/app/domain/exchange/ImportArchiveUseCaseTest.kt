@@ -11,6 +11,7 @@ import cz.talkative.app.domain.repository.DictionaryRepository
 import cz.talkative.app.domain.repository.ImportedFolder
 import cz.talkative.app.domain.repository.ImportedWord
 import cz.talkative.app.testing.FakeAudioStore
+import cz.talkative.app.testing.FakeArchiveNotice
 import cz.talkative.app.testing.FakeConfigRepository
 import cz.talkative.app.testing.FakeImageStore
 import cz.talkative.app.ui.admin.FakeDictionaryRepository
@@ -366,7 +367,7 @@ class ImportArchiveUseCaseTest {
             override fun open() = bytes
             override suspend fun discard() = Unit
         }
-        runBlocking { ExportDictionaryUseCase(sourceRepository, realImages, realAudio, configRepository)(null, false, destination) }
+        runBlocking { ExportDictionaryUseCase(sourceRepository, realImages, realAudio, configRepository, FakeArchiveNotice())(null, false, destination) }
 
         val result = run(BytesSource(bytes.toByteArray()))
 
@@ -378,5 +379,27 @@ class ImportArchiveUseCaseTest {
         assertNotEquals(null, bread.imageFile)
         assertNotEquals(null, bread.audioFile)
         dir.deleteRecursively()
+    }
+
+    @Test
+    fun licenseFile_isIgnoredOnImport_whetherPresentOrNot() {
+        val withLicense = archive(sample, "images/chleba.jpg" to byteArrayOf(1), "images/jablko.png" to byteArrayOf(2), "audio/jablko.mp3" to byteArrayOf(3), "LICENSE-ARASAAC.txt" to "text uvedení".toByteArray())
+
+        val first = run(withLicense)
+        val second = run(sampleArchive) // starý export bez této položky
+
+        assertEquals(ImportResult.Success(folders = 2, words = 3, configImported = false), first)
+        assertEquals(first, second)
+        assertEquals(6, repository.allWords.size) // dvakrát tři slovíčka, žádné navíc
+        assertEquals(4, repository.allFolders.size)
+        assertEquals(2, repository.allWords.count { it.title == "chci" })
+    }
+
+    @Test
+    fun hugeLicenseFile_doesNotBreakTheImport_becauseItIsNeverRead() {
+        val big = ByteArray(2 * 1024 * 1024)
+        val source = archive(manifest(), "LICENSE-ARASAAC.txt" to big)
+
+        assertEquals(ImportResult.Success(0, 0, false), run(source))
     }
 }

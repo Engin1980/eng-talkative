@@ -144,18 +144,18 @@ Rozhodnutí zadavatele: při prvním spuštění se před klientem zobrazí ozn�
 Rozhodnutí zadavatele: autor a licence ARASAAC se do exportního ZIPu přidají jako **text v ZIPu**; slovíčka se jako „z ARASAAC“ neznačí, takže soubor je v každém exportu (aplikace neví, zda slovník piktogramy ARASAAC obsahuje, a text to říká obecně). Nutné až po E1.1 (znění textu).
 
 **Úkoly:**
-- [ ] Nová položka archivu `LICENSE-ARASAAC.txt` v kořeni ZIPu (konstanta v `ArchiveLayout` vedle `manifest.json`), UTF-8, zapisuje ji `ExportDictionaryUseCase` hned po `manifest.json`. Schéma `manifest.json` se **nemění** (verze schématu zůstává), starší verze aplikace položku při importu ignorují jako neznámou.
-- [ ] Obsah souboru: doslovné krátké znění uvedení z E1.1 („Autor piktogramů: Sergio Palao. Původ: ARASAAC (http://www.arasaac.org). Licence: CC (BY-NC-SA). Majitel: vláda Aragonu (Španělsko)“), věta, že archiv může obsahovat piktogramy ARASAAC a že se musí šířit pod licencí CC BY-NC-SA nekomerčně a se stejným uvedením, odkazy na https://arasaac.org, podmínky použití a text licence. Jeden zdroj textu: řetězce ze `strings.xml` z E1.1, do use case se text předá přes malé rozhraní (např. `ArchiveNotice`) s implementací v `data`/`di`, aby doména nezávisela na Androidu.
-- [ ] Import: `ArchiveReader`/`ImportArchiveUseCase` položku `LICENSE-ARASAAC.txt` ignorují (nepočítá se do validace jako neznámý soubor ani jako chyba, nic se z ní nezapisuje); ověřit, že stávající chování (`ArchiveLimits.maxBytes` = `null` → přeskočit) to splňuje, a případně položku povolit výslovně.
-- [ ] Obrazovka exportu (`ui/exchange`): krátká poznámka, že se do archivu přidá soubor s uvedením autora a licencí ARASAAC a že archiv s piktogramy ARASAAC lze šířit jen nekomerčně pod stejnou licencí.
-- [ ] Zdokumentovat v `format-archivu.md` (nová volitelná textová položka, ignorovaná při importu, žádná změna `manifest.json`) a upravit tam i případné tvrzení, že archiv obsahuje jen `manifest.json` a média.
-- [ ] Upravit existující testy archivu z kroku 8, které předpokládají přesný seznam položek ZIPu.
+- [x] Nová položka archivu `LICENSE-ARASAAC.txt` v kořeni ZIPu (konstanta v `ArchiveLayout` vedle `manifest.json`), UTF-8, zapisuje ji `ExportDictionaryUseCase` hned po `manifest.json`. Schéma `manifest.json` se **nemění** (verze schématu zůstává), starší verze aplikace položku při importu ignorují jako neznámou. _(text skládá domain/exchange/ArchiveNotice.kt z řetězců ve strings.xml (arasaac_credit, arasaac_credit_long, arasaac_license_file_note))_
+- [x] Obsah souboru: doslovné krátké znění uvedení z E1.1 („Autor piktogramů: Sergio Palao. Původ: ARASAAC (http://www.arasaac.org). Licence: CC (BY-NC-SA). Majitel: vláda Aragonu (Španělsko)“), věta, že archiv může obsahovat piktogramy ARASAAC a že se musí šířit pod licencí CC BY-NC-SA nekomerčně a se stejným uvedením, odkazy na https://arasaac.org, podmínky použití a text licence. Jeden zdroj textu: řetězce ze `strings.xml` z E1.1, do use case se text předá přes malé rozhraní (např. `ArchiveNotice`) s implementací v `data`/`di`, aby doména nezávisela na Androidu.
+- [x] Import: `ArchiveReader`/`ImportArchiveUseCase` položku `LICENSE-ARASAAC.txt` ignorují (nepočítá se do validace jako neznámý soubor ani jako chyba, nic se z ní nezapisuje); ověřit, že stávající chování (`ArchiveLimits.maxBytes` = `null` → přeskočit) to splňuje, a případně položku povolit výslovně.
+- [x] Obrazovka exportu (`ui/exchange`): krátká poznámka, že se do archivu přidá soubor s uvedením autora a licencí ARASAAC a že archiv s piktogramy ARASAAC lze šířit jen nekomerčně pod stejnou licencí.
+- [x] Zdokumentovat v `format-archivu.md` (nová volitelná textová položka, ignorovaná při importu, žádná změna `manifest.json`) a upravit tam i případné tvrzení, že archiv obsahuje jen `manifest.json` a média.
+- [x] Upravit existující testy archivu z kroku 8, které předpokládají přesný seznam položek ZIPu.
 
 **Kritéria splnění:**
-- [ ] Unit test exportu: ZIP obsahuje `LICENSE-ARASAAC.txt` s očekávaným textem (shoda s řetězci z E1.1, správně uložená čeština v UTF-8, i při exportu prázdného slovníku a jedné složky), vedle `manifest.json` a médií.
-- [ ] Round-trip export → smazání dat → import vrátí identický slovník a položka s licencí nic nezmění (nevytvoří slovíčko, soubor ani chybu); archiv bez této položky (starý export) se importuje stejně.
-- [ ] Žádný výstup exportu nemá nové pole v `manifest.json` (test porovnává výstup se stávajícím schématem) a `ManifestCodec` zůstává beze změny.
-- [ ] Ruční ověření: exportovaný ZIP otevřený na počítači obsahuje čitelný `LICENSE-ARASAAC.txt`.
+- [x] Unit test exportu: ZIP obsahuje `LICENSE-ARASAAC.txt` s očekávaným textem (shoda s řetězci z E1.1, správně uložená čeština v UTF-8, i při exportu prázdného slovníku a jedné složky), vedle `manifest.json` a médií.
+- [x] Round-trip export → smazání dat → import vrátí identický slovník a položka s licencí nic nezmění (nevytvoří slovíčko, soubor ani chybu); archiv bez této položky (starý export) se importuje stejně.
+- [x] Žádný výstup exportu nemá nové pole v `manifest.json` (test porovnává výstup se stávajícím schématem) a `ManifestCodec` zůstává beze změny.
+- [x] Ruční ověření: exportovaný ZIP otevřený na počítači obsahuje čitelný `LICENSE-ARASAAC.txt`. _(ověřeno na emulátoru: ZIP exportovaný přes SAF a stažený na počítač obsahuje manifest.json a LICENSE-ARASAAC.txt s čitelným textem)_
 
 ---
 
