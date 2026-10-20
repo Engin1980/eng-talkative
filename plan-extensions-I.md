@@ -6,7 +6,7 @@ Kroky jsou označené **E1–E3** (Extensions), aby se nepletly s kroky `plan.md
 
 ## Přehled postupu
 
-- [ ] Krok E1: Obrazovka „O aplikaci“ (About)
+- [x] Krok E1: Obrazovka „O aplikaci“ (About)
 - [ ] Krok E1a: Obrazovka "O aplikaci" se musí zobrazit při prvním spuštění aplikace a uživatel ji musí "odsouhlasit".
 - [ ] Krok E2: Piktogramy ARASAAC (hledání a výběr uživatelem)
 - [ ] Krok E3: Kreslení ikon prstem
@@ -47,22 +47,22 @@ Vycházejí ze zadání a ze zjištění ve stávajícím kódu. Cokoli z toho s
 ### E1.1 Obrazovka About a navigace
 
 **Úkoly:**
-- [ ] Texty uvedení zapsat do `strings.xml` doslova podle `_arasaac/Terms of use.txt` (viz „Rozhodnutí a předpoklady“): kratší znění „Autor piktogramů: Sergio Palao. Původ: ARASAAC (http://www.arasaac.org). Licence: CC (BY-NC-SA). Majitel: vláda Aragonu (Španělsko)“ jako samostatný řetězec použitelný i na jiných obrazovkách (E2.3). Před dokončením podkroku krátce porovnat se zněním na https://arasaac.org/terms-of-use, zda se od úpravy zadavatele nic neliší, a ověřit odkaz na text licence a její verzi.
-- [ ] Logo ARASAAC (nepovinné, viz podmínky; slouží k označení původu): z `_arasaac/` převést do zdrojů aplikace (`res/drawable-nodpi`, zmenšené na šířku cca 800 px kvůli velikosti APK, průhlednost zachovat; barevná varianta `logo_ARASAAC.png`, černá je rezerva pro případ nízkého kontrastu). Zobrazit v sekci ARASAAC s `contentDescription` („Logo ARASAAC“), poměr stran se zachová; logo je klepnutelné jako odkaz na https://arasaac.org a nesmí se upravovat ani použít jako logo aplikace. Originály v `_arasaac/` zůstávají v repozitáři jako podklady.
-- [ ] Nová obrazovka `ui/about` (`AboutRoute` + stavová/bezstavová verze podle vzoru `ui/config`): název aplikace, verze (`versionName` z `PackageManager`, předaná jako parametr kvůli testům), stručný popis aplikace.
-- [ ] Sekce **ARASAAC**: co to je, odkud pochází piktogramy použité v aplikaci, uvedení autora doslova podle podmínek (autor Sergio Palao, vlastník vláda Aragonu, původ ARASAAC, licence CC BY-NC-SA), věta o tom, co licence znamená (jen nekomerční použití; odvozená díla včetně exportovaných slovníků s piktogramy ARASAAC se musí šířit pod stejnou licencí a se stejným uvedením), odkaz na https://arasaac.org, na podmínky použití https://arasaac.org/terms-of-use a na text licence (viz E1.1, první úkol, ověření verze). Případné dotazy ohledně jiného použití se podle podmínek řeší kontaktem na ARASAAC.
-- [ ] Sekce **Soukromí a síť**: data zůstávají v zařízení; síť se používá jen při hledání piktogramu v ARASAAC a odchází při něm jen hledaný text.
-- [ ] Odkazy se otevírají přes `Intent.ACTION_VIEW`; otevření je parametr obrazovky (`onOpenLink`), chybějící prohlížeč (`ActivityNotFoundException`) neshodí aplikaci a odkaz je vždy vidět i jako text, aby ho šlo opsat.
-- [ ] Trasa `about` v `TalkativeNavHost` (parametr jako u `config` a `exchange`), tlačítko „O aplikaci“ v administraci vedle konfigurace a exportu (stejný styl, alespoň 64 dp), tlačítko Zpět. Z klienta se About neotevírá.
-- [ ] Obrazovka se vejde na výšku i na šířku (posuvný obsah).
+- [x] Texty uvedení zapsat do `strings.xml` doslova podle `_arasaac/Terms of use.txt` (viz „Rozhodnutí a předpoklady“): kratší znění „Autor piktogramů: Sergio Palao. Původ: ARASAAC (http://www.arasaac.org). Licence: CC (BY-NC-SA). Majitel: vláda Aragonu (Španělsko)“ jako samostatný řetězec použitelný i na jiných obrazovkách (E2.3). Před dokončením podkroku krátce porovnat se zněním na https://arasaac.org/terms-of-use, zda se od úpravy zadavatele nic neliší, a ověřit odkaz na text licence a její verzi. _(neověřeno: stránka arasaac.org/terms-of-use se bez JavaScriptu nenačte, znění proto nešlo porovnat s webem; text je doslova podle _arasaac/Terms of use.txt. Verzi licence podmínky neuvádějí, odkaz míří na CC BY-NC-SA 4.0 a verzi je třeba potvrdit)_
+- [x] Logo ARASAAC (nepovinné, viz podmínky; slouží k označení původu): z `_arasaac/` převést do zdrojů aplikace (`res/drawable-nodpi`, zmenšené na šířku cca 800 px kvůli velikosti APK, průhlednost zachovat; barevná varianta `logo_ARASAAC.png`, černá je rezerva pro případ nízkého kontrastu). Zobrazit v sekci ARASAAC s `contentDescription` („Logo ARASAAC“), poměr stran se zachová; logo je klepnutelné jako odkaz na https://arasaac.org a nesmí se upravovat ani použít jako logo aplikace. Originály v `_arasaac/` zůstávají v repozitáři jako podklady.
+- [x] Nová obrazovka `ui/about` (`AboutRoute` + stavová/bezstavová verze podle vzoru `ui/config`): název aplikace, verze (`versionName` z `PackageManager`, předaná jako parametr kvůli testům), stručný popis aplikace.
+- [x] Sekce **ARASAAC**: co to je, odkud pochází piktogramy použité v aplikaci, uvedení autora doslova podle podmínek (autor Sergio Palao, vlastník vláda Aragonu, původ ARASAAC, licence CC BY-NC-SA), věta o tom, co licence znamená (jen nekomerční použití; odvozená díla včetně exportovaných slovníků s piktogramy ARASAAC se musí šířit pod stejnou licencí a se stejným uvedením), odkaz na https://arasaac.org, na podmínky použití https://arasaac.org/terms-of-use a na text licence (viz E1.1, první úkol, ověření verze). Případné dotazy ohledně jiného použití se podle podmínek řeší kontaktem na ARASAAC.
+- [x] Sekce **Soukromí a síť**: data zůstávají v zařízení; síť se používá jen při hledání piktogramu v ARASAAC a odchází při něm jen hledaný text.
+- [x] Odkazy se otevírají přes `Intent.ACTION_VIEW`; otevření je parametr obrazovky (`onOpenLink`), chybějící prohlížeč (`ActivityNotFoundException`) neshodí aplikaci a odkaz je vždy vidět i jako text, aby ho šlo opsat. _(chybějící prohlížeč ukáže hlášku přes Toast (helper ui/common/OpenLink.kt))_
+- [x] Trasa `about` v `TalkativeNavHost` (parametr jako u `config` a `exchange`), tlačítko „O aplikaci“ v administraci vedle konfigurace a exportu (stejný styl, alespoň 64 dp), tlačítko Zpět. Z klienta se About neotevírá.
+- [x] Obrazovka se vejde na výšku i na šířku (posuvný obsah).
 
 **Kritéria splnění:**
-- [ ] Z administrace se otevře About a Zpět vrací do administrace; klient About neobsahuje.
-- [ ] Je vidět název a verze aplikace, logo ARASAAC, autor a vlastník ARASAAC, označení licence a oba odkazy.
-- [ ] Znění uvedení autora v aplikaci je shodné se zněním v `_arasaac/Terms of use.txt` (test porovná řetězec z `strings.xml` s očekávanou hodnotou, aby se nepozměnilo omylem).
-- [ ] Klepnutí na odkaz zavolá `onOpenLink` se správnou adresou; selhání otevření nezpůsobí pád.
-- [ ] Compose UI test (obsah, odkazy) a rozšíření `NavigationTest` o cestu admin → About → zpět.
-- [ ] Žádné natvrdo napsané texty, barvy ani rozměry.
+- [x] Z administrace se otevře About a Zpět vrací do administrace; klient About neobsahuje.
+- [x] Je vidět název a verze aplikace, logo ARASAAC, autor a vlastník ARASAAC, označení licence a oba odkazy.
+- [x] Znění uvedení autora v aplikaci je shodné se zněním v `_arasaac/Terms of use.txt` (test porovná řetězec z `strings.xml` s očekávanou hodnotou, aby se nepozměnilo omylem).
+- [x] Klepnutí na odkaz zavolá `onOpenLink` se správnou adresou; selhání otevření nezpůsobí pád.
+- [x] Compose UI test (obsah, odkazy) a rozšíření `NavigationTest` o cestu admin → About → zpět.
+- [x] Žádné natvrdo napsané texty, barvy ani rozměry.
 
 ---
 

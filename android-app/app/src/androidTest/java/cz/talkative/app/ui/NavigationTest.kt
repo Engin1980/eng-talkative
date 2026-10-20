@@ -1,6 +1,8 @@
 package cz.talkative.app.ui
 
+import androidx.compose.ui.test.assertCountEquals
 import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.junit4.v2.createComposeRule
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.onRoot
@@ -11,6 +13,7 @@ import androidx.navigation.compose.ComposeNavigator
 import androidx.navigation.testing.TestNavHostController
 import androidx.compose.ui.platform.LocalContext
 import androidx.test.ext.junit.runners.AndroidJUnit4
+import cz.talkative.app.ui.about.AboutScreen
 import cz.talkative.app.ui.admin.AdminScreen
 import cz.talkative.app.ui.admin.AdminUiState
 import cz.talkative.app.ui.client.ClientScreen
@@ -47,16 +50,18 @@ class NavigationTest {
                     client = { openAdmin ->
                         ClientScreen(ClientUiState(isLoading = false), onEvent = {}, onOpenAdmin = openAdmin)
                     },
-                    admin = { back, openConfig, openExchange ->
+                    admin = { back, openConfig, openExchange, openAbout ->
                         AdminScreen(
                             state = AdminUiState(isLoading = false),
                             onEvent = {},
                             onBackToClient = back,
                             onOpenConfig = openConfig,
                             onOpenExchange = openExchange,
+                            onOpenAbout = openAbout,
                         )
                     },
                     config = { back -> ConfigScreen(ConfigUiState(isLoading = false), onEvent = {}, onBack = back) },
+                    about = { back -> AboutScreen(versionName = "1.2.3", onBack = back, onOpenLink = {}) },
                     exchange = { back ->
                         ExchangeScreen(ExchangeUiState(), onEvent = {}, onBack = back, onChooseExportFile = {}, onChooseArchive = {})
                     },
@@ -115,5 +120,25 @@ class NavigationTest {
 
         composeRule.onNodeWithText("Zpět do administrace").performClick()
         assertEquals(Routes.ADMIN, navController.currentBackStackEntry?.destination?.route)
+    }
+
+    @Test
+    fun adminOpensAbout_andBackReturnsToAdmin() {
+        setUpNavHost()
+        composeRule.runOnUiThread { navController.navigate(Routes.ADMIN) }
+
+        composeRule.onNodeWithText("O aplikaci").performClick()
+        assertEquals(Routes.ABOUT, navController.currentBackStackEntry?.destination?.route)
+        composeRule.onNodeWithText("Verze 1.2.3").assertIsDisplayed()
+
+        composeRule.onNodeWithText("Zpět do administrace").performClick()
+        assertEquals(Routes.ADMIN, navController.currentBackStackEntry?.destination?.route)
+    }
+
+    @Test
+    fun client_doesNotOfferAbout() {
+        setUpNavHost()
+
+        composeRule.onAllNodesWithText("O aplikaci").assertCountEquals(0)
     }
 }

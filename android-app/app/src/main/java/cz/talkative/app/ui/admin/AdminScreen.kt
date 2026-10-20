@@ -6,6 +6,8 @@ import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -72,12 +74,18 @@ const val MOVE_PROBLEM_TAG = "move_problem"
 
 /** Napojení obrazovky na view model. */
 @Composable
-fun AdminRoute(onBackToClient: () -> Unit, onOpenConfig: () -> Unit, onOpenExchange: () -> Unit, viewModel: AdminViewModel = hiltViewModel()) {
+fun AdminRoute(
+    onBackToClient: () -> Unit,
+    onOpenConfig: () -> Unit,
+    onOpenExchange: () -> Unit,
+    onOpenAbout: () -> Unit,
+    viewModel: AdminViewModel = hiltViewModel()) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
-    AdminScreen(state = state, onEvent = viewModel::onEvent, onBackToClient = onBackToClient, onOpenConfig = onOpenConfig, onOpenExchange = onOpenExchange)
+    AdminScreen(state = state, onEvent = viewModel::onEvent, onBackToClient = onBackToClient, onOpenConfig = onOpenConfig, onOpenExchange = onOpenExchange, onOpenAbout = onOpenAbout)
 }
 
 /** Bezstavová obrazovka administrace: výpis aktuální složky, navigace ve stromu a editace. */
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun AdminScreen(
     state: AdminUiState,
@@ -86,6 +94,7 @@ fun AdminScreen(
     modifier: Modifier = Modifier,
     onOpenConfig: () -> Unit = {},
     onOpenExchange: () -> Unit = {},
+    onOpenAbout: () -> Unit = {},
 ) {
     val dimens = TalkativeTheme.dimens
     val atRoot = state.path.isEmpty()
@@ -105,23 +114,26 @@ fun AdminScreen(
                 style = MaterialTheme.typography.headlineMedium,
                 modifier = Modifier.weight(1f),
             )
-            OutlinedButton(
-                onClick = onOpenExchange,
-                modifier = Modifier.padding(end = dimens.spaceMedium).heightIn(min = dimens.minTouchTarget),
-            ) {
-                Text(stringResource(R.string.admin_open_exchange))
-            }
-            OutlinedButton(
-                onClick = onOpenConfig,
-                modifier = Modifier.padding(end = dimens.spaceMedium).heightIn(min = dimens.minTouchTarget),
-            ) {
-                Text(stringResource(R.string.admin_open_config))
-            }
             Button(
                 onClick = onBackToClient,
                 modifier = Modifier.heightIn(min = dimens.minTouchTarget),
             ) {
                 Text(stringResource(R.string.admin_back_to_client))
+            }
+        }
+        // Tlačítka jiných obrazovek se při nedostatku místa (na výšku) zalomí na další řádek.
+        FlowRow(
+            horizontalArrangement = Arrangement.spacedBy(dimens.spaceMedium),
+            verticalArrangement = Arrangement.spacedBy(dimens.spaceSmall),
+        ) {
+            OutlinedButton(onClick = onOpenExchange, modifier = Modifier.heightIn(min = dimens.minTouchTarget)) {
+                Text(stringResource(R.string.admin_open_exchange))
+            }
+            OutlinedButton(onClick = onOpenConfig, modifier = Modifier.heightIn(min = dimens.minTouchTarget)) {
+                Text(stringResource(R.string.admin_open_config))
+            }
+            OutlinedButton(onClick = onOpenAbout, modifier = Modifier.heightIn(min = dimens.minTouchTarget)) {
+                Text(stringResource(R.string.admin_open_about))
             }
         }
 

@@ -14,6 +14,8 @@ data class Dimens(
     /** Výška obrázku ve slově ve větě (menší dlaždice než v mřížce). */
     val sentenceImageSize: Dp = 64.dp,
     val imagePreviewSize: Dp = 160.dp,
+    /** Největší šířka loga ARASAAC na obrazovce „O aplikaci“. */
+    val logoMaxWidth: Dp = 320.dp,
     val sentenceBarMinHeight: Dp = 80.dp,
     val sentenceBarMaxHeight: Dp = 176.dp,
     val spaceSmall: Dp = 8.dp,
