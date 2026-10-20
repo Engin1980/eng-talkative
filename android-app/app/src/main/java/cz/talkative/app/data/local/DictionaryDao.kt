@@ -35,6 +35,12 @@ abstract class DictionaryDao {
     @Query("SELECT * FROM words WHERE profileId = :profileId AND id = :id AND deleted = 0")
     abstract suspend fun getWord(profileId: String, id: String): WordEntity?
 
+    @Query("SELECT * FROM folders WHERE profileId = :profileId AND deleted = 0")
+    abstract suspend fun allFolders(profileId: String): List<FolderEntity>
+
+    @Query("SELECT * FROM words WHERE profileId = :profileId AND deleted = 0")
+    abstract suspend fun allWords(profileId: String): List<WordEntity>
+
     @Insert
     abstract suspend fun insertFolder(entity: FolderEntity)
 

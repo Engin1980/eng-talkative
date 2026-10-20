@@ -18,6 +18,8 @@ import cz.talkative.app.ui.client.ClientUiState
 import cz.talkative.app.ui.client.HIDDEN_ADMIN_ENTRY_TAG
 import cz.talkative.app.ui.config.ConfigScreen
 import cz.talkative.app.ui.config.ConfigUiState
+import cz.talkative.app.ui.exchange.ExchangeScreen
+import cz.talkative.app.ui.exchange.ExchangeUiState
 import cz.talkative.app.ui.navigation.Routes
 import cz.talkative.app.ui.navigation.TalkativeNavHost
 import cz.talkative.app.ui.theme.TalkativeTheme
@@ -45,10 +47,19 @@ class NavigationTest {
                     client = { openAdmin ->
                         ClientScreen(ClientUiState(isLoading = false), onEvent = {}, onOpenAdmin = openAdmin)
                     },
-                    admin = { back, openConfig ->
-                        AdminScreen(state = AdminUiState(isLoading = false), onEvent = {}, onBackToClient = back, onOpenConfig = openConfig)
+                    admin = { back, openConfig, openExchange ->
+                        AdminScreen(
+                            state = AdminUiState(isLoading = false),
+                            onEvent = {},
+                            onBackToClient = back,
+                            onOpenConfig = openConfig,
+                            onOpenExchange = openExchange,
+                        )
                     },
                     config = { back -> ConfigScreen(ConfigUiState(isLoading = false), onEvent = {}, onBack = back) },
+                    exchange = { back ->
+                        ExchangeScreen(ExchangeUiState(), onEvent = {}, onBack = back, onChooseExportFile = {})
+                    },
                 )
             }
         }
@@ -88,6 +99,19 @@ class NavigationTest {
         composeRule.onNodeWithText("Nastavení").performClick()
         assertEquals(Routes.CONFIG, navController.currentBackStackEntry?.destination?.route)
         composeRule.onNodeWithText("Nastavení platí jen pro toto zařízení a nesynchronizuje se.").assertIsDisplayed()
+
+        composeRule.onNodeWithText("Zpět do administrace").performClick()
+        assertEquals(Routes.ADMIN, navController.currentBackStackEntry?.destination?.route)
+    }
+
+    @Test
+    fun adminOpensExchange_andBackReturnsToAdmin() {
+        setUpNavHost()
+        composeRule.runOnUiThread { navController.navigate(Routes.ADMIN) }
+
+        composeRule.onNodeWithText("Export a import").performClick()
+        assertEquals(Routes.EXCHANGE, navController.currentBackStackEntry?.destination?.route)
+        composeRule.onNodeWithText("Exportovat do souboru…").assertIsDisplayed()
 
         composeRule.onNodeWithText("Zpět do administrace").performClick()
         assertEquals(Routes.ADMIN, navController.currentBackStackEntry?.destination?.route)

@@ -38,6 +38,7 @@
     <string name="admin_move_down">Posunout %1$s dolů</string>
     <string name="admin_sort_alphabetically">Seřadit podle abecedy</string>
     <string name="admin_open_config">Nastavení</string>
+    <string name="admin_open_exchange">Export a import</string>
     <string name="admin_select">Vybrat</string>
     <string name="admin_selected_count">Vybráno: %1$d</string>
     <string name="admin_select_all">Vybrat vše</string>
@@ -133,4 +134,23 @@
     <string name="config_reset_title">Obnovit výchozí nastavení?</string>
     <string name="config_reset_message">Všechna nastavení se vrátí na výchozí hodnoty. Slovník se nezmění.</string>
     <string name="config_reset_confirm">Obnovit</string>
+    <string name="exchange_title">Export a import</string>
+    <string name="exchange_back">Zpět do administrace</string>
+    <string name="exchange_section_export">Export</string>
+    <string name="exchange_export_hint">Uloží vybranou část slovníku i s obrázky a vlastními zvuky do jednoho souboru ZIP. Soubor můžete uložit kamkoli a později z něj slovník načíst.</string>
+    <string name="exchange_scope_all">Exportuje se celý slovník</string>
+    <string name="exchange_scope_folder">Exportuje se složka „%1$s“ včetně podsložek</string>
+    <string name="exchange_whole_dictionary">Celý slovník</string>
+    <string name="exchange_choose_folder">Vybrat složku…</string>
+    <string name="exchange_include_config">Přidat i nastavení tohoto zařízení</string>
+    <string name="exchange_export_button">Exportovat do souboru…</string>
+    <string name="exchange_export_running">Ukládám archiv…</string>
+    <string name="exchange_export_running_files">Ukládám obrázky a zvuky: %1$d z %2$d</string>
+    <string name="exchange_export_done">Hotovo. Uloženo složek: %1$d, slovíček: %2$d.</string>
+    <string name="exchange_export_done_missing">U %1$d obrázků nebo zvuků chyběl soubor v zařízení, v archivu nejsou.</string>
+    <string name="exchange_export_error_storage">Na zařízení není dost místa. Soubor nebyl vytvořen.</string>
+    <string name="exchange_export_error_write">Archiv se nepodařilo zapsat. Soubor nebyl vytvořen.</string>
+    <string name="exchange_export_error_folder">Vybraná složka už neexistuje. Soubor nebyl vytvořen.</string>
+    <string name="exchange_picker_title">Vyberte složku</string>
+    <string name="exchange_picker_select">Vybrat tuto složku</string>
 </resources>

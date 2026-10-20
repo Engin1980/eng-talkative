@@ -421,13 +421,13 @@ Plán postupuje po funkcionalitách (vertikální řezy přes UI, doménu i data
 ### 8.2 Export
 
 **Úkoly:**
-- [ ] Export celého slovníku nebo vybrané složky (včetně podstromu) do ZIP přes systémový výběr souboru (SAF).
-- [ ] Volitelně export konfigurace (zaškrtávátko).
-- [ ] Indikace průběhu a chyb (nedostatek místa, přerušení).
+- [x] Export celého slovníku nebo vybrané složky (včetně podstromu) do ZIP přes systémový výběr souboru (SAF).
+- [x] Volitelně export konfigurace (zaškrtávátko).
+- [x] Indikace průběhu a chyb (nedostatek místa, přerušení).
 
 **Kritéria splnění:**
-- [ ] Vzniklý ZIP lze otevřít a obsahuje `manifest.json` a všechna použitá média.
-- [ ] Chyba při zápisu nezanechá poškozený částečný soubor bez upozornění.
+- [x] Vzniklý ZIP lze otevřít a obsahuje `manifest.json` a všechna použitá média.
+- [x] Chyba při zápisu nezanechá poškozený částečný soubor bez upozornění. _(neověřeno: skutečné smazání souboru u poskytovatele SAF po chybě; use case při chybě volá `discard()` a ten je otestován jen s falešným cílem. Úspěšný zápis přes SAF jsem na emulátoru zkusil.)_
 
 ### 8.3 Import
 

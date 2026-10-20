@@ -5,6 +5,7 @@ import cz.talkative.app.domain.model.Folder
 import cz.talkative.app.domain.model.Profile
 import cz.talkative.app.domain.model.Word
 import cz.talkative.app.domain.repository.DictionaryRepository
+import cz.talkative.app.domain.repository.DictionarySnapshot
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.map
@@ -74,6 +75,8 @@ class FakeDictionaryRepository : DictionaryRepository {
     }
 
     override suspend fun cleanUpOrphanFiles() = Unit
+
+    override suspend fun snapshot() = DictionarySnapshot(folders.value, words.value)
 
     override suspend fun countFolderContents(folderId: String): Int {
         val ids = subtreeIds(folderId)

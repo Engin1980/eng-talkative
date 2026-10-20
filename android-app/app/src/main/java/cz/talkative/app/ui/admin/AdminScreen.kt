@@ -72,9 +72,9 @@ const val MOVE_PROBLEM_TAG = "move_problem"
 
 /** Napojení obrazovky na view model. */
 @Composable
-fun AdminRoute(onBackToClient: () -> Unit, onOpenConfig: () -> Unit, viewModel: AdminViewModel = hiltViewModel()) {
+fun AdminRoute(onBackToClient: () -> Unit, onOpenConfig: () -> Unit, onOpenExchange: () -> Unit, viewModel: AdminViewModel = hiltViewModel()) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
-    AdminScreen(state = state, onEvent = viewModel::onEvent, onBackToClient = onBackToClient, onOpenConfig = onOpenConfig)
+    AdminScreen(state = state, onEvent = viewModel::onEvent, onBackToClient = onBackToClient, onOpenConfig = onOpenConfig, onOpenExchange = onOpenExchange)
 }
 
 /** Bezstavová obrazovka administrace: výpis aktuální složky, navigace ve stromu a editace. */
@@ -85,6 +85,7 @@ fun AdminScreen(
     onBackToClient: () -> Unit,
     modifier: Modifier = Modifier,
     onOpenConfig: () -> Unit = {},
+    onOpenExchange: () -> Unit = {},
 ) {
     val dimens = TalkativeTheme.dimens
     val atRoot = state.path.isEmpty()
@@ -104,6 +105,12 @@ fun AdminScreen(
                 style = MaterialTheme.typography.headlineMedium,
                 modifier = Modifier.weight(1f),
             )
+            OutlinedButton(
+                onClick = onOpenExchange,
+                modifier = Modifier.padding(end = dimens.spaceMedium).heightIn(min = dimens.minTouchTarget),
+            ) {
+                Text(stringResource(R.string.admin_open_exchange))
+            }
             OutlinedButton(
                 onClick = onOpenConfig,
                 modifier = Modifier.padding(end = dimens.spaceMedium).heightIn(min = dimens.minTouchTarget),

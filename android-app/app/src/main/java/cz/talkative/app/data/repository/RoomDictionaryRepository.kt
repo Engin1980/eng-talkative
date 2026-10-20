@@ -12,6 +12,7 @@ import cz.talkative.app.domain.model.Folder
 import cz.talkative.app.domain.model.Profile
 import cz.talkative.app.domain.model.Word
 import cz.talkative.app.domain.repository.DictionaryRepository
+import cz.talkative.app.domain.repository.DictionarySnapshot
 import cz.talkative.app.domain.util.Clock
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
@@ -111,6 +112,12 @@ class RoomDictionaryRepository @Inject constructor(
     override suspend fun deleteItems(ids: Collection<String>) {
         dao.deleteItems(profileId, ids, clock.nowMillis()).forEach { deleteFiles(it) }
     }
+
+    override suspend fun snapshot(): DictionarySnapshot =
+        DictionarySnapshot(
+            dao.allFolders(profileId).map { it.toDomain() },
+            dao.allWords(profileId).map { it.toDomain() },
+        )
 
     override suspend fun cleanUpOrphanFiles() {
         imageStore.deleteAllExcept(dao.allImageFiles(profileId).toSet())

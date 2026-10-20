@@ -7,25 +7,29 @@ import androidx.navigation.compose.composable
 import cz.talkative.app.ui.admin.AdminRoute
 import cz.talkative.app.ui.client.ClientRoute
 import cz.talkative.app.ui.config.ConfigRoute
+import cz.talkative.app.ui.exchange.ExchangeRoute
 
 object Routes {
     const val CLIENT = "client"
     const val ADMIN = "admin"
     const val CONFIG = "config"
+    const val EXCHANGE = "exchange"
 }
 
 /**
- * Navigace mezi klientem, administrací a konfigurací (ta se otevírá z administrace). Klient je vždy startovní obrazovka.
+ * Navigace mezi klientem, administrací a konfigurací i exportem a importem (ty se otevírají z administrace). Klient je vždy startovní obrazovka.
  * Obrazovky jsou parametry, aby šly v testech nahradit bezstavovými verzemi (bez Hilt).
  */
 @Composable
 fun TalkativeNavHost(
     navController: NavHostController,
     client: @Composable (openAdmin: () -> Unit) -> Unit = { openAdmin -> ClientRoute(onOpenAdmin = openAdmin) },
-    admin: @Composable (backToClient: () -> Unit, openConfig: () -> Unit) -> Unit = { backToClient, openConfig ->
-        AdminRoute(onBackToClient = backToClient, onOpenConfig = openConfig)
-    },
+    admin: @Composable (backToClient: () -> Unit, openConfig: () -> Unit, openExchange: () -> Unit) -> Unit =
+        { backToClient, openConfig, openExchange ->
+            AdminRoute(onBackToClient = backToClient, onOpenConfig = openConfig, onOpenExchange = openExchange)
+        },
     config: @Composable (back: () -> Unit) -> Unit = { back -> ConfigRoute(onBack = back) },
+    exchange: @Composable (back: () -> Unit) -> Unit = { back -> ExchangeRoute(onBack = back) },
 ) {
     NavHost(navController = navController, startDestination = Routes.CLIENT) {
         composable(Routes.CLIENT) {
@@ -35,10 +39,14 @@ fun TalkativeNavHost(
             admin(
                 { navController.popBackStack(Routes.CLIENT, inclusive = false) },
                 { navController.navigate(Routes.CONFIG) },
+                { navController.navigate(Routes.EXCHANGE) },
             )
         }
         composable(Routes.CONFIG) {
             config { navController.popBackStack() }
+        }
+        composable(Routes.EXCHANGE) {
+            exchange { navController.popBackStack() }
         }
     }
 }

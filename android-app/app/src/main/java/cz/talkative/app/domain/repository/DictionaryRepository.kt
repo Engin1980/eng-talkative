@@ -5,6 +5,9 @@ import cz.talkative.app.domain.model.Folder
 import cz.talkative.app.domain.model.Word
 import kotlinx.coroutines.flow.Flow
 
+/** Všechny nesmazané složky a slovíčka profilu jako ploché seznamy (vazby jsou přes `parentId`). */
+data class DictionarySnapshot(val folders: List<Folder>, val words: List<Word>)
+
 /**
  * Slovník (strom složek a slovíček) aktuálního profilu. Smazané položky se nikdy nevracejí.
  * `parentId == null` znamená kořen.
@@ -64,6 +67,9 @@ interface DictionaryRepository {
 
     /** Smaže vybrané složky (i s podstromy) a slovíčka v jedné transakci; neexistující ID se přeskočí. */
     suspend fun deleteItems(ids: Collection<String>)
+
+    /** Celý slovník najednou (pro export); smazané položky v něm nejsou. */
+    suspend fun snapshot(): DictionarySnapshot
 
     /** Smaže soubory obrázků a MP3, které nepatří žádnému slovíčku (po přerušeném mazání nebo zrušené úpravě). */
     suspend fun cleanUpOrphanFiles()
