@@ -16,6 +16,8 @@ data class Dimens(
     val imagePreviewSize: Dp = 160.dp,
     /** Největší šířka loga ARASAAC na obrazovce „O aplikaci“. */
     val logoMaxWidth: Dp = 320.dp,
+    /** Nejmenší šířka dlaždice piktogramu ve výsledcích hledání. */
+    val pictogramTileMinSize: Dp = 160.dp,
     val sentenceBarMinHeight: Dp = 80.dp,
     val sentenceBarMaxHeight: Dp = 176.dp,
     val spaceSmall: Dp = 8.dp,

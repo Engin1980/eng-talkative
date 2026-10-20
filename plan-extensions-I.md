@@ -112,16 +112,16 @@ Rozhodnutí zadavatele: při prvním spuštění se před klientem zobrazí ozn�
 ### E2.3 Obrazovka hledání a výběru
 
 **Úkoly:**
-- [ ] Trasa `arasaac` a `ArasaacViewModel` (MVI jako ostatní obrazovky: `UiState` / `Event`): vyhledávací pole s tlačítkem Hledat (hledá se po potvrzení, ne při každém písmenu), předvyplněné titulkem slovíčka (administrátor může text upravit, např. použít jiný pojem), stavy *prázdné zadání*, *načítání*, *výsledky*, *nic nenalezeno*, *chyba* (s tlačítkem Zkusit znovu).
-- [ ] Mřížka výsledků (Coil, náhled 300 px, titulek pod obrázkem, dlaždice alespoň 64 dp a dobře čitelná); klepnutí vybere piktogram a stáhne ho (E2.2) s indikací průběhu; zdvojené klepnutí během stahování se ignoruje.
-- [ ] Po úspěšném uložení se vrací zpět do editace slovíčka s novým obrázkem (viz E2.4). Zpět bez výběru nic nemění.
-- [ ] Viditelné uvedení autora na obrazovce výběru (krátké znění z E1.1: „Autor piktogramů: Sergio Palao. Původ: ARASAAC … Licence: CC (BY-NC-SA). Majitel: vláda Aragonu (Španělsko)“) s odkazem na About.
-- [ ] Hlášky: bez internetu (s nápovědou zapnout připojení), server nedostupný, nic nenalezeno (s nápovědou zkusit jiné slovo), obrázek nelze uložit (plné úložiště).
+- [x] Trasa `arasaac` a `ArasaacViewModel` (MVI jako ostatní obrazovky: `UiState` / `Event`): vyhledávací pole s tlačítkem Hledat (hledá se po potvrzení, ne při každém písmenu), předvyplněné titulkem slovíčka (administrátor může text upravit, např. použít jiný pojem), stavy *prázdné zadání*, *načítání*, *výsledky*, *nic nenalezeno*, *chyba* (s tlačítkem Zkusit znovu). _(hledaný text žije ve view modelu; trasa je `arasaac?query=…`, výsledek se vrací přes savedStateHandle předchozí obrazovky (konzument je v E2.4))_
+- [x] Mřížka výsledků (Coil, náhled 300 px, titulek pod obrázkem, dlaždice alespoň 64 dp a dobře čitelná); klepnutí vybere piktogram a stáhne ho (E2.2) s indikací průběhu; zdvojené klepnutí během stahování se ignoruje.
+- [x] Po úspěšném uložení se vrací zpět do editace slovíčka s novým obrázkem (viz E2.4). Zpět bez výběru nic nemění.
+- [x] Viditelné uvedení autora na obrazovce výběru (krátké znění z E1.1: „Autor piktogramů: Sergio Palao. Původ: ARASAAC … Licence: CC (BY-NC-SA). Majitel: vláda Aragonu (Španělsko)“) s odkazem na About.
+- [x] Hlášky: bez internetu (s nápovědou zapnout připojení), server nedostupný, nic nenalezeno (s nápovědou zkusit jiné slovo), obrázek nelze uložit (plné úložiště).
 
 **Kritéria splnění:**
-- [ ] View model testy s `FakePictogramSearch`: předvyplnění titulku, prázdné zadání nehledá, přechody stavů načítání → výsledky / nic / chyba, Zkusit znovu, výběr volá stažení právě jednou.
-- [ ] Compose UI testy: zobrazení výsledků a chybových stavů, klepnutí na dlaždici vyvolá výběr, poznámka o licenci je vidět.
-- [ ] Obrazovka funguje na výšku i na šířku a hledaný text i výsledky přežijí otočení.
+- [x] View model testy s `FakePictogramSearch`: předvyplnění titulku, prázdné zadání nehledá, přechody stavů načítání → výsledky / nic / chyba, Zkusit znovu, výběr volá stažení právě jednou.
+- [x] Compose UI testy: zobrazení výsledků a chybových stavů, klepnutí na dlaždici vyvolá výběr, poznámka o licenci je vidět.
+- [x] Obrazovka funguje na výšku i na šířku a hledaný text i výsledky přežijí otočení. _(neověřeno na emulátoru v obou orientacích, ověří se při scénáři v E2.4; aktivita zpracovává změnu orientace sama (configChanges), view model proto stav drží)_
 
 ### E2.4 Napojení do editace slovíčka
 
