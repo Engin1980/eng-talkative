@@ -152,4 +152,20 @@ class FileImageStoreTest {
         assertNotNull(store.resolve(keep))
         assertNull(store.resolve(drop))
     }
+
+    @Test
+    fun transparentPng_staysPng_withItsTransparency() {
+        // Piktogramy ARASAAC jsou PNG s průhledným pozadím; převod na JPEG by z něj udělal černé.
+        val bitmap = Bitmap.createBitmap(500, 500, Bitmap.Config.ARGB_8888) // celé průhledné
+        android.graphics.Canvas(bitmap).drawCircle(250f, 250f, 100f, android.graphics.Paint().apply { color = Color.RED })
+        val file = File(context.cacheDir, "alpha-${System.nanoTime()}.png").also { sources += it }
+        file.outputStream().use { bitmap.compress(Bitmap.CompressFormat.PNG, 100, it) }
+
+        val name = save(Uri.fromFile(file).toString())
+
+        assertTrue("očekáváno PNG, ale: $name", name.endsWith(".png"))
+        val stored = BitmapFactory.decodeFile(store.resolve(name)!!.absolutePath)
+        assertEquals(0, Color.alpha(stored.getPixel(5, 5))) // roh zůstal průhledný
+        assertEquals(Color.RED, stored.getPixel(250, 250)) // kruh uprostřed zůstal
+    }
 }

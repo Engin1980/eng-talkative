@@ -18,10 +18,11 @@ class TalkativeApp : Application() {
 
     override fun onCreate() {
         super.onCreate()
-        // Úklid po přerušené práci: dočasné fotky z fotoaparátu a obrázky, které nepatří žádnému slovíčku.
+        // Úklid po přerušené práci: dočasné fotky z fotoaparátu, stažené piktogramy a obrázky, které nepatří žádnému slovíčku.
         // Chyba úklidu nesmí shodit aplikaci.
         CoroutineScope(SupervisorJob() + Dispatchers.IO).launch {
             runCatching { File(cacheDir, "camera").deleteRecursively() }
+            runCatching { File(cacheDir, "pictograms").deleteRecursively() }
             runCatching { cleanUpOrphanFiles() }
         }
     }

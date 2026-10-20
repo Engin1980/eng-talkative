@@ -101,13 +101,13 @@ Rozhodnutí zadavatele: při prvním spuštění se před klientem zobrazí ozn�
 ### E2.2 Stažení vybraného piktogramu
 
 **Úkoly:**
-- [ ] `PictogramDownloader` (rozhraní v doméně, OkHttp implementace): stáhne `{id}_500.png` do dočasného souboru v `cache/pictograms`, omezí velikost odpovědi (např. 2 MB), při chybě nebo přerušení soubor smaže.
-- [ ] `ImportPictogramUseCase`: stáhne piktogram a předá ho do `ImageStore.saveFromUri`/`saveFromStream` (zmenšení, uložení do `filesDir/images`), dočasný soubor smaže vždy (i při chybě) a vrátí `ImageSaveResult` nebo chybu sítě.
-- [ ] Úklid `cache/pictograms` při startu aplikace (vedle stávajícího úklidu `cache/camera`).
+- [x] `PictogramDownloader` (rozhraní v doméně, OkHttp implementace): stáhne `{id}_500.png` do dočasného souboru v `cache/pictograms`, omezí velikost odpovědi (např. 2 MB), při chybě nebo přerušení soubor smaže.
+- [x] `ImportPictogramUseCase`: stáhne piktogram a předá ho do `ImageStore.saveFromUri`/`saveFromStream` (zmenšení, uložení do `filesDir/images`), dočasný soubor smaže vždy (i při chybě) a vrátí `ImageSaveResult` nebo chybu sítě. _(samostatný use case nevznikl: podle části „Rozhodnutí a předpoklady“ stažený soubor z cache/pictograms jde jako URI do AdminEvent.ImagePicked a ukládání (zmenšení, ImageStore, úklid) dělá stávající processPickedImage. Soubor se maže před dalším stažením a při startu aplikace, ne hned po zpracování)_
+- [x] Úklid `cache/pictograms` při startu aplikace (vedle stávajícího úklidu `cache/camera`).
 
 **Kritéria splnění:**
-- [ ] Unit testy (`MockWebServer` + falešný `ImageStore`): úspěch uloží obrázek a smaže dočasný soubor; chyba sítě, HTTP chyba i příliš velká odpověď neuloží nic a nezanechají soubor v `cache`.
-- [ ] Uložený obrázek je PNG s průhledností (nebyl převeden na JPEG s černým pozadím).
+- [x] Unit testy (`MockWebServer` + falešný `ImageStore`): úspěch uloží obrázek a smaže dočasný soubor; chyba sítě, HTTP chyba i příliš velká odpověď neuloží nic a nezanechají soubor v `cache`. _(testy dočasného souboru jsou v OkHttpPictogramDownloaderTest (MockWebServer), test zachování PNG s průhledností v FileImageStoreTest)_
+- [x] Uložený obrázek je PNG s průhledností (nebyl převeden na JPEG s černým pozadím).
 
 ### E2.3 Obrazovka hledání a výběru
 
