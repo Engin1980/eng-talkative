@@ -41,6 +41,15 @@ abstract class DictionaryDao {
     @Query("SELECT * FROM words WHERE profileId = :profileId AND deleted = 0")
     abstract suspend fun allWords(profileId: String): List<WordEntity>
 
+    @Query("SELECT imageFile, audioFile FROM words WHERE profileId = :profileId AND deleted = 0 AND (imageFile IS NOT NULL OR audioFile IS NOT NULL)")
+    abstract suspend fun allWordFiles(profileId: String): List<WordFiles>
+
+    @Query("UPDATE words SET deleted = 1, updatedAt = :now, imageFile = NULL, audioFile = NULL WHERE profileId = :profileId AND deleted = 0")
+    abstract suspend fun deleteAllWords(profileId: String, now: Long)
+
+    @Query("UPDATE folders SET deleted = 1, updatedAt = :now WHERE profileId = :profileId AND deleted = 0")
+    abstract suspend fun deleteAllFolders(profileId: String, now: Long)
+
     @Insert
     abstract suspend fun insertFolder(entity: FolderEntity)
 
@@ -228,5 +237,29 @@ abstract class DictionaryDao {
         deleteSubtreeWords(profileId, rootId, now)
         deleteSubtreeFolders(profileId, rootId, now)
         return files
+    }
+
+    /**
+     * Vloží hotové entity v jedné transakci. Entity s rodičem [targetParentId] jsou na nejvyšší úrovni importu a dostanou
+     * pořadí za dosavadními položkami cíle. S [replaceAll] se předtím smaže celý slovník; vrací jeho soubory k úklidu.
+     */
+    @Transaction
+    open suspend fun importItems(
+        profileId: String,
+        targetParentId: String?,
+        folders: List<FolderEntity>,
+        words: List<WordEntity>,
+        replaceAll: Boolean,
+        now: Long,
+    ): List<WordFiles> {
+        val oldFiles = if (replaceAll) allWordFiles(profileId) else emptyList()
+        if (replaceAll) {
+            deleteAllWords(profileId, now)
+            deleteAllFolders(profileId, now)
+        }
+        val base = nextSortOrder(profileId, targetParentId)
+        folders.forEach { insertFolder(if (it.parentId == targetParentId) it.copy(sortOrder = it.sortOrder + base) else it) }
+        words.forEach { insertWord(if (it.parentId == targetParentId) it.copy(sortOrder = it.sortOrder + base) else it) }
+        return oldFiles
     }
 }

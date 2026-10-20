@@ -35,6 +35,7 @@ private class DirectoryImageStore(private val directory: File) : ImageStore {
 
     override fun resolve(fileName: String): File? = File(directory, fileName).takeIf { it.isFile }
     override suspend fun saveFromUri(uri: String): ImageSaveResult = error("není potřeba")
+    override suspend fun saveFromStream(input: java.io.InputStream): ImageSaveResult = error("není potřeba")
     override suspend fun delete(fileName: String) = Unit
     override suspend fun deleteAllExcept(keep: Set<String>) = Unit
 }
@@ -47,6 +48,7 @@ private class DirectoryAudioStore(private val directory: File) : AudioStore {
 
     override fun resolve(fileName: String): File? = File(directory, fileName).takeIf { it.isFile }
     override suspend fun saveFromUri(uri: String): AudioSaveResult = error("není potřeba")
+    override suspend fun saveFromStream(input: java.io.InputStream): AudioSaveResult = error("není potřeba")
     override suspend fun delete(fileName: String) = Unit
     override suspend fun deleteAllExcept(keep: Set<String>) = Unit
 }

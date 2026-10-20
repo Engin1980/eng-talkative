@@ -13,6 +13,8 @@ import cz.talkative.app.domain.model.Profile
 import cz.talkative.app.domain.model.Word
 import cz.talkative.app.domain.repository.DictionaryRepository
 import cz.talkative.app.domain.repository.DictionarySnapshot
+import cz.talkative.app.domain.repository.ImportedFolder
+import cz.talkative.app.domain.repository.ImportedWord
 import cz.talkative.app.domain.util.Clock
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
@@ -111,6 +113,27 @@ class RoomDictionaryRepository @Inject constructor(
 
     override suspend fun deleteItems(ids: Collection<String>) {
         dao.deleteItems(profileId, ids, clock.nowMillis()).forEach { deleteFiles(it) }
+    }
+
+    override suspend fun importItems(
+        targetParentId: String?,
+        folders: List<ImportedFolder>,
+        words: List<ImportedWord>,
+        replaceAll: Boolean,
+    ) {
+        val target = if (replaceAll) null else targetParentId
+        val now = clock.nowMillis()
+        val ids = (folders.map { it.key } + words.map { it.key }).associateWith { newId() }
+        val folderEntities = folders.map {
+            FolderEntity(ids.getValue(it.key), profileId, it.title, it.parentKey?.let(ids::getValue) ?: target, it.sortOrder, now)
+        }
+        val wordEntities = words.map {
+            WordEntity(
+                ids.getValue(it.key), profileId, it.title, it.parentKey?.let(ids::getValue) ?: target, it.sortOrder, now,
+                imageFile = it.imageFile, alternateText = it.alternateText, audioFile = it.audioFile,
+            )
+        }
+        dao.importItems(profileId, target, folderEntities, wordEntities, replaceAll, now).forEach { deleteFiles(it) }
     }
 
     override suspend fun snapshot(): DictionarySnapshot =

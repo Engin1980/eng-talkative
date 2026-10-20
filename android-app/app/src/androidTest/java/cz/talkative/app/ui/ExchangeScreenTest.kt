@@ -38,6 +38,7 @@ class ExchangeScreenTest {
     private val events = mutableListOf<ExchangeEvent>()
     private var backs = 0
     private var fileRequests = 0
+    private var archiveRequests = 0
 
     private val food = Folder("f1", "default", "Jídlo", null, 0, 0)
 
@@ -49,6 +50,7 @@ class ExchangeScreenTest {
                     onEvent = { events += it },
                     onBack = { backs++ },
                     onChooseExportFile = { fileRequests++ },
+                    onChooseArchive = { archiveRequests++ },
                 )
             }
         }

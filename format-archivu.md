@@ -49,3 +49,9 @@ Archiv se před zápisem čehokoli přečte a zkontroluje (`ManifestCodec.decode
 - `manifest.json` není JSON v očekávaném tvaru (`NOT_AN_ARCHIVE`),
 - má vyšší verzi schématu (`NEWER_VERSION`) nebo verzi menší než 1 (`INVALID_VERSION`),
 - se opakuje ID (i mezi složkou a slovíčkem), chybí titulek, odkazuje na neexistující složku, obsahuje cyklus složek, nebo je název souboru s lomítkem či `..` (`INCONSISTENT`).
+
+## Import
+
+Import archiv nejdřív celý zkontroluje (nic nezapisuje), pak zkopíruje média do úložišť aplikace a nakonec v jedné transakci zapíše složky a slovíčka s novými ID. Každé slovíčko dostane vlastní kopii souboru, i když na stejný soubor v archivu odkazuje víc slovíček. Při jakékoli chybě se zkopírovaná média smažou a data zůstanou beze změny. Obrázky a MP3 z archivu procházejí stejnou kontrolou jako při ruční volbě v administraci (čitelný obrázek, MP3 do 60 s a 5 MB). Chybějící, nečitelná nebo příliš velká položka média znamená odmítnutí celého archivu. Meze velikosti položek: manifest 8 MB, obrázek 10 MB, zvuk 5 MB, nejvýše 50 000 položek.
+
+Pořadí zůstává zachované (uvnitř složky se přečísluje na 0, 1, 2, ...). Importované položky nejvyšší úrovně se přidají na konec cílové složky.

@@ -15,6 +15,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.selection.toggleable
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
@@ -40,6 +41,9 @@ const val EXPORT_STATUS_TAG = "export-status"
 /** Název souboru, který systémový výběr nabídne při ukládání. */
 private const val SUGGESTED_FILE_NAME = "talkative.zip"
 
+/** Správci souborů označují ZIP různě, proto se nabízí i obecný typ; obsah se stejně kontroluje. */
+private val ARCHIVE_MIME_TYPES = arrayOf("application/zip", "application/x-zip-compressed", "application/octet-stream")
+
 /** Napojení obrazovky na view model a na systémový výběr souboru pro uložení archivu. */
 @Composable
 fun ExchangeRoute(onBack: () -> Unit, viewModel: ExchangeViewModel = hiltViewModel()) {
@@ -47,21 +51,26 @@ fun ExchangeRoute(onBack: () -> Unit, viewModel: ExchangeViewModel = hiltViewMod
     val chooseFile = rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument("application/zip")) { uri ->
         if (uri != null) viewModel.onEvent(ExchangeEvent.ExportToFile(uri.toString()))
     }
+    val chooseArchive = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
+        if (uri != null) viewModel.onEvent(ExchangeEvent.ArchivePicked(uri.toString()))
+    }
     ExchangeScreen(
         state = state,
         onEvent = viewModel::onEvent,
         onBack = onBack,
         onChooseExportFile = { chooseFile.launch(SUGGESTED_FILE_NAME) },
+        onChooseArchive = { chooseArchive.launch(ARCHIVE_MIME_TYPES) },
     )
 }
 
-/** Bezstavová obrazovka exportu (a později importu). [onChooseExportFile] spustí systémový výběr cílového souboru. */
+/** Bezstavová obrazovka exportu a importu. [onChooseExportFile] a [onChooseArchive] spustí systémový výběr souboru. */
 @Composable
 fun ExchangeScreen(
     state: ExchangeUiState,
     onEvent: (ExchangeEvent) -> Unit,
     onBack: () -> Unit,
     onChooseExportFile: () -> Unit,
+    onChooseArchive: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val dimens = TalkativeTheme.dimens
@@ -119,13 +128,19 @@ fun ExchangeScreen(
                 modifier = Modifier.heightIn(min = dimens.minTouchTarget),
             ) { Text(stringResource(R.string.exchange_export_button)) }
             ExportStatusText(state.export)
+
+            HorizontalDivider(modifier = Modifier.padding(vertical = dimens.spaceMedium))
+            ImportSection(state.import, onEvent, onChooseArchive)
         }
     }
 
     state.picker?.let { picker ->
         FolderPickerDialog(
             title = stringResource(R.string.exchange_picker_title),
-            confirmLabel = stringResource(R.string.exchange_picker_select),
+            confirmLabel = stringResource(
+                if (picker.purpose == PickerPurpose.IMPORT_TARGET) R.string.exchange_picker_select_target else R.string.exchange_picker_select,
+            ),
+            allowRoot = picker.purpose == PickerPurpose.IMPORT_TARGET,
             path = picker.path,
             folders = picker.folders,
             onBrowse = { onEvent(ExchangeEvent.BrowsePicker(it)) },
@@ -177,7 +192,7 @@ private fun ExportStatusText(status: ExportStatus) {
 }
 
 @Composable
-private fun SwitchRow(labelRes: Int, checked: Boolean, enabled: Boolean, onChange: (Boolean) -> Unit) {
+internal fun SwitchRow(labelRes: Int, checked: Boolean, enabled: Boolean, onChange: (Boolean) -> Unit) {
     val dimens = TalkativeTheme.dimens
     Row(
         modifier = Modifier

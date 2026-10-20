@@ -5,6 +5,7 @@ import cz.talkative.app.domain.audio.AudioSaveResult
 import cz.talkative.app.domain.audio.AudioStore
 import kotlinx.coroutines.CompletableDeferred
 import java.io.File
+import java.io.InputStream
 
 /** Úložiště MP3 v paměti pro testy; "soubory" jsou jen názvy. */
 class FakeAudioStore : AudioStore {
@@ -29,6 +30,11 @@ class FakeAudioStore : AudioStore {
         val name = "fake-${counter++}.mp3"
         files += name
         return AudioSaveResult.Saved(name)
+    }
+
+    override suspend fun saveFromStream(input: InputStream): AudioSaveResult {
+        input.readBytes()
+        return saveFromUri("stream")
     }
 
     override fun resolve(fileName: String): File? = if (fileName in files) File(fileName) else null

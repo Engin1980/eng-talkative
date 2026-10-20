@@ -1,6 +1,8 @@
 package cz.talkative.app.di
 
+import cz.talkative.app.data.exchange.ContentUriArchiveSourceFactory
 import cz.talkative.app.data.exchange.ContentUriExportDestinationFactory
+import cz.talkative.app.domain.exchange.ArchiveSourceFactory
 import cz.talkative.app.domain.exchange.ExportDestinationFactory
 import dagger.Binds
 import dagger.Module
@@ -13,4 +15,7 @@ abstract class ExchangeModule {
 
     @Binds
     abstract fun bindExportDestinationFactory(impl: ContentUriExportDestinationFactory): ExportDestinationFactory
+
+    @Binds
+    abstract fun bindArchiveSourceFactory(impl: ContentUriArchiveSourceFactory): ArchiveSourceFactory
 }

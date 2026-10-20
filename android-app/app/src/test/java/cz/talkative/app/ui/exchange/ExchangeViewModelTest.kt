@@ -1,6 +1,10 @@
 package cz.talkative.app.ui.exchange
 
 import cz.talkative.app.domain.exchange.ArchiveLayout
+import cz.talkative.app.domain.exchange.ArchiveReader
+import cz.talkative.app.domain.exchange.ArchiveSource
+import cz.talkative.app.domain.exchange.ArchiveSourceFactory
+import cz.talkative.app.domain.exchange.ImportArchiveUseCase
 import cz.talkative.app.domain.exchange.ExportDestination
 import cz.talkative.app.domain.exchange.ExportDestinationFactory
 import cz.talkative.app.domain.exchange.ExportDictionaryUseCase
@@ -47,6 +51,7 @@ class ExchangeViewModelTest {
     private val written = ByteArrayOutputStream()
     private var destination = Destination(written)
     private val requestedUris = mutableListOf<String>()
+    private val archiveSources = mutableMapOf<String, ArchiveSource>()
     private lateinit var viewModel: ExchangeViewModel
 
     @Before
@@ -61,6 +66,9 @@ class ExchangeViewModelTest {
                 requestedUris += uri
                 destination
             },
+            ArchiveReader(),
+            ImportArchiveUseCase(ArchiveReader(), repository, FakeImageStore(), FakeAudioStore(), FakeConfigRepository()),
+            ArchiveSourceFactory { uri -> archiveSources.getValue(uri) },
         )
     }
 

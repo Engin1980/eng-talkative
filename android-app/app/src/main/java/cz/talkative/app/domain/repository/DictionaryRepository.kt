@@ -8,6 +8,19 @@ import kotlinx.coroutines.flow.Flow
 /** Všechny nesmazané složky a slovíčka profilu jako ploché seznamy (vazby jsou přes `parentId`). */
 data class DictionarySnapshot(val folders: List<Folder>, val words: List<Word>)
 
+/** Složka k importu; [key] a [parentKey] jsou jen vazby uvnitř dávky, repozitář přidělí nová ID. `parentKey == null` = cílová složka importu. */
+data class ImportedFolder(val key: String, val parentKey: String?, val title: String, val sortOrder: Int)
+
+data class ImportedWord(
+    val key: String,
+    val parentKey: String?,
+    val title: String,
+    val sortOrder: Int,
+    val imageFile: String?,
+    val alternateText: String?,
+    val audioFile: String?,
+)
+
 /**
  * Slovník (strom složek a slovíček) aktuálního profilu. Smazané položky se nikdy nevracejí.
  * `parentId == null` znamená kořen.
@@ -67,6 +80,20 @@ interface DictionaryRepository {
 
     /** Smaže vybrané složky (i s podstromy) a slovíčka v jedné transakci; neexistující ID se přeskočí. */
     suspend fun deleteItems(ids: Collection<String>)
+
+    /**
+     * Vloží složky a slovíčka s novými ID v jedné transakci. Položky s `parentKey == null` přijdou na konec složky
+     * [targetParentId] (`null` = kořen) a drží vzájemné pořadí podle `sortOrder`; ostatní mají `sortOrder` uvnitř své složky.
+     * S [replaceAll] se nejdřív smaže celý dosavadní slovník (včetně souborů obrázků a MP3, až po úspěšném zápisu)
+     * a nové položky jdou do kořene. Soubory v [ImportedWord] musí už být uložené v úložištích a patřit jen tomu slovíčku.
+     * Při chybě se nezmění nic.
+     */
+    suspend fun importItems(
+        targetParentId: String?,
+        folders: List<ImportedFolder>,
+        words: List<ImportedWord>,
+        replaceAll: Boolean,
+    )
 
     /** Celý slovník najednou (pro export); smazané položky v něm nejsou. */
     suspend fun snapshot(): DictionarySnapshot

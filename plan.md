@@ -20,7 +20,7 @@ Plán postupuje po funkcionalitách (vertikální řezy přes UI, doménu i data
 - [ ] Krok 5: Vlastní zvuková definice slovíčka
 - [x] Krok 6: Pokročilá správa slovníku
 - [x] Krok 7: Konfigurace a pokročilé ovládání klienta
-- [ ] Krok 8: Export a import
+- [x] Krok 8: Export a import _(neověřeno: celý `connectedAndroidTest` po kroku 8 nedoběhl, systém ho ukončil pro nedostatek paměti; třídy kroku 8 a `NavigationTest` prošly samostatně)_
 - [ ] Krok 9: Synchronizace s Google Drive
 - [ ] Krok 10: Nekonzistence a zotavení
 - [ ] Krok 11: Dokončení a předání
@@ -432,18 +432,18 @@ Plán postupuje po funkcionalitách (vertikální řezy přes UI, doménu i data
 ### 8.3 Import
 
 **Úkoly:**
-- [ ] Import celého archivu přidávající položky s novými ID; nic nepřepisuje.
-- [ ] Import vybraných složek/podsložek do zvolené cílové složky (výchozí kořen).
-- [ ] Volitelné nahrazení celého slovníku (s potvrzením).
-- [ ] Kontrola verze schématu, validace archivu před zápisem, odolnost vůči poškozenému archivu (import v jedné transakci, média se kopírují až po validaci nebo se při chybě odstraní).
-- [ ] Import konfigurace, je-li v archivu a uživatel ji chce.
+- [x] Import celého archivu přidávající položky s novými ID; nic nepřepisuje.
+- [x] Import vybraných složek/podsložek do zvolené cílové složky (výchozí kořen).
+- [x] Volitelné nahrazení celého slovníku (s potvrzením).
+- [x] Kontrola verze schématu, validace archivu před zápisem, odolnost vůči poškozenému archivu (import v jedné transakci, média se kopírují až po validaci nebo se při chybě odstraní).
+- [x] Import konfigurace, je-li v archivu a uživatel ji chce.
 
 **Kritéria splnění:**
-- [ ] Export → smazání dat → import vrátí identický slovník (struktura, titulky, pořadí, obrázky, zvuky).
-- [ ] Opakovaný import téhož archivu vytvoří duplicity s novými ID, původní data zůstanou nedotčena.
-- [ ] Částečný import jen vybrané složky ji vloží do zvolené cílové složky včetně jejích médií.
-- [ ] Poškozený nebo cizí archiv i archiv s novější verzí schématu skončí srozumitelnou chybou bez změny dat.
-- [ ] Unit testy import/export round-trip a chybových stavů.
+- [x] Export → smazání dat → import vrátí identický slovník (struktura, titulky, pořadí, obrázky, zvuky).
+- [x] Opakovaný import téhož archivu vytvoří duplicity s novými ID, původní data zůstanou nedotčena.
+- [x] Částečný import jen vybrané složky ji vloží do zvolené cílové složky včetně jejích médií. _(složky se vybírají zaškrtnutím v seznamu složek archivu; kořenová slovíčka archivu jsou zvláštní volba)_
+- [x] Poškozený nebo cizí archiv i archiv s novější verzí schématu skončí srozumitelnou chybou bez změny dat.
+- [x] Unit testy import/export round-trip a chybových stavů.
 
 ---
 

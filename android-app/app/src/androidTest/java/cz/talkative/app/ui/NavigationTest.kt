@@ -58,7 +58,7 @@ class NavigationTest {
                     },
                     config = { back -> ConfigScreen(ConfigUiState(isLoading = false), onEvent = {}, onBack = back) },
                     exchange = { back ->
-                        ExchangeScreen(ExchangeUiState(), onEvent = {}, onBack = back, onChooseExportFile = {})
+                        ExchangeScreen(ExchangeUiState(), onEvent = {}, onBack = back, onChooseExportFile = {}, onChooseArchive = {})
                     },
                 )
             }

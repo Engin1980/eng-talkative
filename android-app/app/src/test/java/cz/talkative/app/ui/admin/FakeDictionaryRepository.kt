@@ -6,6 +6,8 @@ import cz.talkative.app.domain.model.Profile
 import cz.talkative.app.domain.model.Word
 import cz.talkative.app.domain.repository.DictionaryRepository
 import cz.talkative.app.domain.repository.DictionarySnapshot
+import cz.talkative.app.domain.repository.ImportedFolder
+import cz.talkative.app.domain.repository.ImportedWord
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.map
@@ -75,6 +77,32 @@ class FakeDictionaryRepository : DictionaryRepository {
     }
 
     override suspend fun cleanUpOrphanFiles() = Unit
+
+    override suspend fun importItems(
+        targetParentId: String?,
+        folders: List<ImportedFolder>,
+        words: List<ImportedWord>,
+        replaceAll: Boolean,
+    ) {
+        val target = if (replaceAll) null else targetParentId
+        if (replaceAll) {
+            this.folders.value = emptyList()
+            this.words.value = emptyList()
+        }
+        val base = nextOrder(target)
+        val ids = (folders.map { it.key } + words.map { it.key }).associateWith { "i${counter++}" }
+        this.folders.value += folders.map {
+            val parent = it.parentKey?.let(ids::getValue)
+            Folder(ids.getValue(it.key), Profile.DEFAULT_ID, it.title, parent ?: target, if (parent == null) it.sortOrder + base else it.sortOrder, 0)
+        }
+        this.words.value += words.map {
+            val parent = it.parentKey?.let(ids::getValue)
+            Word(
+                ids.getValue(it.key), Profile.DEFAULT_ID, it.title, parent ?: target,
+                if (parent == null) it.sortOrder + base else it.sortOrder, 0, it.imageFile, it.alternateText, it.audioFile,
+            )
+        }
+    }
 
     override suspend fun snapshot() = DictionarySnapshot(folders.value, words.value)
 

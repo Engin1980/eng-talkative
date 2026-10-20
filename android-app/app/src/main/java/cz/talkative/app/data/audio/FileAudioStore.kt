@@ -14,6 +14,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.io.File
 import java.io.IOException
+import java.io.InputStream
 import java.util.UUID
 import javax.inject.Inject
 
@@ -41,6 +42,19 @@ class FileAudioStore @Inject constructor(
             AudioSaveResult.Failed(AudioError.UNREADABLE)
         } finally {
             temp.delete() // po úspěšném přejmenování už neexistuje
+        }
+    }
+
+    /** Vstup se nejdřív zkopíruje do dočasného souboru, pak se uloží stejnou cestou jako výběr ze systému. */
+    override suspend fun saveFromStream(input: InputStream): AudioSaveResult = withContext(Dispatchers.IO) {
+        val temp = File(context.cacheDir, "import-" + UUID.randomUUID() + ".tmp")
+        try {
+            temp.outputStream().use { input.copyTo(it) }
+            saveFromUri(Uri.fromFile(temp).toString())
+        } catch (e: IOException) {
+            AudioSaveResult.Failed(if (isStorageFull(e)) AudioError.STORAGE_FULL else AudioError.UNREADABLE)
+        } finally {
+            temp.delete()
         }
     }
 

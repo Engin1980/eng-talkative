@@ -28,12 +28,13 @@ import cz.talkative.app.ui.theme.TalkativeTheme
 
 /**
  * Procházení stromu složek a výběr jedné z nich. [path] vede ke složce, kterou dialog ukazuje (prázdná = kořen),
- * [folders] jsou její podsložky. Tlačítko [confirmLabel] vybere zobrazenou složku, v kořeni je vypnuté.
+ * [folders] jsou její podsložky. Tlačítko [confirmLabel] vybere zobrazenou složku, v kořeni je vypnuté, pokud není [allowRoot].
  */
 @Composable
 fun FolderPickerDialog(
     title: String,
     confirmLabel: String,
+    allowRoot: Boolean,
     path: List<Folder>,
     folders: List<Folder>,
     onBrowse: (String?) -> Unit,
@@ -71,7 +72,7 @@ fun FolderPickerDialog(
             }
         },
         confirmButton = {
-            Button(onClick = onConfirm, enabled = path.isNotEmpty(), modifier = Modifier.heightIn(min = dimens.minTouchTarget)) {
+            Button(onClick = onConfirm, enabled = allowRoot || path.isNotEmpty(), modifier = Modifier.heightIn(min = dimens.minTouchTarget)) {
                 Text(confirmLabel)
             }
         },

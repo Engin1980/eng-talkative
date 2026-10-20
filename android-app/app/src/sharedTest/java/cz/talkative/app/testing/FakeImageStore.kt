@@ -5,6 +5,7 @@ import cz.talkative.app.domain.image.ImageSaveResult
 import cz.talkative.app.domain.image.ImageStore
 import kotlinx.coroutines.CompletableDeferred
 import java.io.File
+import java.io.InputStream
 
 /** Úložiště obrázků v paměti pro testy; "soubory" jsou jen názvy. */
 class FakeImageStore : ImageStore {
@@ -29,6 +30,11 @@ class FakeImageStore : ImageStore {
         val name = "fake-${counter++}.jpg"
         files += name
         return ImageSaveResult.Saved(name)
+    }
+
+    override suspend fun saveFromStream(input: InputStream): ImageSaveResult {
+        input.readBytes()
+        return saveFromUri("stream")
     }
 
     override fun resolve(fileName: String): File? = if (fileName in files) File(fileName) else null

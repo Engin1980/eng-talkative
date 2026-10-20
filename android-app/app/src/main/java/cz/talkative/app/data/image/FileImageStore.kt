@@ -17,6 +17,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.io.File
 import java.io.IOException
+import java.io.InputStream
 import java.util.UUID
 import javax.inject.Inject
 
@@ -48,6 +49,19 @@ class FileImageStore @Inject constructor(
             ImageSaveResult.Failed(ImageError.UNREADABLE)
         } finally {
             listOfNotNull(decoded, oriented, scaled).distinct().forEach { it.recycle() }
+        }
+    }
+
+    /** Vstup se nejdřív zkopíruje do dočasného souboru, pak se uloží stejnou cestou jako výběr ze systému. */
+    override suspend fun saveFromStream(input: InputStream): ImageSaveResult = withContext(Dispatchers.IO) {
+        val temp = File(context.cacheDir, "import-" + UUID.randomUUID() + ".tmp")
+        try {
+            temp.outputStream().use { input.copyTo(it) }
+            saveFromUri(Uri.fromFile(temp).toString())
+        } catch (e: IOException) {
+            ImageSaveResult.Failed(if (isStorageFull(e)) ImageError.STORAGE_FULL else ImageError.UNREADABLE)
+        } finally {
+            temp.delete()
         }
     }
 

@@ -1,6 +1,7 @@
 package cz.talkative.app.domain.audio
 
 import java.io.File
+import java.io.InputStream
 
 /** Proč se MP3 nepodařilo uložit. */
 enum class AudioError {
@@ -31,6 +32,9 @@ sealed interface AudioSaveResult {
 interface AudioStore {
     /** Zkopíruje MP3 z [uri], zkontroluje ho a uloží; při odmítnutí po sobě nenechá žádný soubor. */
     suspend fun saveFromUri(uri: String): AudioSaveResult
+
+    /** Totéž pro MP3, který je v [input] (např. z archivu); [input] zavírá volající. */
+    suspend fun saveFromStream(input: InputStream): AudioSaveResult
 
     /** Soubor MP3, nebo `null`, pokud neexistuje. */
     fun resolve(fileName: String): File?

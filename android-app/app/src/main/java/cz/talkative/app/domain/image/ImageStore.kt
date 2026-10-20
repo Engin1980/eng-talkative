@@ -1,6 +1,7 @@
 package cz.talkative.app.domain.image
 
 import java.io.File
+import java.io.InputStream
 
 /** Proč se obrázek nepodařilo uložit. */
 enum class ImageError {
@@ -22,6 +23,9 @@ sealed interface ImageSaveResult {
 interface ImageStore {
     /** Načte obrázek z [uri], zmenší ho (max. [ImageScaling.MAX_SIDE] px, správná orientace dle EXIF) a uloží. */
     suspend fun saveFromUri(uri: String): ImageSaveResult
+
+    /** Totéž pro obrázek, který je v [input] (např. z archivu); [input] zavírá volající. */
+    suspend fun saveFromStream(input: InputStream): ImageSaveResult
 
     /** Soubor obrázku, nebo `null`, pokud neexistuje. */
     fun resolve(fileName: String): File?
