@@ -1,5 +1,6 @@
 package cz.talkative.app.ui
 
+import androidx.compose.ui.test.assertCountEquals
 import androidx.compose.ui.test.assertHeightIsAtLeast
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertIsEnabled
@@ -8,6 +9,7 @@ import androidx.compose.ui.test.assertIsOn
 import androidx.compose.ui.test.assertIsSelected
 import androidx.compose.ui.test.assertTextEquals
 import androidx.compose.ui.test.junit4.v2.createComposeRule
+import androidx.compose.ui.test.onAllNodesWithTag
 import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
@@ -99,10 +101,10 @@ class ConfigScreenTest {
     fun gridSteppers_changeOneValueAtATime() {
         show(AppConfig(gridPortrait = GridSize(3, 3), gridLandscape = GridSize(4, 3)))
 
-        // pořadí tlačítek na obrazovce: [0] podržení pro odebrání, [1] sloupce a [2] řádky na výšku,
-        // [3] sloupce a [4] řádky na šířku, [5] podržení pro vstup do administrace
-        composeRule.onAllNodesWithText("+")[1].performScrollTo().performClick()
-        composeRule.onAllNodesWithText("−")[4].performScrollTo().performClick()
+        // pořadí tlačítek na obrazovce: [0] podržení pro přidání (jen v režimu klepnutí), [1] podržení pro odebrání,
+        // [2] sloupce a [3] řádky na výšku, [4] sloupce a [5] řádky na šířku, [6] podržení pro vstup do administrace
+        composeRule.onAllNodesWithText("+")[2].performScrollTo().performClick()
+        composeRule.onAllNodesWithText("−")[5].performScrollTo().performClick()
 
         assertEquals(
             listOf<ConfigEvent>(
@@ -124,24 +126,50 @@ class ConfigScreenTest {
         )
 
         // pořadí steppérů: viz gridSteppers_changeOneValueAtATime
-        composeRule.onAllNodesWithText("−")[0].performScrollTo().assertIsNotEnabled()
-        composeRule.onAllNodesWithText("+")[0].performScrollTo().assertIsEnabled()
-        composeRule.onAllNodesWithText("+")[1].performScrollTo().assertIsNotEnabled() // sloupce na výšku = max
-        composeRule.onAllNodesWithText("−")[2].performScrollTo().assertIsNotEnabled() // řádky na výšku = min
-        composeRule.onAllNodesWithText("+")[5].performScrollTo().assertIsNotEnabled() // vstup do administrace = max
+        composeRule.onAllNodesWithText("−")[1].performScrollTo().assertIsNotEnabled()
+        composeRule.onAllNodesWithText("+")[1].performScrollTo().assertIsEnabled()
+        composeRule.onAllNodesWithText("+")[2].performScrollTo().assertIsNotEnabled() // sloupce na výšku = max
+        composeRule.onAllNodesWithText("−")[3].performScrollTo().assertIsNotEnabled() // řádky na výšku = min
+        composeRule.onAllNodesWithText("+")[6].performScrollTo().assertIsNotEnabled() // vstup do administrace = max
     }
 
     @Test
     fun holdIntervals_areShownInSeconds_andStepByHalfOrWholeSeconds() {
         show(AppConfig(removeHoldMillis = 1_000, adminHoldMillis = 10_000))
 
-        composeRule.onAllNodesWithText("+")[0].performScrollTo().performClick()
-        composeRule.onAllNodesWithText("−")[5].performScrollTo().performClick()
+        composeRule.onAllNodesWithText("+")[1].performScrollTo().performClick()
+        composeRule.onAllNodesWithText("−")[6].performScrollTo().performClick()
 
         assertEquals(
             listOf<ConfigEvent>(ConfigEvent.RemoveHoldChanged(1_500), ConfigEvent.AdminHoldChanged(9_000)),
             events,
         )
+    }
+
+    @Test
+    fun addHold_isShownInTapMode_startsAtImmediately_andStepsByHalfSecond() {
+        show(AppConfig(addHoldMillis = 0L))
+
+        composeRule.onNodeWithTag(configValueTag("add-hold")).performScrollTo().assertTextEquals("Hned")
+        composeRule.onAllNodesWithText("−")[0].performScrollTo().assertIsNotEnabled() // 0 je dolní mez
+        composeRule.onAllNodesWithText("+")[0].performScrollTo().performClick()
+
+        assertEquals(listOf<ConfigEvent>(ConfigEvent.AddHoldChanged(500)), events)
+    }
+
+    @Test
+    fun addHold_showsSeconds_andIsDisabledAtMaximum() {
+        show(AppConfig(addHoldMillis = ConfigLimits.MAX_ADD_HOLD_MILLIS))
+
+        composeRule.onNodeWithTag(configValueTag("add-hold")).performScrollTo().assertTextEquals(String.format(java.util.Locale.getDefault(), "%.1f s", 5.0))
+        composeRule.onAllNodesWithText("+")[0].performScrollTo().assertIsNotEnabled()
+    }
+
+    @Test
+    fun addHold_isHiddenInDragMode() {
+        show(AppConfig(addWordMode = AddWordMode.DRAG))
+
+        composeRule.onAllNodesWithTag(configValueTag("add-hold")).assertCountEquals(0)
     }
 
     @Test

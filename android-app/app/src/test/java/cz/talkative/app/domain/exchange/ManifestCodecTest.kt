@@ -45,6 +45,7 @@ class ManifestCodecTest {
         val config = AppConfig(
             addWordMode = AddWordMode.DRAG,
             allowReorderInSentence = false,
+            addHoldMillis = 1_500L,
             removeHoldMillis = 2_500L,
             adminHoldMillis = 12_000L,
             speakWordOnTap = true,
@@ -86,7 +87,7 @@ class ManifestCodecTest {
         )
         assertEquals(
             setOf(
-                "addWordMode", "allowReorderInSentence", "removeHoldMillis", "adminHoldMillis", "speakWordOnTap",
+                "addWordMode", "allowReorderInSentence", "addHoldMillis", "removeHoldMillis", "adminHoldMillis", "speakWordOnTap",
                 "gridPortrait", "gridLandscape", "collationLanguageTag", "hideCaptionsInSentence", "autoClearAfterPlayback",
             ),
             root.getValue("config").jsonObject.keys,

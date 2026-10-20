@@ -15,6 +15,10 @@ import androidx.compose.ui.test.hasTestTag
 import androidx.compose.ui.test.assertIsEnabled
 import androidx.compose.ui.test.assertIsNotEnabled
 import androidx.compose.ui.test.junit4.v2.createComposeRule
+import androidx.compose.ui.test.onNodeWithContentDescription
+import androidx.compose.ui.test.onAllNodesWithContentDescription
+import androidx.compose.ui.semantics.SemanticsProperties
+import androidx.compose.ui.test.SemanticsMatcher
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.onAllNodesWithTag
 import androidx.compose.ui.test.onAllNodesWithText
@@ -168,8 +172,8 @@ class ClientScreenTest {
         show(loaded(words(1)))
 
         composeRule.onNodeWithText("Úvod").assertIsDisplayed()
-        composeRule.onNodeWithText("Zpět").performClick()
-        composeRule.onNodeWithText("Domů").performClick()
+        composeRule.onNodeWithContentDescription("Zpět").performClick()
+        composeRule.onNodeWithContentDescription("Domů").performClick()
         assertEquals(emptyList<ClientEvent>(), events)
     }
 
@@ -182,8 +186,8 @@ class ClientScreenTest {
         composeRule.onNodeWithText("Jídlo").assertIsDisplayed()
         composeRule.onNodeWithText("Ovoce").assertIsDisplayed()
 
-        composeRule.onNodeWithText("Zpět").assertHeightIsAtLeast(64.dp).performClick()
-        composeRule.onNodeWithText("Domů").assertHeightIsAtLeast(64.dp).performClick()
+        composeRule.onNodeWithContentDescription("Zpět").assertHeightIsAtLeast(64.dp).performClick()
+        composeRule.onNodeWithContentDescription("Domů").assertHeightIsAtLeast(64.dp).performClick()
         composeRule.onNodeWithText("Jídlo").assertHeightIsAtLeast(64.dp).performClick()
         composeRule.onNodeWithText("Úvod").performClick()
 
@@ -219,12 +223,93 @@ class ClientScreenTest {
         assertEquals(listOf<ClientEvent>(ClientEvent.WordSelected(word)), events)
     }
 
+    private fun holdToAddState(word: Word, hold: Long, mode: AddWordMode = AddWordMode.TAP) =
+        ClientUiState(items = listOf(word), config = AppConfig(addWordMode = mode, addHoldMillis = hold), isLoading = false)
+
+    private fun heldMatcher() = SemanticsMatcher.expectValue(SemanticsProperties.StateDescription, "drženo")
+
+    @Test
+    fun withAddHold_shortTapDoesNotAddWord() {
+        show(holdToAddState(Word("w1", "default", "chci", null, 0, 0), hold = 1_000L))
+        composeRule.mainClock.autoAdvance = false
+
+        composeRule.onNodeWithText("chci").performTouchInput { down(center) }
+        composeRule.mainClock.advanceTimeBy(300)
+        composeRule.onNodeWithText("chci").performTouchInput { up() }
+        composeRule.mainClock.advanceTimeBy(3_000)
+
+        assertEquals(emptyList<ClientEvent>(), events)
+    }
+
+    @Test
+    fun withAddHold_holdingForIntervalAddsWordOnce_andMarksItHeldUntilRelease() {
+        val word = Word("w1", "default", "chci", null, 0, 0)
+        show(holdToAddState(word, hold = 1_000L))
+        composeRule.mainClock.autoAdvance = false
+
+        composeRule.onNodeWithText("chci").performTouchInput { down(center) }
+        composeRule.mainClock.advanceTimeBy(900)
+        assertEquals(emptyList<ClientEvent>(), events)
+        composeRule.onNode(heldMatcher()).assertExists() // zvýrazněno už při držení, ještě před přidáním
+
+        composeRule.mainClock.advanceTimeBy(200)
+        assertEquals(listOf<ClientEvent>(ClientEvent.WordSelected(word)), events)
+
+        composeRule.mainClock.advanceTimeBy(3_000)
+        composeRule.onNodeWithText("chci").performTouchInput { up() }
+        composeRule.mainClock.advanceTimeBy(100)
+        assertEquals(listOf<ClientEvent>(ClientEvent.WordSelected(word)), events)
+        composeRule.onNode(heldMatcher()).assertDoesNotExist()
+    }
+
+    @Test
+    fun withZeroAddHold_tapAddsImmediately_andNothingIsMarkedHeld() {
+        val word = Word("w1", "default", "chci", null, 0, 0)
+        show(holdToAddState(word, hold = 0L))
+
+        composeRule.onNodeWithText("chci").performClick()
+
+        assertEquals(listOf<ClientEvent>(ClientEvent.WordSelected(word)), events)
+        composeRule.onNode(heldMatcher()).assertDoesNotExist()
+    }
+
+    @Test
+    fun inDragMode_addHoldIsIgnored_andTapStillSelectsWord() {
+        val word = Word("w1", "default", "chci", null, 0, 0)
+        show(holdToAddState(word, hold = 2_000L, mode = AddWordMode.DRAG))
+
+        composeRule.onNodeWithText("chci").performClick()
+
+        assertEquals(listOf<ClientEvent>(ClientEvent.WordSelected(word)), events)
+    }
+
+    @Test
+    fun withAddHold_emptySentenceHintTellsToHold() {
+        show(holdToAddState(Word("w1", "default", "chci", null, 0, 0), hold = 1_000L))
+
+        composeRule.onNodeWithText("Podržením slova ho přidáte do věty.").assertIsDisplayed()
+    }
+
+    @Test
+    fun holdingSentenceWord_marksItHeldUntilReleased() {
+        show(sentenceState(1, hold = 1_000L))
+        composeRule.mainClock.autoAdvance = false
+
+        composeRule.onNodeWithTag(SENTENCE_WORD_TAG).performTouchInput { down(center) }
+        composeRule.mainClock.advanceTimeBy(200)
+        composeRule.onNode(heldMatcher()).assertExists()
+
+        composeRule.onNodeWithTag(SENTENCE_WORD_TAG).performTouchInput { up() }
+        composeRule.mainClock.advanceTimeBy(100)
+        composeRule.onNode(heldMatcher()).assertDoesNotExist()
+    }
+
     @Test
     fun emptySentence_showsHint_andClearButtonIsDisabled() {
         show(loaded(words(1)))
 
         composeRule.onNodeWithText("Klepnutím na slovo ho přidáte do věty.").assertIsDisplayed()
-        composeRule.onNodeWithText("Smazat větu").performClick()
+        composeRule.onNodeWithContentDescription("Smazat větu").performClick()
         assertEquals(emptyList<ClientEvent>(), events)
     }
 
@@ -232,7 +317,7 @@ class ClientScreenTest {
     fun clearButton_sendsClearSentence_andHasMinimumTouchTarget() {
         show(sentenceState(2))
 
-        composeRule.onNodeWithText("Smazat větu").assertHeightIsAtLeast(64.dp).performClick()
+        composeRule.onNodeWithContentDescription("Smazat větu").assertHeightIsAtLeast(64.dp).performClick()
 
         assertEquals(listOf<ClientEvent>(ClientEvent.ClearSentence), events)
     }
@@ -285,21 +370,21 @@ class ClientScreenTest {
         val barHeight = composeRule.onNodeWithTag(SENTENCE_BAR_TAG).getUnclippedBoundsInRoot().height
         assertTrue("výška řádku věty: $barHeight", barHeight <= 176.dp)
         composeRule.onNodeWithText("věta40").assertIsDisplayed() // věta se sama posune na konec
-        composeRule.onNodeWithText("Smazat větu").assertIsDisplayed() // ovládání zůstává na místě
+        composeRule.onNodeWithContentDescription("Smazat větu").assertIsDisplayed() // ovládání zůstává na místě
     }
 
     @Test
     fun playButton_isDisabledForEmptySentence() {
         show(loaded(words(1)))
 
-        composeRule.onNodeWithText("Přehrát").assertIsNotEnabled()
+        composeRule.onNodeWithContentDescription("Přehrát").assertIsNotEnabled()
     }
 
     @Test
     fun playButton_sendsToggle_andHasMinimumTouchTarget() {
         show(sentenceState(2))
 
-        composeRule.onNodeWithText("Přehrát").assertHeightIsAtLeast(64.dp).performClick()
+        composeRule.onNodeWithContentDescription("Přehrát").assertHeightIsAtLeast(64.dp).performClick()
 
         assertEquals(listOf<ClientEvent>(ClientEvent.TogglePlayback), events)
     }
@@ -308,9 +393,9 @@ class ClientScreenTest {
     fun whileSpeaking_buttonIsStop_evenWithEmptySentence() {
         show(ClientUiState(isSpeaking = true, isLoading = false))
 
-        composeRule.onNodeWithText("Zastavit").assertIsEnabled().performClick()
+        composeRule.onNodeWithContentDescription("Zastavit").assertIsEnabled().performClick()
 
-        assertEquals(0, composeRule.onAllNodesWithText("Přehrát").fetchSemanticsNodes().size)
+        assertEquals(0, composeRule.onAllNodesWithContentDescription("Přehrát").fetchSemanticsNodes().size)
         assertEquals(listOf<ClientEvent>(ClientEvent.TogglePlayback), events)
     }
 

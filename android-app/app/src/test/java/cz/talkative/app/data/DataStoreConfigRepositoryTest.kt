@@ -41,6 +41,7 @@ class DataStoreConfigRepositoryTest {
 
         assertEquals(AddWordMode.TAP, config.addWordMode)
         assertEquals(true, config.allowReorderInSentence)
+        assertEquals(0L, config.addHoldMillis)
         assertEquals(1_000L, config.removeHoldMillis)
         assertEquals(10_000L, config.adminHoldMillis)
         assertEquals(false, config.speakWordOnTap)
@@ -83,5 +84,14 @@ class DataStoreConfigRepositoryTest {
 
         assertEquals(6, config.gridPortrait.columns)
         assertEquals(500L, config.removeHoldMillis)
+    }
+
+    @Test
+    fun addHold_isStoredAndClampedWhenRead() = runTest {
+        repository.update { it.copy(addHoldMillis = 1_500L) }
+        assertEquals(1_500L, repository.config.first().addHoldMillis)
+
+        dataStore.edit { it[androidx.datastore.preferences.core.longPreferencesKey("add_hold_millis")] = 999_999L }
+        assertEquals(5_000L, repository.config.first().addHoldMillis)
     }
 }

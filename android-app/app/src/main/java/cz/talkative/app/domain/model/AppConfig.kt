@@ -15,6 +15,8 @@ data class GridSize(val columns: Int, val rows: Int) {
 data class AppConfig(
     val addWordMode: AddWordMode = AddWordMode.TAP,
     val allowReorderInSentence: Boolean = true,
+    /** Jak dlouho podržet slovo v mřížce, aby se přidalo do věty (jen v režimu klepnutí); 0 = přidá se hned na klepnutí. */
+    val addHoldMillis: Long = 0L,
     /** Jak dlouho podržet slovo ve větě, aby se odebralo. */
     val removeHoldMillis: Long = 1_000L,
     /** Jak dlouho podržet skrytý prvek pro vstup do administrace. */

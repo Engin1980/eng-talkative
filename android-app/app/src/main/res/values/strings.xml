@@ -10,6 +10,8 @@
     <string name="client_folder_marker">Složka</string>
     <string name="client_sentence_hint">Klepnutím na slovo ho přidáte do věty.</string>
     <string name="client_clear_sentence">Smazat větu</string>
+    <string name="client_word_held">drženo</string>
+    <string name="client_sentence_hint_hold">Podržením slova ho přidáte do věty.</string>
     <string name="client_sentence_hint_drag">Přetažením slova sem ho přidáte do věty.</string>
     <string name="client_play">Přehrát</string>
     <string name="client_stop">Zastavit</string>
@@ -183,6 +185,8 @@
     <string name="config_speak_on_tap">Přečíst slovo po klepnutí na něj</string>
     <string name="config_hide_captions">Skrýt titulky slov s obrázkem ve větě</string>
     <string name="config_auto_clear">Po přehrání věty ji smazat</string>
+    <string name="config_add_hold">Podržení pro přidání slova do věty (při klepnutí)</string>
+    <string name="config_add_hold_immediately">Hned</string>
     <string name="config_remove_hold">Podržení pro odebrání slova</string>
     <string name="config_section_grid">Velikost mřížky</string>
     <string name="config_grid_portrait">Na výšku</string>

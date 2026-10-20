@@ -142,7 +142,7 @@ class AdminFlowTest {
         composeRule.onNodeWithText("Nahoru").performClick()
         waitForNoText("Slovo")
         waitForText("Úroveň 2")
-        composeRule.onNodeWithText("Domů").performClick()
+        composeRule.onNodeWithContentDescription("Domů").performClick()
         waitForText("Úroveň 1")
     }
 
@@ -193,7 +193,7 @@ class AdminFlowTest {
         composeRule.onNodeWithText("Pod").performClick()
         waitForText("Tato složka je prázdná")
         create("Nové slovíčko", "w2")
-        composeRule.onNodeWithText("Domů").performClick()
+        composeRule.onNodeWithContentDescription("Domů").performClick()
         waitForText("Kořenová")
 
         composeRule.onNodeWithContentDescription("Smazat Kořenová").performClick()
@@ -265,7 +265,7 @@ class AdminFlowTest {
             composeRule.onNodeWithText("Uložit").performClick()
             waitForText(title)
         }
-        composeRule.onNodeWithText("Domů").performClick()
+        composeRule.onNodeWithContentDescription("Domů").performClick()
         waitForText("Obrázky")
 
         composeRule.onNodeWithContentDescription("Smazat Obrázky").performClick()

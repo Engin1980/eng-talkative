@@ -30,6 +30,14 @@ class ConfigLimitsTest {
     }
 
     @Test
+    fun addHold_isClampedToLimits_andZeroMeansImmediately() {
+        assertEquals(0L, AppConfig(addHoldMillis = 0).sanitized().addHoldMillis)
+        assertEquals(0L, AppConfig(addHoldMillis = -5).sanitized().addHoldMillis)
+        assertEquals(ConfigLimits.MAX_ADD_HOLD_MILLIS, AppConfig(addHoldMillis = 999_999).sanitized().addHoldMillis)
+        assertEquals(1_500L, AppConfig(addHoldMillis = 1_500).sanitized().addHoldMillis)
+    }
+
+    @Test
     fun valuesInsideLimits_stayUntouched() {
         val config = AppConfig(removeHoldMillis = 2_500, adminHoldMillis = 7_000, gridPortrait = GridSize(2, 5))
 

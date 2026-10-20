@@ -96,17 +96,19 @@ Seznam změn vzhledu a ovládání, které **zásadně nemění funkcionalitu**.
 ### U2.1 Drobné úpravy chování
 
 - [x] Délka intervalu stisku tlačítka pro přechod Klient->Admin je nastavitelná v nastavení (`adminHoldMillis`, 3–30 s, krok 1 s, `ConfigScreen`). Už hotovo dříve, nic se nemění.
-- [ ] Stejně jako je interval pro odstranění slova podržením, implementuj interval pro přidání slova podržením do větného řádku. Tj. přidání nebude nutně na "klik", ale v nastavení lze říci, jak dlouho se musí slovo podržet, aby se přidalo. Pokud je slovo stisknuto pro přidání, zvýrazni zeleným orámováním, že je drženo.
+- [x] Stejně jako je interval pro odstranění slova podržením, implementuj interval pro přidání slova podržením do větného řádku. Tj. přidání nebude nutně na "klik", ale v nastavení lze říci, jak dlouho se musí slovo podržet, aby se přidalo. Pokud je slovo stisknuto pro přidání, zvýrazni zeleným orámováním, že je drženo.
   - Rozhodnutí: režimy přidávání slov zůstávají dva: **stisk** (s intervalem) a **tažení** (drag & drop, beze změny). Volí se na obrazovce nastavení, lokálně pro zařízení.
   - Režim stisku dostane nové nastavení `addHoldMillis`: výchozí 0 (slovo se přidá hned na klepnutí, jako dnes), rozsah 0–5 s, krok 0,5 s (`ConfigLimits`), uložené v DataStore jako ostatní hodnoty. Je-li hodnota větší než 0, slovo se přidá až po podržení po tuto dobu a zvýrazní se zeleným orámováním.
   - Nastavení intervalu je aktivní jen v režimu stisku. Žádná změna schématu ani migrace; stávající uložené hodnoty zůstávají platné (chybějící `addHoldMillis` = 0).
 
 ### U2.2 Drobné úpravy vzhledu
 
+Provedení: slovo „Domů“ nahradil domeček v tlačítku klienta, v drobečkové navigaci administrace a ve výběru složky (`FolderPickerDialog`); kořen drobečků v klientovi se jmenuje „Úvod“ a zůstal textem. Orámování drženého slova je z `TalkativeTheme.holdColors` (zelené při přidání, červené při odebrání) a drženému slovu se nastaví `stateDescription` „drženo“ (čtečka obrazovky, testy). Přidáno nastavení `addHoldMillis` i do exportovaného archivu (`ArchiveConfig`, výchozí 0, starší archivy se čtou beze změny).
+
 Rozhodnutí: použijí se ikony z Material Icons (Home, ArrowBack, PlayArrow/Stop, Delete); tlačítka bez viditelného textu mají `contentDescription` z českých řetězců ve `strings.xml` (čtečka obrazovky), dotyková plocha zůstává alespoň 64 dp.
 
-- [ ] V navigačním prvku, který ukazuje průběžné zanoření do složek nahraď výraz "Domů" za obrázek s domečkem.
-- [ ] V navigačním prvku nahraď tlačítko "Zpět" jen šipkou doleva. 
-- [ ] V klientském okně ponech u tlačítka "Přehrát" jen ikonu bez textu.
-- [ ] V klientském okně ponech u tlačítka "Smazat větu" jen ikonu bez textu.
-- [ ] Ve větném řádku, když se stiskne slovo (aby při delším stisku bylo odstraněno), zvýrazně červeným orámováním, že je drženo.
+- [x] V navigačním prvku, který ukazuje průběžné zanoření do složek nahraď výraz "Domů" za obrázek s domečkem.
+- [x] V navigačním prvku nahraď tlačítko "Zpět" jen šipkou doleva. 
+- [x] V klientském okně ponech u tlačítka "Přehrát" jen ikonu bez textu.
+- [x] V klientském okně ponech u tlačítka "Smazat větu" jen ikonu bez textu.
+- [x] Ve větném řádku, když se stiskne slovo (aby při delším stisku bylo odstraněno), zvýrazně červeným orámováním, že je drženo.

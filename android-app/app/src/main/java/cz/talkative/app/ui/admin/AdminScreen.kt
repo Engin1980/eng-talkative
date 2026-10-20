@@ -23,6 +23,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material3.AlertDialog
@@ -297,11 +298,7 @@ private fun Breadcrumbs(path: List<Folder>, onGoToFolder: (String?) -> Unit) {
         modifier = Modifier.horizontalScroll(rememberScrollState()),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        Crumb(
-            text = stringResource(R.string.admin_breadcrumb_root),
-            isCurrent = path.isEmpty(),
-            onClick = { onGoToFolder(null) },
-        )
+        HomeCrumb(onClick = { onGoToFolder(null) })
         path.forEachIndexed { index, folder ->
             Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, contentDescription = null)
             Crumb(
@@ -310,6 +307,21 @@ private fun Breadcrumbs(path: List<Folder>, onGoToFolder: (String?) -> Unit) {
                 onClick = { onGoToFolder(folder.id) },
             )
         }
+    }
+}
+
+/** Kořen stromu složek: domeček místo slova „Domů“. */
+@Composable
+private fun HomeCrumb(onClick: () -> Unit) {
+    TextButton(
+        onClick = onClick,
+        modifier = Modifier.heightIn(min = TalkativeTheme.dimens.minTouchTarget),
+    ) {
+        Icon(
+            imageVector = Icons.Filled.Home,
+            contentDescription = stringResource(R.string.admin_breadcrumb_root),
+            modifier = Modifier.size(TalkativeTheme.dimens.iconSize),
+        )
     }
 }
 

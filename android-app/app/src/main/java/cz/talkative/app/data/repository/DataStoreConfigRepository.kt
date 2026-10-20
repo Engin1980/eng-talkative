@@ -34,6 +34,7 @@ class DataStoreConfigRepository @Inject constructor(
             addWordMode = this[ADD_WORD_MODE]?.let { name -> AddWordMode.entries.firstOrNull { it.name == name } }
                 ?: defaults.addWordMode,
             allowReorderInSentence = this[ALLOW_REORDER] ?: defaults.allowReorderInSentence,
+            addHoldMillis = this[ADD_HOLD_MILLIS] ?: defaults.addHoldMillis,
             removeHoldMillis = this[REMOVE_HOLD_MILLIS] ?: defaults.removeHoldMillis,
             adminHoldMillis = this[ADMIN_HOLD_MILLIS] ?: defaults.adminHoldMillis,
             speakWordOnTap = this[SPEAK_WORD_ON_TAP] ?: defaults.speakWordOnTap,
@@ -54,6 +55,7 @@ class DataStoreConfigRepository @Inject constructor(
     private fun MutablePreferences.write(config: AppConfig) {
         this[ADD_WORD_MODE] = config.addWordMode.name
         this[ALLOW_REORDER] = config.allowReorderInSentence
+        this[ADD_HOLD_MILLIS] = config.addHoldMillis
         this[REMOVE_HOLD_MILLIS] = config.removeHoldMillis
         this[ADMIN_HOLD_MILLIS] = config.adminHoldMillis
         this[SPEAK_WORD_ON_TAP] = config.speakWordOnTap
@@ -69,6 +71,7 @@ class DataStoreConfigRepository @Inject constructor(
     private companion object {
         val ADD_WORD_MODE = stringPreferencesKey("add_word_mode")
         val ALLOW_REORDER = booleanPreferencesKey("allow_reorder_in_sentence")
+        val ADD_HOLD_MILLIS = longPreferencesKey("add_hold_millis")
         val REMOVE_HOLD_MILLIS = longPreferencesKey("remove_hold_millis")
         val ADMIN_HOLD_MILLIS = longPreferencesKey("admin_hold_millis")
         val SPEAK_WORD_ON_TAP = booleanPreferencesKey("speak_word_on_tap")

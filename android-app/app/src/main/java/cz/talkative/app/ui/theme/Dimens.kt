@@ -10,6 +10,8 @@ data class Dimens(
     val minTouchTarget: Dp = 64.dp,
     val iconSize: Dp = 32.dp,
     val borderWidth: Dp = 2.dp,
+    /** Tloušťka orámování slova, které se právě drží (silnější než běžné orámování, aby bylo vidět pod prstem). */
+    val holdBorderWidth: Dp = 6.dp,
     val thumbnailSize: Dp = 56.dp,
     /** Výška obrázku ve slově ve větě (menší dlaždice než v mřížce). */
     val sentenceImageSize: Dp = 64.dp,

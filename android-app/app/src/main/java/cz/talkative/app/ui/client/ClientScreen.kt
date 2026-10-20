@@ -30,6 +30,12 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.onClick
+import androidx.compose.ui.semantics.role
+import androidx.compose.ui.semantics.stateDescription
+import androidx.compose.ui.semantics.semantics
+import cz.talkative.app.ui.common.onHold
 import androidx.compose.foundation.layout.offset
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.layout.onGloballyPositioned
@@ -106,7 +112,11 @@ fun ClientScreen(
                     onRemove = { onEvent(ClientEvent.RemoveFromSentence(it)) },
                     drag = drag,
                     dragEnabled = state.config.addWordMode == AddWordMode.DRAG || state.config.allowReorderInSentence,
-                    emptyHintRes = if (state.config.addWordMode == AddWordMode.DRAG) R.string.client_sentence_hint_drag else R.string.client_sentence_hint,
+                    emptyHintRes = when {
+                        state.config.addWordMode == AddWordMode.DRAG -> R.string.client_sentence_hint_drag
+                        state.config.addHoldMillis > 0 -> R.string.client_sentence_hint_hold
+                        else -> R.string.client_sentence_hint
+                    },
                     modifier = Modifier.weight(1f),
                 )
                 PlayStopButton(
@@ -145,6 +155,7 @@ fun ClientScreen(
                         onWordClick = { onEvent(ClientEvent.WordSelected(it)) },
                         drag = drag,
                         dragEnabled = state.config.addWordMode == AddWordMode.DRAG,
+                        addHoldMillis = if (state.config.addWordMode == AddWordMode.TAP) state.config.addHoldMillis else 0L,
                         modifier = Modifier.weight(1f),
                     )
                     val pageCount = Pagination.pageCount(state.items.size, grid.pageSize)
@@ -199,16 +210,14 @@ private fun NavigationRow(path: List<Folder>, onEvent: (ClientEvent) -> Unit) {
             enabled = !atRoot,
             modifier = Modifier.heightIn(min = dimens.minTouchTarget),
         ) {
-            Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = null, modifier = Modifier.size(dimens.iconSize))
-            Text(text = stringResource(R.string.client_back), modifier = Modifier.padding(start = dimens.spaceSmall))
+            Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.client_back), modifier = Modifier.size(dimens.iconSize))
         }
         Button(
             onClick = { onEvent(ClientEvent.GoHome) },
             enabled = !atRoot,
             modifier = Modifier.heightIn(min = dimens.minTouchTarget),
         ) {
-            Icon(Icons.Filled.Home, contentDescription = null, modifier = Modifier.size(dimens.iconSize))
-            Text(text = stringResource(R.string.client_home), modifier = Modifier.padding(start = dimens.spaceSmall))
+            Icon(Icons.Filled.Home, contentDescription = stringResource(R.string.client_home), modifier = Modifier.size(dimens.iconSize))
         }
         Breadcrumbs(path = path, onGoToFolder = { onEvent(ClientEvent.GoToFolder(it)) }, modifier = Modifier.weight(1f))
     }
@@ -254,6 +263,7 @@ private fun ItemGrid(
     onWordClick: (Word) -> Unit,
     drag: SentenceDragState,
     dragEnabled: Boolean,
+    addHoldMillis: Long,
     modifier: Modifier = Modifier,
 ) {
     val dimens = TalkativeTheme.dimens
@@ -266,7 +276,7 @@ private fun ItemGrid(
                 repeat(grid.columns) { column ->
                     Box(modifier = Modifier.weight(1f).fillMaxHeight()) {
                         items.getOrNull(row * grid.columns + column)?.let { item ->
-                            ItemTile(item = item, onFolderClick = onFolderClick, onWordClick = onWordClick, drag = drag, dragEnabled = dragEnabled)
+                            ItemTile(item = item, onFolderClick = onFolderClick, onWordClick = onWordClick, drag = drag, dragEnabled = dragEnabled, addHoldMillis = addHoldMillis)
                         }
                     }
                 }
@@ -276,51 +286,96 @@ private fun ItemGrid(
 }
 
 @Composable
-private fun ItemTile(item: DictionaryItem, onFolderClick: (Folder) -> Unit, onWordClick: (Word) -> Unit, drag: SentenceDragState, dragEnabled: Boolean) {
+private fun ItemTile(
+    item: DictionaryItem,
+    onFolderClick: (Folder) -> Unit,
+    onWordClick: (Word) -> Unit,
+    drag: SentenceDragState,
+    dragEnabled: Boolean,
+    addHoldMillis: Long,
+) {
     val dimens = TalkativeTheme.dimens
     val isFolder = item is Folder
     val colors = MaterialTheme.colorScheme
-    Surface(
-        onClick = {
-            when (item) {
-                is Folder -> onFolderClick(item)
-                is Word -> onWordClick(item)
-            }
-        },
-        modifier = Modifier.fillMaxSize().let {
-            // Táhnout lze jen slovíčka a jen v režimu tažení; složky se otevírají klepnutím.
-            if (item is Word) it.dragSource(dragEnabled, DragSource.GridWord(item), drag) else it
-        },
-        shape = MaterialTheme.shapes.large,
-        color = if (isFolder) colors.primary else colors.surfaceVariant,
-        contentColor = if (isFolder) colors.onPrimary else colors.onSurfaceVariant,
-        border = BorderStroke(dimens.borderWidth, colors.outline),
-    ) {
-        Box(modifier = Modifier.padding(dimens.spaceMedium), contentAlignment = Alignment.Center) {
-            Column(
-                modifier = Modifier.fillMaxSize(),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.spacedBy(dimens.spaceSmall, Alignment.CenterVertically),
-            ) {
-                // Slovíčko s obrázkem: obrázek nahoře a titulek pod ním; bez obrázku (nebo se zmizelým souborem) jen text.
-                if (item is Word) {
-                    WordImage(item.imageFile, Modifier.weight(1f, fill = false).fillMaxWidth())
+    // Slovo se přidává podržením, je-li nastaven interval (jen v režimu klepnutí); jinak hned na klepnutí.
+    val addsByHold = item is Word && addHoldMillis > 0
+    var held by remember { mutableStateOf(false) }
+    val tileModifier = Modifier.fillMaxSize().let {
+        // Táhnout lze jen slovíčka a jen v režimu tažení; složky se otevírají klepnutím.
+        if (item is Word) it.dragSource(dragEnabled, DragSource.GridWord(item), drag) else it
+    }
+    val border = if (held) {
+        BorderStroke(dimens.holdBorderWidth, TalkativeTheme.holdColors.add)
+    } else {
+        BorderStroke(dimens.borderWidth, colors.outline)
+    }
+    val shape = MaterialTheme.shapes.large
+    val color = if (isFolder) colors.primary else colors.surfaceVariant
+    val contentColor = if (isFolder) colors.onPrimary else colors.onSurfaceVariant
+    val content: @Composable () -> Unit = { ItemTileContent(item) }
+    val heldDescription = stringResource(R.string.client_word_held)
+    if (addsByHold && item is Word) {
+        Surface(
+            modifier = tileModifier
+                .onHold(addHoldMillis, onHeldChange = { held = it }, onHold = { onWordClick(item) })
+                // Čtečka obrazovky klepne bez podržení, proto má vlastní akci.
+                .semantics(mergeDescendants = true) {
+                    role = Role.Button
+                    if (held) stateDescription = heldDescription
+                    onClick { onWordClick(item); true }
+                },
+            shape = shape,
+            color = color,
+            contentColor = contentColor,
+            border = border,
+            content = content,
+        )
+    } else {
+        Surface(
+            onClick = {
+                when (item) {
+                    is Folder -> onFolderClick(item)
+                    is Word -> onWordClick(item)
                 }
-                Text(
-                    text = item.title,
-                    style = MaterialTheme.typography.titleLarge,
-                    textAlign = TextAlign.Center,
-                    maxLines = 3,
-                    overflow = TextOverflow.Ellipsis,
-                )
+            },
+            modifier = tileModifier,
+            shape = shape,
+            color = color,
+            contentColor = contentColor,
+            border = border,
+            content = content,
+        )
+    }
+}
+
+@Composable
+private fun ItemTileContent(item: DictionaryItem) {
+    val dimens = TalkativeTheme.dimens
+    val isFolder = item is Folder
+    Box(modifier = Modifier.padding(dimens.spaceMedium), contentAlignment = Alignment.Center) {
+        Column(
+            modifier = Modifier.fillMaxSize(),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(dimens.spaceSmall, Alignment.CenterVertically),
+        ) {
+            // Slovíčko s obrázkem: obrázek nahoře a titulek pod ním; bez obrázku (nebo se zmizelým souborem) jen text.
+            if (item is Word) {
+                WordImage(item.imageFile, Modifier.weight(1f, fill = false).fillMaxWidth())
             }
-            if (isFolder) {
-                Icon(
-                    imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
-                    contentDescription = stringResource(R.string.client_folder_marker),
-                    modifier = Modifier.align(Alignment.BottomEnd).size(dimens.iconSize),
-                )
-            }
+            Text(
+                text = item.title,
+                style = MaterialTheme.typography.titleLarge,
+                textAlign = TextAlign.Center,
+                maxLines = 3,
+                overflow = TextOverflow.Ellipsis,
+            )
+        }
+        if (isFolder) {
+            Icon(
+                imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
+                contentDescription = stringResource(R.string.client_folder_marker),
+                modifier = Modifier.align(Alignment.BottomEnd).size(dimens.iconSize),
+            )
         }
     }
 }

@@ -61,6 +61,7 @@ data class ArchiveGrid(val columns: Int, val rows: Int)
 data class ArchiveConfig(
     val addWordMode: AddWordMode = AddWordMode.TAP,
     val allowReorderInSentence: Boolean = true,
+    val addHoldMillis: Long = 0L,
     val removeHoldMillis: Long = 1_000L,
     val adminHoldMillis: Long = 10_000L,
     val speakWordOnTap: Boolean = false,
@@ -74,6 +75,7 @@ data class ArchiveConfig(
     fun toAppConfig() = AppConfig(
         addWordMode = addWordMode,
         allowReorderInSentence = allowReorderInSentence,
+        addHoldMillis = addHoldMillis,
         removeHoldMillis = removeHoldMillis,
         adminHoldMillis = adminHoldMillis,
         speakWordOnTap = speakWordOnTap,
@@ -88,6 +90,7 @@ data class ArchiveConfig(
         fun from(config: AppConfig) = ArchiveConfig(
             addWordMode = config.addWordMode,
             allowReorderInSentence = config.allowReorderInSentence,
+            addHoldMillis = config.addHoldMillis,
             removeHoldMillis = config.removeHoldMillis,
             adminHoldMillis = config.adminHoldMillis,
             speakWordOnTap = config.speakWordOnTap,

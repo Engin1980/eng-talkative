@@ -42,12 +42,8 @@ fun PlayStopButton(isSpeaking: Boolean, enabled: Boolean, onClick: () -> Unit, m
     ) {
         Icon(
             imageVector = if (isSpeaking) StopIcon else Icons.Filled.PlayArrow,
-            contentDescription = null,
+            contentDescription = stringResource(if (isSpeaking) R.string.client_stop else R.string.client_play),
             modifier = Modifier.size(dimens.iconSize),
-        )
-        Text(
-            text = stringResource(if (isSpeaking) R.string.client_stop else R.string.client_play),
-            modifier = Modifier.padding(start = dimens.spaceSmall),
         )
     }
 }

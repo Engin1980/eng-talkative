@@ -14,6 +14,7 @@ data class ConfigUiState(
 sealed interface ConfigEvent {
     data class AddWordModeChanged(val mode: AddWordMode) : ConfigEvent
     data class AllowReorderChanged(val enabled: Boolean) : ConfigEvent
+    data class AddHoldChanged(val millis: Long) : ConfigEvent
     data class RemoveHoldChanged(val millis: Long) : ConfigEvent
     data class AdminHoldChanged(val millis: Long) : ConfigEvent
     data class SpeakWordOnTapChanged(val enabled: Boolean) : ConfigEvent

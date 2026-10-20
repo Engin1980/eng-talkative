@@ -6,6 +6,8 @@ import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.staticCompositionLocalOf
+import androidx.compose.ui.graphics.Color
 
 private val LightColors = lightColorScheme(
     primary = LightPrimary,
@@ -33,6 +35,13 @@ private val DarkColors = darkColorScheme(
     outline = DarkOutline,
 )
 
+/** Barvy orámování slova, které se právě drží: [add] při držení pro přidání do věty, [remove] pro odebrání. */
+data class HoldColors(val add: Color, val remove: Color)
+
+private val LightHoldColors = HoldColors(add = LightHoldAdd, remove = LightHoldRemove)
+private val DarkHoldColors = HoldColors(add = DarkHoldAdd, remove = DarkHoldRemove)
+internal val LocalHoldColors = staticCompositionLocalOf { LightHoldColors }
+
 /**
  * Téma aplikace. Světlý/tmavý režim se řídí systémem; obě varianty mají vysoký kontrast.
  * Barvy a typografie přes [MaterialTheme], rozměry přes [TalkativeTheme.dimens].
@@ -42,7 +51,10 @@ fun TalkativeTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
     content: @Composable () -> Unit,
 ) {
-    CompositionLocalProvider(LocalDimens provides Dimens()) {
+    CompositionLocalProvider(
+        LocalDimens provides Dimens(),
+        LocalHoldColors provides if (darkTheme) DarkHoldColors else LightHoldColors,
+    ) {
         MaterialTheme(
             colorScheme = if (darkTheme) DarkColors else LightColors,
             typography = TalkativeTypography,
@@ -52,6 +64,9 @@ fun TalkativeTheme(
 }
 
 object TalkativeTheme {
+    val holdColors: HoldColors
+        @Composable get() = LocalHoldColors.current
+
     val dimens: Dimens
         @Composable get() = LocalDimens.current
 }

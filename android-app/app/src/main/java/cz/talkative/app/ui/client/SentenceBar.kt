@@ -21,6 +21,12 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.runtime.key
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -121,12 +127,23 @@ private fun SentenceChip(
     val dimens = TalkativeTheme.dimens
     val colors = MaterialTheme.colorScheme
     val hasImage = hasWordImage(imageFile)
+    var held by remember { mutableStateOf(false) }
+    val heldDescription = stringResource(R.string.client_word_held)
     Surface(
-        modifier = Modifier.testTag(SENTENCE_WORD_TAG).then(dragModifier).onHold(holdMillis, onHold),
+        modifier = Modifier
+            .testTag(SENTENCE_WORD_TAG)
+            .semantics { if (held) stateDescription = heldDescription }
+            .then(dragModifier)
+            .onHold(holdMillis, onHeldChange = { held = it }, onHold = onHold),
         shape = MaterialTheme.shapes.medium,
         color = colors.surfaceVariant,
         contentColor = colors.onSurfaceVariant,
-        border = BorderStroke(dimens.borderWidth, colors.outline),
+        // Slovo, které se právě drží pro odebrání, má červené orámování.
+        border = if (held) {
+            BorderStroke(dimens.holdBorderWidth, TalkativeTheme.holdColors.remove)
+        } else {
+            BorderStroke(dimens.borderWidth, colors.outline)
+        },
     ) {
         Column(
             modifier = Modifier
@@ -154,7 +171,6 @@ fun ClearSentenceButton(enabled: Boolean, onClick: () -> Unit, modifier: Modifie
         enabled = enabled,
         modifier = modifier.heightIn(min = dimens.minTouchTarget),
     ) {
-        Icon(Icons.Filled.Delete, contentDescription = null, modifier = Modifier.size(dimens.iconSize))
-        Text(text = stringResource(R.string.client_clear_sentence), modifier = Modifier.padding(start = dimens.spaceSmall))
+        Icon(Icons.Filled.Delete, contentDescription = stringResource(R.string.client_clear_sentence), modifier = Modifier.size(dimens.iconSize))
     }
 }

@@ -105,10 +105,10 @@ class AdminScreenTest {
         val b = folder("b", "B", parent = "a")
         show(state(path = listOf(a, b)))
 
-        composeRule.onNodeWithText("Domů").assertIsDisplayed()
+        composeRule.onNodeWithContentDescription("Domů").assertIsDisplayed()
         composeRule.onNodeWithText("B").assertIsDisplayed()
         composeRule.onNodeWithText("A").performClick()
-        composeRule.onNodeWithText("Domů").performClick()
+        composeRule.onNodeWithContentDescription("Domů").performClick()
 
         assertEquals(listOf<AdminEvent>(AdminEvent.GoToFolder("a"), AdminEvent.GoToFolder(null)), events)
     }
@@ -542,7 +542,7 @@ class AdminScreenTest {
         show(state(path = emptyList(), dialog = moveDialog(targetId = "f2", path = listOf(a))))
 
         composeRule.onNodeWithText("Tato složka nemá žádné podsložky.").assertIsDisplayed()
-        composeRule.onAllNodesWithText("Domů")[1].performClick() // [0] je cesta pod hlavním obsahem
+        composeRule.onAllNodesWithContentDescription("Domů")[1].performClick() // [0] je cesta pod hlavním obsahem
         assertEquals(listOf<AdminEvent>(AdminEvent.BrowseMoveTarget(null)), events)
     }
 

@@ -18,6 +18,8 @@ import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.junit4.v2.createComposeRule
 import androidx.compose.ui.test.onAllNodesWithTag
 import androidx.compose.ui.test.onAllNodesWithText
+import androidx.compose.ui.test.onNodeWithContentDescription
+import androidx.compose.ui.test.onAllNodesWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.room.Room
@@ -128,7 +130,7 @@ class ClientFlowTest {
 
         // drobečky odpovídají poloze a „Domů“ vede do kořene; věta zůstala
         composeRule.onNodeWithText("Úvod").assertIsDisplayed()
-        composeRule.onNodeWithText("Domů").performClick()
+        composeRule.onNodeWithContentDescription("Domů").performClick()
         waitForText("chci")
         assertEquals(4, sentenceWordCount())
     }
@@ -141,13 +143,13 @@ class ClientFlowTest {
         composeRule.onNodeWithText("Ovoce").performClick()
         waitForText("hruška")
 
-        composeRule.onNodeWithText("Zpět").performClick()
+        composeRule.onNodeWithContentDescription("Zpět").performClick()
         waitForText("chleba")
 
         tile("hruška").assertDoesNotExist()
         tile("chleba").performClick()
         waitForSentenceWords(1)
-        composeRule.onNodeWithText("Smazat větu").performClick()
+        composeRule.onNodeWithContentDescription("Smazat větu").performClick()
         waitForSentenceWords(0)
     }
 
@@ -173,14 +175,14 @@ class ClientFlowTest {
         tile("chci").performClick()
         waitForSentenceWords(1)
 
-        composeRule.onNodeWithText("Přehrát").performClick()
+        composeRule.onNodeWithContentDescription("Přehrát").performClick()
         composeRule.waitUntil(5_000) { speech.spoken.size == 1 }
-        composeRule.onNodeWithText("Zastavit").performClick()
+        composeRule.onNodeWithContentDescription("Zastavit").performClick()
         speech.finishSpeaking()
         composeRule.waitForIdle()
         assertEquals(1, sentenceWordCount()) // po Stopu věta zůstala
 
-        composeRule.onNodeWithText("Přehrát").performClick()
+        composeRule.onNodeWithContentDescription("Přehrát").performClick()
         composeRule.waitUntil(5_000) { speech.spoken.size == 2 }
         speech.finishSpeaking()
         waitForSentenceWords(0) // po dohrání se smazala
@@ -192,10 +194,10 @@ class ClientFlowTest {
         tile("chci").performClick()
         waitForSentenceWords(1)
 
-        composeRule.onNodeWithText("Přehrát").performClick()
+        composeRule.onNodeWithContentDescription("Přehrát").performClick()
         composeRule.waitUntil(5_000) { speech.spoken.size == 1 }
         speech.finishSpeaking()
-        composeRule.waitUntil(5_000) { composeRule.onAllNodesWithText("Přehrát").fetchSemanticsNodes().isNotEmpty() }
+        composeRule.waitUntil(5_000) { composeRule.onAllNodesWithContentDescription("Přehrát").fetchSemanticsNodes().isNotEmpty() }
 
         assertEquals(1, sentenceWordCount())
     }
@@ -256,11 +258,11 @@ class ClientFlowTest {
         dragTo(chips[1], Offset(first.left + 4f, first.center.y)) // "chleba" před "chci"
         composeRule.waitUntil(5_000) { sentenceTitles() == listOf("chleba", "chci") }
 
-        composeRule.onNodeWithText("Přehrát").performClick()
+        composeRule.onNodeWithContentDescription("Přehrát").performClick()
         composeRule.waitUntil(5_000) { speech.spoken.isNotEmpty() }
         assertEquals(listOf("chleba chci"), speech.spoken)
         speech.finishSpeaking()
-        composeRule.waitUntil(5_000) { composeRule.onAllNodesWithText("Přehrát").fetchSemanticsNodes().isNotEmpty() }
+        composeRule.waitUntil(5_000) { composeRule.onAllNodesWithContentDescription("Přehrát").fetchSemanticsNodes().isNotEmpty() }
 
         configFlow.value = AppConfig(allowReorderInSentence = false)
         composeRule.waitForIdle()

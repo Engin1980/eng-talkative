@@ -30,6 +30,7 @@ class ConfigViewModel @Inject constructor(
         when (event) {
             is ConfigEvent.AddWordModeChanged -> update { it.copy(addWordMode = event.mode) }
             is ConfigEvent.AllowReorderChanged -> update { it.copy(allowReorderInSentence = event.enabled) }
+            is ConfigEvent.AddHoldChanged -> update { it.copy(addHoldMillis = event.millis) }
             is ConfigEvent.RemoveHoldChanged -> update { it.copy(removeHoldMillis = event.millis) }
             is ConfigEvent.AdminHoldChanged -> update { it.copy(adminHoldMillis = event.millis) }
             is ConfigEvent.SpeakWordOnTapChanged -> update { it.copy(speakWordOnTap = event.enabled) }

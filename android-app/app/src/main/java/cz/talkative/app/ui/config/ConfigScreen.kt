@@ -65,6 +65,7 @@ fun ConfigScreen(
     val dimens = TalkativeTheme.dimens
     val config = state.config
     BackHandler { onBack() }
+    val immediately = stringResource(R.string.config_add_hold_immediately)
 
     Column(
         modifier = modifier
@@ -101,6 +102,18 @@ fun ConfigScreen(
                 selected = config.addWordMode == AddWordMode.DRAG,
                 onSelect = { onEvent(ConfigEvent.AddWordModeChanged(AddWordMode.DRAG)) },
             )
+            if (config.addWordMode == AddWordMode.TAP) {
+                StepperRow(
+                    label = stringResource(R.string.config_add_hold),
+                    key = "add-hold",
+                    value = config.addHoldMillis,
+                    min = ConfigLimits.MIN_ADD_HOLD_MILLIS,
+                    max = ConfigLimits.MAX_ADD_HOLD_MILLIS,
+                    step = ConfigLimits.ADD_HOLD_STEP_MILLIS,
+                    format = { if (it == 0L) immediately else seconds(it) },
+                    onChange = { onEvent(ConfigEvent.AddHoldChanged(it)) },
+                )
+            }
             SwitchRow(R.string.config_allow_reorder, config.allowReorderInSentence) { onEvent(ConfigEvent.AllowReorderChanged(it)) }
             SwitchRow(R.string.config_speak_on_tap, config.speakWordOnTap) { onEvent(ConfigEvent.SpeakWordOnTapChanged(it)) }
             SwitchRow(R.string.config_hide_captions, config.hideCaptionsInSentence) { onEvent(ConfigEvent.HideCaptionsChanged(it)) }

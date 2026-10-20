@@ -6,10 +6,12 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
+import androidx.compose.material.icons.filled.Home
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
@@ -50,7 +52,13 @@ fun FolderPickerDialog(
                 verticalArrangement = Arrangement.spacedBy(dimens.spaceSmall),
             ) {
                 Row(modifier = Modifier.horizontalScroll(rememberScrollState()), verticalAlignment = Alignment.CenterVertically) {
-                    PickerCrumb(stringResource(R.string.admin_breadcrumb_root), isCurrent = path.isEmpty()) { onBrowse(null) }
+                    TextButton(onClick = { onBrowse(null) }, modifier = Modifier.heightIn(min = dimens.minTouchTarget)) {
+                        Icon(
+                            imageVector = Icons.Filled.Home,
+                            contentDescription = stringResource(R.string.admin_breadcrumb_root),
+                            modifier = Modifier.size(dimens.iconSize),
+                        )
+                    }
                     path.forEachIndexed { index, folder ->
                         Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, contentDescription = null)
                         PickerCrumb(folder.title, isCurrent = index == path.lastIndex) { onBrowse(folder.id) }

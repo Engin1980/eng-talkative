@@ -25,6 +25,6 @@ fun HiddenAdminEntry(
         modifier = modifier
             .size(TalkativeTheme.dimens.minTouchTarget)
             .testTag(HIDDEN_ADMIN_ENTRY_TAG)
-            .onHold(holdMillis, onEntered),
+            .onHold(holdMillis, onHold = onEntered),
     )
 }
