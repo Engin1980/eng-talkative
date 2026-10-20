@@ -1,256 +1,301 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">Talkative</string>
+  <string name="app_name">Talkative</string>
 
-    <string name="client_loading">Načítání…</string>
-    <string name="client_empty_folder">Tato složka je prázdná.</string>
-    <string name="client_page_previous">Předchozí</string>
-    <string name="client_page_next">Další</string>
-    <string name="client_page_indicator">Stránka %1$d z %2$d</string>
-    <string name="client_folder_marker">Složka</string>
-    <string name="client_sentence_hint">Klepnutím na slovo ho přidáte do věty.</string>
-    <string name="client_clear_sentence">Smazat větu</string>
-    <string name="client_word_held">drženo</string>
-    <string name="client_sentence_hint_hold">Podržením slova ho přidáte do věty.</string>
-    <string name="client_sentence_hint_drag">Přetažením slova sem ho přidáte do věty.</string>
-    <string name="client_play">Přehrát</string>
-    <string name="client_stop">Zastavit</string>
-    <string name="client_speech_error_title">Čtení nahlas se nepodařilo</string>
-    <string name="client_speech_error_engine">Na tomto zařízení nefunguje čtení textu nahlas. Chybí nebo nejde spustit hlasový modul (převod textu na řeč). Zkontrolujte v nastavení Androidu v části Jazyk a zadávání, že je hlasový modul nainstalovaný a zapnutý.</string>
-    <string name="client_speech_error_language">Na tomto zařízení chybí český hlas. V nastavení Androidu (Jazyk a zadávání, Převod textu na řeč) stáhněte hlasová data pro češtinu.</string>
-    <string name="client_speech_error_failed">Přehrání se nepodařilo. Zkuste to prosím znovu.</string>
-    <string name="client_speech_error_audio">Vlastní zvuk jednoho ze slovíček se nepodařilo přehrát, soubor chybí nebo je poškozený. Čtení věty bylo zastaveno. Požádejte správce, ať zvuk slovíčka zkontroluje v administraci.</string>
-    <string name="client_back">Zpět</string>
-    <string name="client_home">Domů</string>
-    <string name="client_breadcrumb_root">Úvod</string>
+  <string name="client_loading">Načítání…</string>
+  <string name="client_empty_folder">Tato složka je prázdná.</string>
+  <string name="client_page_previous">Předchozí</string>
+  <string name="client_page_next">Další</string>
+  <string name="client_page_indicator">Stránka %1$d z %2$d</string>
+  <string name="client_folder_marker">Složka</string>
+  <string name="client_sentence_hint">Klepnutím na slovo ho přidáte do věty.</string>
+  <string name="client_clear_sentence">Smazat větu</string>
+  <string name="client_word_held">drženo</string>
+  <string name="client_sentence_hint_hold">Podržením slova ho přidáte do věty.</string>
+  <string name="client_sentence_hint_drag">Přetažením slova sem ho přidáte do věty.</string>
+  <string name="client_play">Přehrát</string>
+  <string name="client_stop">Zastavit</string>
+  <string name="client_speech_error_title">Čtení nahlas se nepodařilo</string>
+  <string name="client_speech_error_engine">Na tomto zařízení nefunguje čtení textu nahlas. Chybí
+    nebo nejde spustit hlasový modul (převod textu na řeč). Zkontrolujte v nastavení Androidu v
+    části Jazyk a zadávání, že je hlasový modul nainstalovaný a zapnutý.</string>
+  <string name="client_speech_error_language">Na tomto zařízení chybí český hlas. V nastavení
+    Androidu (Jazyk a zadávání, Převod textu na řeč) stáhněte hlasová data pro češtinu.</string>
+  <string name="client_speech_error_failed">Přehrání se nepodařilo. Zkuste to prosím znovu.</string>
+  <string name="client_speech_error_audio">Vlastní zvuk jednoho ze slovíček se nepodařilo přehrát,
+    soubor chybí nebo je poškozený. Čtení věty bylo zastaveno. Požádejte správce, ať zvuk slovíčka
+    zkontroluje v administraci.</string>
+  <string name="client_back">Zpět</string>
+  <string name="client_home">Domů</string>
+  <string name="client_breadcrumb_root">Úvod</string>
 
-    <string name="admin_title">Administrace</string>
-    <string name="admin_back_to_client">Zpět do klienta</string>
-    <string name="admin_breadcrumb_root">Domů</string>
-    <string name="admin_up">Nahoru</string>
-    <string name="admin_add_folder">+ 📁</string>
-    <string name="admin_add_word">New word</string>
-    <string name="admin_empty_title">Tato složka je prázdná</string>
-    <string name="admin_empty_hint">Přidejte složku nebo slovíčko tlačítky nahoře.</string>
-    <string name="admin_kind_folder">Složka</string>
-    <string name="admin_kind_word">Slovíčko</string>
-    <string name="admin_edit_item">Upravit %1$s</string>
-    <string name="admin_delete_item">Smazat %1$s</string>
-    <string name="admin_move_up">Posunout %1$s nahoru</string>
-    <string name="admin_move_down">Posunout %1$s dolů</string>
-    <string name="admin_sort_alphabetically">Seřadit podle abecedy</string>
-    <string name="admin_open_config">Nastavení</string>
-    <string name="admin_open_exchange">Export a import</string>
-    <string name="admin_open_about">O aplikaci</string>
-    <string name="about_title">O aplikaci</string>
-    <string name="about_back">Zpět do administrace</string>
-    <string name="about_version">Verze %1$s</string>
-    <string name="about_description">Talkative je pomůcka pro komunikaci: z připravených slovíček si uživatel složí větu a aplikace ji přečte nahlas. Slovník si spravuje administrátor přímo v aplikaci.</string>
-    <string name="about_section_arasaac">Piktogramy ARASAAC</string>
-    <string name="about_arasaac_what">ARASAAC je aragonské středisko pro augmentativní a alternativní komunikaci. Jeho piktogramy lze v aplikaci vybrat jako obrázky slovíček.</string>
-    <string name="arasaac_credit">Autor piktogramů: Sergio Palao. Původ: ARASAAC (http://www.arasaac.org). Licence: CC (BY-NC-SA). Majitel: vláda Aragonu (Španělsko)</string>
-    <string name="arasaac_credit_long">Použité piktografické symboly jsou majetkem Aragonské vlády a vytvořil je Sergio Palao pro ARASAAC (http://www.arasaac.org), který je šíří pod Creative Commons License BY-NC-SA.</string>
-    <string name="about_arasaac_license_meaning">Licence CC BY-NC-SA povoluje jen nekomerční použití. Odvozená díla, včetně slovníků exportovaných z aplikace, které piktogramy ARASAAC obsahují, se musí šířit pod stejnou licencí a se stejným uvedením autora.</string>
-    <string name="about_arasaac_contact">Pro jiné použití je podle podmínek ARASAAC potřeba písemný souhlas držitelů práv; obraťte se na ARASAAC.</string>
-    <string name="about_logo_arasaac">Logo ARASAAC</string>
-    <string name="about_link_arasaac">Web ARASAAC</string>
-    <string name="about_link_terms">Podmínky použití ARASAAC</string>
-    <string name="about_link_license">Text licence CC BY-NC-SA</string>
-    <string name="about_section_privacy">Soukromí a síť</string>
-    <string name="about_privacy">Data (slovník, obrázky, zvuky a nastavení) zůstávají v zařízení. Síť se používá jen při hledání piktogramu v ARASAAC a odchází při něm jen hledaný text.</string>
-    <string name="about_link_failed">Odkaz se nepodařilo otevřít, chybí prohlížeč. Adresu si můžete opsat.</string>
-    <string name="notice_title">Než začnete</string>
-    <string name="notice_intro">Před použitím aplikace si prosím přečtěte informace o ní a o piktogramech ARASAAC.</string>
-    <string name="notice_acknowledge">Beru na vědomí</string>
-    <string name="notice_leave">Odejít</string>
-    <string name="arasaac_title">Piktogram ARASAAC</string>
-    <string name="arasaac_back">Zpět</string>
-    <string name="arasaac_query_label">Hledané slovo</string>
-    <string name="arasaac_search">Hledat</string>
-    <string name="arasaac_hint_start">Napište slovo a klepněte na Hledat. Klepnutím na nabídnutý piktogram ho vyberete.</string>
-    <string name="arasaac_searching">Hledám…</string>
-    <string name="arasaac_nothing">Nic nenalezeno. Zkuste jiné slovo, například základní tvar nebo bližší pojem.</string>
-    <string name="arasaac_retry">Zkusit znovu</string>
-    <string name="arasaac_downloading">Stahuji piktogram…</string>
-    <string name="arasaac_error_no_network">Chybí připojení k internetu. Zapněte Wi-Fi nebo mobilní data a zkuste to znovu.</string>
-    <string name="arasaac_error_timeout">Server ARASAAC neodpověděl včas. Zkuste to znovu.</string>
-    <string name="arasaac_error_server">Server ARASAAC je nedostupný nebo odpověděl chybou. Zkuste to později.</string>
-    <string name="arasaac_error_bad_response">Odpověď serveru ARASAAC se nepodařilo přečíst. Zkuste to znovu.</string>
-    <string name="arasaac_about_link">O aplikaci a licenci piktogramů</string>
-    <string name="arasaac_license_file_note">Tento archiv může obsahovat piktogramy ARASAAC. Smí se šířit jen nekomerčně, pod licencí CC BY-NC-SA a se stejným uvedením autora.</string>
-    <string name="exchange_license_note">Do archivu se přidá soubor s uvedením autora a licencí ARASAAC. Archiv, který obsahuje piktogramy ARASAAC, lze šířit jen nekomerčně, pod stejnou licencí a se stejným uvedením.</string>
-    <string name="draw_canvas">Plátno pro kreslení</string>
-    <string name="draw_tool_brush">Štětec</string>
-    <string name="draw_tool_eraser">Guma</string>
-    <string name="draw_tool_fill">Výplň</string>
-    <string name="draw_color">Barva: %1$s</string>
-    <string name="draw_color_black">černá</string>
-    <string name="draw_color_red">červená</string>
-    <string name="draw_color_orange">oranžová</string>
-    <string name="draw_color_yellow">žlutá</string>
-    <string name="draw_color_green">zelená</string>
-    <string name="draw_color_blue">modrá</string>
-    <string name="draw_color_purple">fialová</string>
-    <string name="draw_color_brown">hnědá</string>
-    <string name="draw_width">Tloušťka štětce a gumy</string>
-    <string name="draw_undo">Zpět</string>
-    <string name="draw_clear">Smazat vše</string>
-    <string name="draw_save">Uložit</string>
-    <string name="draw_close">Zavřít</string>
-    <string name="draw_busy">Pracuji…</string>
-    <string name="draw_save_failed">Kresbu se nepodařilo uložit. Zkontrolujte volné místo a zkuste to znovu.</string>
-    <string name="draw_clear_title">Smazat celou kresbu?</string>
-    <string name="draw_clear_message">Celé plátno se vymaže. Tlačítkem Zpět to jde vrátit.</string>
-    <string name="draw_clear_confirm">Smazat</string>
-    <string name="draw_discard_title">Zahodit kresbu?</string>
-    <string name="draw_discard_message">Kresba není uložená. Když ji zahodíte, zmizí beze stopy.</string>
-    <string name="draw_discard_confirm">Zahodit</string>
-    <string name="draw_discard_keep">Pokračovat v kreslení</string>
-    <string name="image_draw">Nakreslit</string>
-    <string name="admin_select">Vybrat</string>
-    <string name="admin_selected_count">Vybráno: %1$d</string>
-    <string name="admin_select_all">Vybrat vše</string>
-    <string name="admin_select_none">Zrušit výběr</string>
-    <string name="admin_move_selected">Přesunout</string>
-    <string name="admin_delete_selected">Smazat vybrané</string>
-    <string name="admin_selection_done">Hotovo</string>
+  <string name="admin_title">Administrace</string>
+  <string name="admin_back_to_client">Zpět do klienta</string>
+  <string name="admin_breadcrumb_root">Domů</string>
+  <string name="admin_up">Nahoru</string>
+  <string name="admin_add_folder">Nová složka</string>
+  <string name="admin_add_word">Nové slovíčko</string>
+  <string name="admin_empty_title">Tato složka je prázdná</string>
+  <string name="admin_empty_hint">Přidejte složku nebo slovíčko tlačítky nahoře.</string>
+  <string name="admin_kind_folder">Složka</string>
+  <string name="admin_kind_word">Slovíčko</string>
+  <string name="admin_edit_item">Upravit %1$s</string>
+  <string name="admin_delete_item">Smazat %1$s</string>
+  <string name="admin_move_up">Posunout %1$s nahoru</string>
+  <string name="admin_move_down">Posunout %1$s dolů</string>
+  <string name="admin_sort_alphabetically">Seřadit podle abecedy</string>
+  <string name="admin_open_config">Nastavení</string>
+  <string name="admin_open_exchange">Export a import</string>
+  <string name="admin_open_about">O aplikaci</string>
+  <string name="about_title">O aplikaci</string>
+  <string name="about_back">Zpět do administrace</string>
+  <string name="about_version">Verze %1$s</string>
+  <string name="about_description">Talkative je pomůcka pro komunikaci: z připravených slovíček si
+    uživatel složí větu a aplikace ji přečte nahlas. Slovník si spravuje administrátor přímo v
+    aplikaci.</string>
+  <string name="about_section_arasaac">Piktogramy ARASAAC</string>
+  <string name="about_arasaac_what">ARASAAC je aragonské středisko pro augmentativní a alternativní
+    komunikaci. Jeho piktogramy lze v aplikaci vybrat jako obrázky slovíček.</string>
+  <string name="arasaac_credit">Autor piktogramů: Sergio Palao. Původ: ARASAAC
+    (http://www.arasaac.org). Licence: CC (BY-NC-SA). Majitel: vláda Aragonu (Španělsko)</string>
+  <string name="arasaac_credit_long">Použité piktografické symboly jsou majetkem Aragonské vlády a
+    vytvořil je Sergio Palao pro ARASAAC (http://www.arasaac.org), který je šíří pod Creative
+    Commons License BY-NC-SA.</string>
+  <string name="about_arasaac_license_meaning">Licence CC BY-NC-SA povoluje jen nekomerční použití.
+    Odvozená díla, včetně slovníků exportovaných z aplikace, které piktogramy ARASAAC obsahují, se
+    musí šířit pod stejnou licencí a se stejným uvedením autora.</string>
+  <string name="about_arasaac_contact">Pro jiné použití je podle podmínek ARASAAC potřeba písemný
+    souhlas držitelů práv; obraťte se na ARASAAC.</string>
+  <string name="about_logo_arasaac">Logo ARASAAC</string>
+  <string name="about_link_arasaac">Web ARASAAC</string>
+  <string name="about_link_terms">Podmínky použití ARASAAC</string>
+  <string name="about_link_license">Text licence CC BY-NC-SA</string>
+  <string name="about_section_privacy">Soukromí a síť</string>
+  <string name="about_privacy">Data (slovník, obrázky, zvuky a nastavení) zůstávají v zařízení. Síť
+    se používá jen při hledání piktogramu v ARASAAC a odchází při něm jen hledaný text.</string>
+  <string name="about_link_failed">Odkaz se nepodařilo otevřít, chybí prohlížeč. Adresu si můžete
+    opsat.</string>
+  <string name="notice_title">Než začnete</string>
+  <string name="notice_intro">Před použitím aplikace si prosím přečtěte informace o ní a o
+    piktogramech ARASAAC.</string>
+  <string name="notice_acknowledge">Beru na vědomí</string>
+  <string name="notice_leave">Odejít</string>
+  <string name="arasaac_title">Piktogram ARASAAC</string>
+  <string name="arasaac_back">Zpět</string>
+  <string name="arasaac_query_label">Hledané slovo</string>
+  <string name="arasaac_search">Hledat</string>
+  <string name="arasaac_hint_start">Napište slovo a klepněte na Hledat. Klepnutím na nabídnutý
+    piktogram ho vyberete.</string>
+  <string name="arasaac_searching">Hledám…</string>
+  <string name="arasaac_nothing">Nic nenalezeno. Zkuste jiné slovo, například základní tvar nebo
+    bližší pojem.</string>
+  <string name="arasaac_retry">Zkusit znovu</string>
+  <string name="arasaac_downloading">Stahuji piktogram…</string>
+  <string name="arasaac_error_no_network">Chybí připojení k internetu. Zapněte Wi-Fi nebo mobilní
+    data a zkuste to znovu.</string>
+  <string name="arasaac_error_timeout">Server ARASAAC neodpověděl včas. Zkuste to znovu.</string>
+  <string name="arasaac_error_server">Server ARASAAC je nedostupný nebo odpověděl chybou. Zkuste to
+    později.</string>
+  <string name="arasaac_error_bad_response">Odpověď serveru ARASAAC se nepodařilo přečíst. Zkuste to
+    znovu.</string>
+  <string name="arasaac_about_link">O aplikaci a licenci piktogramů</string>
+  <string name="arasaac_license_file_note">Tento archiv může obsahovat piktogramy ARASAAC. Smí se
+    šířit jen nekomerčně, pod licencí CC BY-NC-SA a se stejným uvedením autora.</string>
+  <string name="exchange_license_note">Do archivu se přidá soubor s uvedením autora a licencí
+    ARASAAC. Archiv, který obsahuje piktogramy ARASAAC, lze šířit jen nekomerčně, pod stejnou
+    licencí a se stejným uvedením.</string>
+  <string name="draw_canvas">Plátno pro kreslení</string>
+  <string name="draw_tool_brush">Štětec</string>
+  <string name="draw_tool_eraser">Guma</string>
+  <string name="draw_tool_fill">Výplň</string>
+  <string name="draw_color">Barva: %1$s</string>
+  <string name="draw_color_black">černá</string>
+  <string name="draw_color_red">červená</string>
+  <string name="draw_color_orange">oranžová</string>
+  <string name="draw_color_yellow">žlutá</string>
+  <string name="draw_color_green">zelená</string>
+  <string name="draw_color_blue">modrá</string>
+  <string name="draw_color_purple">fialová</string>
+  <string name="draw_color_brown">hnědá</string>
+  <string name="draw_width">Tloušťka štětce a gumy</string>
+  <string name="draw_undo">Zpět</string>
+  <string name="draw_clear">Smazat vše</string>
+  <string name="draw_save">Uložit</string>
+  <string name="draw_close">Zavřít</string>
+  <string name="draw_busy">Pracuji…</string>
+  <string name="draw_save_failed">Kresbu se nepodařilo uložit. Zkontrolujte volné místo a zkuste to
+    znovu.</string>
+  <string name="draw_clear_title">Smazat celou kresbu?</string>
+  <string name="draw_clear_message">Celé plátno se vymaže. Tlačítkem Zpět to jde vrátit.</string>
+  <string name="draw_clear_confirm">Smazat</string>
+  <string name="draw_discard_title">Zahodit kresbu?</string>
+  <string name="draw_discard_message">Kresba není uložená. Když ji zahodíte, zmizí beze stopy.</string>
+  <string name="draw_discard_confirm">Zahodit</string>
+  <string name="draw_discard_keep">Pokračovat v kreslení</string>
+  <string name="image_draw">Nakreslit</string>
+  <string name="admin_select">Vybrat</string>
+  <string name="admin_selected_count">Vybráno: %1$d</string>
+  <string name="admin_select_all">Vybrat vše</string>
+  <string name="admin_select_none">Zrušit výběr</string>
+  <string name="admin_move_selected">Přesunout</string>
+  <string name="admin_delete_selected">Smazat vybrané</string>
+  <string name="admin_selection_done">Hotovo</string>
 
-    <string name="dialog_folder_new">Nová složka</string>
-    <string name="dialog_folder_edit">Upravit složku</string>
-    <string name="dialog_word_new">Nové slovíčko</string>
-    <string name="dialog_word_edit">Upravit slovíčko</string>
-    <string name="dialog_title_label">Titulek</string>
-    <string name="dialog_title_empty_error">Titulek nesmí být prázdný.</string>
-    <string name="dialog_alternate_text_label">Jiný text pro čtení</string>
-    <string name="dialog_alternate_text_hint">Nepovinné. Když zůstane prázdné, čte se titulek.</string>
-    <string name="dialog_save">Uložit</string>
-    <string name="dialog_cancel">Zrušit</string>
-    <string name="dialog_ok">Rozumím</string>
+  <string name="dialog_folder_new">Nová složka</string>
+  <string name="dialog_folder_edit">Upravit složku</string>
+  <string name="dialog_word_new">Nové slovíčko</string>
+  <string name="dialog_word_edit">Upravit slovíčko</string>
+  <string name="dialog_title_label">Titulek</string>
+  <string name="dialog_title_empty_error">Titulek nesmí být prázdný.</string>
+  <string name="dialog_alternate_text_label">Jiný text pro čtení</string>
+  <string name="dialog_alternate_text_hint">Nepovinné. Když zůstane prázdné, čte se titulek.</string>
+  <string name="dialog_save">Uložit</string>
+  <string name="dialog_cancel">Zrušit</string>
+  <string name="dialog_ok">Rozumím</string>
 
-    <string name="audio_label">Vlastní zvuk (MP3)</string>
-    <string name="audio_none">Slovíčko nemá vlastní zvuk, čte se text.</string>
-    <string name="audio_present">Slovíčko má vlastní zvuk. Jiný text pro čtení se nepoužije.</string>
-    <string name="audio_pick">Vybrat MP3</string>
-    <string name="audio_play">Přehrát zvuk</string>
-    <string name="audio_stop">Zastavit zvuk</string>
-    <string name="audio_remove">Odebrat zvuk</string>
-    <string name="audio_processing">Kontroluji zvuk…</string>
-    <string name="audio_problem_unreadable">Soubor se nepodařilo načíst jako zvuk. Zkuste vybrat jiný soubor.</string>
-    <string name="audio_problem_unsupported_format">Vybraný soubor není MP3. Vyberte soubor ve formátu MP3.</string>
-    <string name="audio_problem_too_long">Zvuk je příliš dlouhý. Nejdelší povolená délka je %1$d sekund.</string>
-    <string name="audio_problem_too_large">Soubor je příliš velký. Nejvíc může mít %1$d MB.</string>
-    <string name="audio_problem_storage_full">Na zařízení není dost místa pro uložení zvuku. Uvolněte místo a zkuste to znovu.</string>
-    <string name="audio_problem_no_picker">Na zařízení chybí aplikace pro výběr souborů.</string>
-    <string name="audio_problem_playback_failed">Zvuk se nepodařilo přehrát. Zkuste vybrat jiný soubor.</string>
-    <string name="image_label">Obrázek</string>
-    <string name="image_none">Slovíčko zatím nemá obrázek.</string>
-    <string name="image_preview">Náhled obrázku</string>
-    <string name="image_pick_gallery">Vybrat z galerie</string>
-    <string name="image_take_photo">Vyfotit</string>
-    <string name="image_find_pictogram">Najít piktogram (ARASAAC)</string>
-    <string name="image_remove">Odebrat obrázek</string>
-    <string name="image_processing">Zpracovávám obrázek…</string>
-    <string name="image_problem_unreadable">Obrázek se nepodařilo načíst. Zkuste vybrat jiný soubor.</string>
-    <string name="image_problem_storage_full">Na zařízení není dost místa pro uložení obrázku. Uvolněte místo a zkuste to znovu.</string>
-    <string name="image_problem_no_gallery">Na zařízení chybí aplikace pro výběr obrázků.</string>
-    <string name="image_problem_no_camera">Fotoaparát není dostupný. Zkontrolujte, že je na zařízení aplikace fotoaparátu a že smí fotit.</string>
+  <string name="audio_label">Vlastní zvuk (MP3)</string>
+  <string name="audio_none">Slovíčko nemá vlastní zvuk, čte se text.</string>
+  <string name="audio_present">Slovíčko má vlastní zvuk. Jiný text pro čtení se nepoužije.</string>
+  <string name="audio_pick">Vybrat MP3</string>
+  <string name="audio_play">Přehrát zvuk</string>
+  <string name="audio_stop">Zastavit zvuk</string>
+  <string name="audio_remove">Odebrat zvuk</string>
+  <string name="audio_processing">Kontroluji zvuk…</string>
+  <string name="audio_problem_unreadable">Soubor se nepodařilo načíst jako zvuk. Zkuste vybrat jiný
+    soubor.</string>
+  <string name="audio_problem_unsupported_format">Vybraný soubor není MP3. Vyberte soubor ve formátu
+    MP3.</string>
+  <string name="audio_problem_too_long">Zvuk je příliš dlouhý. Nejdelší povolená délka je %1$d
+    sekund.</string>
+  <string name="audio_problem_too_large">Soubor je příliš velký. Nejvíc může mít %1$d MB.</string>
+  <string name="audio_problem_storage_full">Na zařízení není dost místa pro uložení zvuku. Uvolněte
+    místo a zkuste to znovu.</string>
+  <string name="audio_problem_no_picker">Na zařízení chybí aplikace pro výběr souborů.</string>
+  <string name="audio_problem_playback_failed">Zvuk se nepodařilo přehrát. Zkuste vybrat jiný
+    soubor.</string>
+  <string name="image_label">Obrázek</string>
+  <string name="image_none">Slovíčko zatím nemá obrázek.</string>
+  <string name="image_preview">Náhled obrázku</string>
+  <string name="image_pick_gallery">Vybrat z galerie</string>
+  <string name="image_take_photo">Vyfotit</string>
+  <string name="image_find_pictogram">Najít piktogram (ARASAAC)</string>
+  <string name="image_remove">Odebrat obrázek</string>
+  <string name="image_processing">Zpracovávám obrázek…</string>
+  <string name="image_problem_unreadable">Obrázek se nepodařilo načíst. Zkuste vybrat jiný soubor.</string>
+  <string name="image_problem_storage_full">Na zařízení není dost místa pro uložení obrázku.
+    Uvolněte místo a zkuste to znovu.</string>
+  <string name="image_problem_no_gallery">Na zařízení chybí aplikace pro výběr obrázků.</string>
+  <string name="image_problem_no_camera">Fotoaparát není dostupný. Zkontrolujte, že je na zařízení
+    aplikace fotoaparátu a že smí fotit.</string>
 
-    <string name="delete_folder_title">Smazat složku?</string>
-    <string name="delete_word_title">Smazat slovíčko?</string>
-    <string name="delete_confirm">Smazat</string>
-    <string name="delete_word_message">Slovíčko „%1$s“ bude smazáno. Nelze to vrátit zpět.</string>
-    <string name="delete_folder_message_empty">Složka „%1$s“ bude smazána. Nelze to vrátit zpět.</string>
-    <!-- Bez plurálu: gramatika by závisela na jazyce zařízení, ne na jazyce aplikace. -->
-    <string name="delete_folder_message_with_items">Složka „%1$s“ není prázdná. Počet položek uvnitř včetně podsložek: %2$d. Smaže se vše a nelze to vrátit zpět.</string>
-    <string name="delete_selected_title">Smazat vybrané položky?</string>
-    <string name="delete_selected_message">Počet vybraných položek: %1$d. Smažou se a nelze to vrátit zpět.</string>
-    <string name="delete_selected_message_with_contents">Počet vybraných položek: %1$d. Včetně obsahu vybraných složek se smaže celkem %2$d položek. Nelze to vrátit zpět.</string>
-    <string name="move_title">Přesunout vybrané položky (%1$d)</string>
-    <string name="move_no_subfolders">Tato složka nemá žádné podsložky.</string>
-    <string name="move_here">Přesunout sem</string>
-    <string name="move_already_here">Vybrané položky už v této složce jsou. Vyberte jinou složku.</string>
-    <string name="move_problem_into_itself">Složku nelze přesunout do sebe samé ani do její podsložky. Nic se nepřesunulo.</string>
-    <string name="move_problem_missing">Cílová složka už neexistuje. Nic se nepřesunulo.</string>
-    <string name="sort_title">Seřadit podle abecedy?</string>
-    <string name="sort_message">Obsah této složky se seřadí podle abecedy. Dosavadní ruční pořadí se přepíše a nelze ho vrátit zpět.</string>
-    <string name="sort_confirm">Seřadit</string>
-    <string name="config_title">Nastavení</string>
-    <string name="config_back">Zpět do administrace</string>
-    <string name="config_local_note">Nastavení platí jen pro toto zařízení a nesynchronizuje se.</string>
-    <string name="config_section_sentence">Věta a ovládání</string>
-    <string name="config_add_word_mode">Přidání slova do věty</string>
-    <string name="config_add_mode_tap">Klepnutím</string>
-    <string name="config_add_mode_drag">Přetažením do věty</string>
-    <string name="config_allow_reorder">Povolit změnu pořadí slov ve větě</string>
-    <string name="config_speak_on_tap">Přečíst slovo po klepnutí na něj</string>
-    <string name="config_hide_captions">Skrýt titulky slov s obrázkem ve větě</string>
-    <string name="config_auto_clear">Po přehrání věty ji smazat</string>
-    <string name="config_add_hold">Podržení pro přidání slova do věty (při klepnutí)</string>
-    <string name="config_add_hold_immediately">Hned</string>
-    <string name="config_remove_hold">Podržení pro odebrání slova</string>
-    <string name="config_section_grid">Velikost mřížky</string>
-    <string name="config_grid_portrait">Na výšku</string>
-    <string name="config_grid_landscape">Na šířku</string>
-    <string name="config_grid_columns">Sloupců</string>
-    <string name="config_grid_rows">Řádků</string>
-    <string name="config_section_admin">Administrace a řazení</string>
-    <string name="config_admin_hold">Podržení pro vstup do administrace</string>
-    <string name="config_collation">Jazyk abecedního řazení</string>
-    <string name="config_language_cs">Čeština</string>
-    <string name="config_language_sk">Slovenština</string>
-    <string name="config_language_en">Angličtina</string>
-    <string name="config_language_de">Němčina</string>
-    <string name="config_language_pl">Polština</string>
-    <string name="config_reset">Obnovit výchozí nastavení</string>
-    <string name="config_reset_title">Obnovit výchozí nastavení?</string>
-    <string name="config_reset_message">Všechna nastavení se vrátí na výchozí hodnoty. Slovník se nezmění.</string>
-    <string name="config_reset_confirm">Obnovit</string>
-    <string name="exchange_title">Export a import</string>
-    <string name="exchange_back">Zpět do administrace</string>
-    <string name="exchange_section_export">Export</string>
-    <string name="exchange_export_hint">Uloží vybranou část slovníku i s obrázky a vlastními zvuky do jednoho souboru ZIP. Soubor můžete uložit kamkoli a později z něj slovník načíst.</string>
-    <string name="exchange_scope_all">Exportuje se celý slovník</string>
-    <string name="exchange_scope_folder">Exportuje se složka „%1$s“ včetně podsložek</string>
-    <string name="exchange_whole_dictionary">Celý slovník</string>
-    <string name="exchange_choose_folder">Vybrat složku…</string>
-    <string name="exchange_include_config">Přidat i nastavení tohoto zařízení</string>
-    <string name="exchange_export_button">Exportovat do souboru…</string>
-    <string name="exchange_export_running">Ukládám archiv…</string>
-    <string name="exchange_export_running_files">Ukládám obrázky a zvuky: %1$d z %2$d</string>
-    <string name="exchange_export_done">Hotovo. Uloženo složek: %1$d, slovíček: %2$d.</string>
-    <string name="exchange_export_done_missing">U %1$d obrázků nebo zvuků chyběl soubor v zařízení, v archivu nejsou.</string>
-    <string name="exchange_export_error_storage">Na zařízení není dost místa. Soubor nebyl vytvořen.</string>
-    <string name="exchange_export_error_write">Archiv se nepodařilo zapsat. Soubor nebyl vytvořen.</string>
-    <string name="exchange_export_error_folder">Vybraná složka už neexistuje. Soubor nebyl vytvořen.</string>
-    <string name="exchange_picker_title">Vyberte složku</string>
-    <string name="exchange_picker_select">Vybrat tuto složku</string>
-    <string name="exchange_picker_select_target">Vložit sem</string>
-    <string name="exchange_section_import">Import</string>
-    <string name="exchange_import_hint">Načte soubor ZIP vytvořený exportem. Import vždy jen přidává nové složky a slovíčka, nic stávajícího nepřepíše.</string>
-    <string name="exchange_choose_archive">Vybrat archiv…</string>
-    <string name="exchange_import_reading">Kontroluji archiv…</string>
-    <string name="exchange_import_contents">Archiv obsahuje složek: %1$d, slovíček: %2$d.</string>
-    <string name="exchange_import_all">Celý archiv</string>
-    <string name="exchange_import_some">Jen vybrané složky</string>
-    <string name="exchange_import_root_words">Slovíčka z kořene archivu</string>
-    <string name="exchange_import_replace">Nahradit celý dosavadní slovník</string>
-    <string name="exchange_import_target_root">Vloží se do kořene slovníku</string>
-    <string name="exchange_import_target_folder">Vloží se do složky „%1$s“</string>
-    <string name="exchange_import_change_target">Změnit…</string>
-    <string name="exchange_import_config">Načíst i nastavení zařízení z archivu</string>
-    <string name="exchange_import_plan">Přidá se složek: %1$d, slovíček: %2$d.</string>
-    <string name="exchange_import_button">Importovat</string>
-    <string name="exchange_import_running">Importuji…</string>
-    <string name="exchange_import_done">Hotovo. Přidáno složek: %1$d, slovíček: %2$d.</string>
-    <string name="exchange_import_done_config">Nastavení zařízení bylo také načteno.</string>
-    <string name="exchange_import_error_not_archive">Tohle není archiv vytvořený touto aplikací. Nic se nezměnilo.</string>
-    <string name="exchange_import_error_newer">Archiv vytvořila novější verze aplikace. Aktualizujte aplikaci a zkuste to znovu. Nic se nezměnilo.</string>
-    <string name="exchange_import_error_invalid">Archiv je poškozený nebo neúplný. Nic se nezměnilo.</string>
-    <string name="exchange_import_error_unreadable">Soubor se nepodařilo přečíst. Nic se nezměnilo.</string>
-    <string name="exchange_import_error_storage">Na zařízení není dost místa. Nic se nezměnilo.</string>
-    <string name="exchange_import_error_target">Cílová složka už neexistuje. Nic se nezměnilo.</string>
-    <string name="exchange_import_error_failed">Import se nepodařil. Nic se nezměnilo.</string>
-    <string name="exchange_replace_title">Nahradit celý slovník?</string>
-    <string name="exchange_replace_message">Všechny dosavadní složky a slovíčka se smažou a nahradí se obsahem archivu. Nelze to vrátit zpět.</string>
-    <string name="exchange_replace_confirm">Nahradit</string>
+  <string name="delete_folder_title">Smazat složku?</string>
+  <string name="delete_word_title">Smazat slovíčko?</string>
+  <string name="delete_confirm">Smazat</string>
+  <string name="delete_word_message">Slovíčko „%1$s“ bude smazáno. Nelze to vrátit zpět.</string>
+  <string name="delete_folder_message_empty">Složka „%1$s“ bude smazána. Nelze to vrátit zpět.</string>
+  <!-- Bez plurálu: gramatika by závisela na jazyce zařízení, ne na jazyce aplikace. -->
+  <string name="delete_folder_message_with_items">Složka „%1$s“ není prázdná. Počet položek uvnitř
+    včetně podsložek: %2$d. Smaže se vše a nelze to vrátit zpět.</string>
+  <string name="delete_selected_title">Smazat vybrané položky?</string>
+  <string name="delete_selected_message">Počet vybraných položek: %1$d. Smažou se a nelze to vrátit
+    zpět.</string>
+  <string name="delete_selected_message_with_contents">Počet vybraných položek: %1$d. Včetně obsahu
+    vybraných složek se smaže celkem %2$d položek. Nelze to vrátit zpět.</string>
+  <string name="move_title">Přesunout vybrané položky (%1$d)</string>
+  <string name="move_no_subfolders">Tato složka nemá žádné podsložky.</string>
+  <string name="move_here">Přesunout sem</string>
+  <string name="move_already_here">Vybrané položky už v této složce jsou. Vyberte jinou složku.</string>
+  <string name="move_problem_into_itself">Složku nelze přesunout do sebe samé ani do její podsložky.
+    Nic se nepřesunulo.</string>
+  <string name="move_problem_missing">Cílová složka už neexistuje. Nic se nepřesunulo.</string>
+  <string name="sort_title">Seřadit podle abecedy?</string>
+  <string name="sort_message">Obsah této složky se seřadí podle abecedy. Dosavadní ruční pořadí se
+    přepíše a nelze ho vrátit zpět.</string>
+  <string name="sort_confirm">Seřadit</string>
+  <string name="config_title">Nastavení</string>
+  <string name="config_back">Zpět do administrace</string>
+  <string name="config_local_note">Nastavení platí jen pro toto zařízení a nesynchronizuje se.</string>
+  <string name="config_section_sentence">Věta a ovládání</string>
+  <string name="config_add_word_mode">Přidání slova do věty</string>
+  <string name="config_add_mode_tap">Klepnutím</string>
+  <string name="config_add_mode_drag">Přetažením do věty</string>
+  <string name="config_allow_reorder">Povolit změnu pořadí slov ve větě</string>
+  <string name="config_speak_on_tap">Přečíst slovo po klepnutí na něj</string>
+  <string name="config_hide_captions">Skrýt titulky slov s obrázkem ve větě</string>
+  <string name="config_auto_clear">Po přehrání věty ji smazat</string>
+  <string name="config_add_hold">Podržení pro přidání slova do věty (při klepnutí)</string>
+  <string name="config_add_hold_immediately">Hned</string>
+  <string name="config_remove_hold">Podržení pro odebrání slova</string>
+  <string name="config_section_grid">Velikost mřížky</string>
+  <string name="config_grid_portrait">Na výšku</string>
+  <string name="config_grid_landscape">Na šířku</string>
+  <string name="config_grid_columns">Sloupců</string>
+  <string name="config_grid_rows">Řádků</string>
+  <string name="config_section_admin">Administrace a řazení</string>
+  <string name="config_admin_hold">Podržení pro vstup do administrace</string>
+  <string name="config_collation">Jazyk abecedního řazení</string>
+  <string name="config_language_cs">Čeština</string>
+  <string name="config_language_sk">Slovenština</string>
+  <string name="config_language_en">Angličtina</string>
+  <string name="config_language_de">Němčina</string>
+  <string name="config_language_pl">Polština</string>
+  <string name="config_reset">Obnovit výchozí nastavení</string>
+  <string name="config_reset_title">Obnovit výchozí nastavení?</string>
+  <string name="config_reset_message">Všechna nastavení se vrátí na výchozí hodnoty. Slovník se
+    nezmění.</string>
+  <string name="config_reset_confirm">Obnovit</string>
+  <string name="exchange_title">Export a import</string>
+  <string name="exchange_back">Zpět do administrace</string>
+  <string name="exchange_section_export">Export</string>
+  <string name="exchange_export_hint">Uloží vybranou část slovníku i s obrázky a vlastními zvuky do
+    jednoho souboru ZIP. Soubor můžete uložit kamkoli a později z něj slovník načíst.</string>
+  <string name="exchange_scope_all">Exportuje se celý slovník</string>
+  <string name="exchange_scope_folder">Exportuje se složka „%1$s“ včetně podsložek</string>
+  <string name="exchange_whole_dictionary">Celý slovník</string>
+  <string name="exchange_choose_folder">Vybrat složku…</string>
+  <string name="exchange_include_config">Přidat i nastavení tohoto zařízení</string>
+  <string name="exchange_export_button">Exportovat do souboru…</string>
+  <string name="exchange_export_running">Ukládám archiv…</string>
+  <string name="exchange_export_running_files">Ukládám obrázky a zvuky: %1$d z %2$d</string>
+  <string name="exchange_export_done">Hotovo. Uloženo složek: %1$d, slovíček: %2$d.</string>
+  <string name="exchange_export_done_missing">U %1$d obrázků nebo zvuků chyběl soubor v zařízení, v
+    archivu nejsou.</string>
+  <string name="exchange_export_error_storage">Na zařízení není dost místa. Soubor nebyl vytvořen.</string>
+  <string name="exchange_export_error_write">Archiv se nepodařilo zapsat. Soubor nebyl vytvořen.</string>
+  <string name="exchange_export_error_folder">Vybraná složka už neexistuje. Soubor nebyl vytvořen.</string>
+  <string name="exchange_picker_title">Vyberte složku</string>
+  <string name="exchange_picker_select">Vybrat tuto složku</string>
+  <string name="exchange_picker_select_target">Vložit sem</string>
+  <string name="exchange_section_import">Import</string>
+  <string name="exchange_import_hint">Načte soubor ZIP vytvořený exportem. Import vždy jen přidává
+    nové složky a slovíčka, nic stávajícího nepřepíše.</string>
+  <string name="exchange_choose_archive">Vybrat archiv…</string>
+  <string name="exchange_import_reading">Kontroluji archiv…</string>
+  <string name="exchange_import_contents">Archiv obsahuje složek: %1$d, slovíček: %2$d.</string>
+  <string name="exchange_import_all">Celý archiv</string>
+  <string name="exchange_import_some">Jen vybrané složky</string>
+  <string name="exchange_import_root_words">Slovíčka z kořene archivu</string>
+  <string name="exchange_import_replace">Nahradit celý dosavadní slovník</string>
+  <string name="exchange_import_target_root">Vloží se do kořene slovníku</string>
+  <string name="exchange_import_target_folder">Vloží se do složky „%1$s“</string>
+  <string name="exchange_import_change_target">Změnit…</string>
+  <string name="exchange_import_config">Načíst i nastavení zařízení z archivu</string>
+  <string name="exchange_import_plan">Přidá se složek: %1$d, slovíček: %2$d.</string>
+  <string name="exchange_import_button">Importovat</string>
+  <string name="exchange_import_running">Importuji…</string>
+  <string name="exchange_import_done">Hotovo. Přidáno složek: %1$d, slovíček: %2$d.</string>
+  <string name="exchange_import_done_config">Nastavení zařízení bylo také načteno.</string>
+  <string name="exchange_import_error_not_archive">Tohle není archiv vytvořený touto aplikací. Nic
+    se nezměnilo.</string>
+  <string name="exchange_import_error_newer">Archiv vytvořila novější verze aplikace. Aktualizujte
+    aplikaci a zkuste to znovu. Nic se nezměnilo.</string>
+  <string name="exchange_import_error_invalid">Archiv je poškozený nebo neúplný. Nic se nezměnilo.</string>
+  <string name="exchange_import_error_unreadable">Soubor se nepodařilo přečíst. Nic se nezměnilo.</string>
+  <string name="exchange_import_error_storage">Na zařízení není dost místa. Nic se nezměnilo.</string>
+  <string name="exchange_import_error_target">Cílová složka už neexistuje. Nic se nezměnilo.</string>
+  <string name="exchange_import_error_failed">Import se nepodařil. Nic se nezměnilo.</string>
+  <string name="exchange_replace_title">Nahradit celý slovník?</string>
+  <string name="exchange_replace_message">Všechny dosavadní složky a slovíčka se smažou a nahradí se
+    obsahem archivu. Nelze to vrátit zpět.</string>
+  <string name="exchange_replace_confirm">Nahradit</string>
 </resources>
