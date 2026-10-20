@@ -115,6 +115,7 @@
     <string name="image_preview">Náhled obrázku</string>
     <string name="image_pick_gallery">Vybrat z galerie</string>
     <string name="image_take_photo">Vyfotit</string>
+    <string name="image_find_pictogram">Najít piktogram (ARASAAC)</string>
     <string name="image_remove">Odebrat obrázek</string>
     <string name="image_processing">Zpracovávám obrázek…</string>
     <string name="image_problem_unreadable">Obrázek se nepodařilo načíst. Zkuste vybrat jiný soubor.</string>

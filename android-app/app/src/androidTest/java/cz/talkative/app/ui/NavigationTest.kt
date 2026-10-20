@@ -50,14 +50,14 @@ class NavigationTest {
                     client = { openAdmin ->
                         ClientScreen(ClientUiState(isLoading = false), onEvent = {}, onOpenAdmin = openAdmin)
                     },
-                    admin = { back, openConfig, openExchange, openAbout ->
+                    admin = { navigation ->
                         AdminScreen(
                             state = AdminUiState(isLoading = false),
                             onEvent = {},
-                            onBackToClient = back,
-                            onOpenConfig = openConfig,
-                            onOpenExchange = openExchange,
-                            onOpenAbout = openAbout,
+                            onBackToClient = navigation.backToClient,
+                            onOpenConfig = navigation.openConfig,
+                            onOpenExchange = navigation.openExchange,
+                            onOpenAbout = navigation.openAbout,
                         )
                     },
                     config = { back -> ConfigScreen(ConfigUiState(isLoading = false), onEvent = {}, onBack = back) },

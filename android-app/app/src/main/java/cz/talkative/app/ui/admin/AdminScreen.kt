@@ -38,6 +38,7 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import java.io.IOException
 import java.io.File
 import androidx.core.content.FileProvider
@@ -79,9 +80,28 @@ fun AdminRoute(
     onOpenConfig: () -> Unit,
     onOpenExchange: () -> Unit,
     onOpenAbout: () -> Unit,
-    viewModel: AdminViewModel = hiltViewModel()) {
+    onOpenArasaac: (String) -> Unit,
+    pickedImageUri: String?,
+    onPickedImageConsumed: () -> Unit,
+    viewModel: AdminViewModel = hiltViewModel(),
+) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
-    AdminScreen(state = state, onEvent = viewModel::onEvent, onBackToClient = onBackToClient, onOpenConfig = onOpenConfig, onOpenExchange = onOpenExchange, onOpenAbout = onOpenAbout)
+    // Obrázek vybraný na jiné obrazovce (piktogram ARASAAC) se zpracuje jako každý jiný vybraný obrázek.
+    LaunchedEffect(pickedImageUri) {
+        pickedImageUri?.let {
+            viewModel.onEvent(AdminEvent.ImagePicked(it))
+            onPickedImageConsumed()
+        }
+    }
+    AdminScreen(
+        state = state,
+        onEvent = viewModel::onEvent,
+        onBackToClient = onBackToClient,
+        onOpenConfig = onOpenConfig,
+        onOpenExchange = onOpenExchange,
+        onOpenAbout = onOpenAbout,
+        onFindPictogram = onOpenArasaac,
+    )
 }
 
 /** Bezstavová obrazovka administrace: výpis aktuální složky, navigace ve stromu a editace. */
@@ -95,6 +115,7 @@ fun AdminScreen(
     onOpenConfig: () -> Unit = {},
     onOpenExchange: () -> Unit = {},
     onOpenAbout: () -> Unit = {},
+    onFindPictogram: (String) -> Unit = {},
 ) {
     val dimens = TalkativeTheme.dimens
     val atRoot = state.path.isEmpty()
@@ -208,7 +229,7 @@ fun AdminScreen(
         }
     }
 
-    state.dialog?.let { AdminDialogHost(dialog = it, currentFolderId = state.path.lastOrNull()?.id, onEvent = onEvent) }
+    state.dialog?.let { AdminDialogHost(dialog = it, currentFolderId = state.path.lastOrNull()?.id, onEvent = onEvent, onFindPictogram = onFindPictogram) }
 }
 
 /** Lišta režimu výběru: počet označených, „vybrat vše“, smazání a konec výběru. */
@@ -387,9 +408,14 @@ private fun ItemRow(
 }
 
 @Composable
-private fun AdminDialogHost(dialog: AdminDialog, currentFolderId: String?, onEvent: (AdminEvent) -> Unit) {
+private fun AdminDialogHost(
+    dialog: AdminDialog,
+    currentFolderId: String?,
+    onEvent: (AdminEvent) -> Unit,
+    onFindPictogram: (String) -> Unit,
+) {
     when (dialog) {
-        is AdminDialog.Edit -> EditDialog(dialog, onEvent)
+        is AdminDialog.Edit -> EditDialog(dialog, onEvent, onFindPictogram)
         is AdminDialog.ConfirmDelete -> ConfirmDeleteDialog(dialog, onEvent)
         is AdminDialog.ConfirmDeleteSelected -> ConfirmDeleteSelectedDialog(dialog, onEvent)
         AdminDialog.ConfirmSort -> ConfirmSortDialog(onEvent)
@@ -398,7 +424,7 @@ private fun AdminDialogHost(dialog: AdminDialog, currentFolderId: String?, onEve
 }
 
 @Composable
-private fun EditDialog(dialog: AdminDialog.Edit, onEvent: (AdminEvent) -> Unit) {
+private fun EditDialog(dialog: AdminDialog.Edit, onEvent: (AdminEvent) -> Unit, onFindPictogram: (String) -> Unit) {
     val dimens = TalkativeTheme.dimens
     val isNew = dialog.itemId == null
     val titleRes = when (dialog.kind) {
@@ -440,7 +466,7 @@ private fun EditDialog(dialog: AdminDialog.Edit, onEvent: (AdminEvent) -> Unit) 
                         modifier = Modifier.fillMaxWidth(),
                     )
                     AudioSection(dialog, onEvent)
-                    ImageSection(dialog, onEvent)
+                    ImageSection(dialog, onEvent, onFindPictogram)
                 }
             }
         },
@@ -540,9 +566,9 @@ private fun audioProblemMessage(problem: AudioProblem): String = when (problem) 
     AudioProblem.PLAYBACK_FAILED -> stringResource(R.string.audio_problem_playback_failed)
 }
 
-/** Náhled obrázku slovíčka a tlačítka pro výběr z galerie, pořízení fotky a odebrání. */
+/** Náhled obrázku slovíčka a tlačítka pro výběr z galerie, pořízení fotky, hledání piktogramu a odebrání. */
 @Composable
-private fun ImageSection(dialog: AdminDialog.Edit, onEvent: (AdminEvent) -> Unit) {
+private fun ImageSection(dialog: AdminDialog.Edit, onEvent: (AdminEvent) -> Unit, onFindPictogram: (String) -> Unit) {
     val dimens = TalkativeTheme.dimens
     val context = LocalContext.current
     var cameraUri by rememberSaveable { mutableStateOf<Uri?>(null) }
@@ -613,6 +639,13 @@ private fun ImageSection(dialog: AdminDialog.Edit, onEvent: (AdminEvent) -> Unit
             modifier = Modifier.fillMaxWidth().heightIn(min = dimens.minTouchTarget),
         ) {
             Text(stringResource(R.string.image_take_photo))
+        }
+        Button(
+            onClick = { onFindPictogram(dialog.title) },
+            enabled = !dialog.isProcessingImage,
+            modifier = Modifier.fillMaxWidth().heightIn(min = dimens.minTouchTarget),
+        ) {
+            Text(stringResource(R.string.image_find_pictogram))
         }
         if (dialog.imageFile != null) {
             OutlinedButton(

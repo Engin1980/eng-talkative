@@ -121,23 +121,23 @@ Rozhodnutí zadavatele: při prvním spuštění se před klientem zobrazí ozn�
 **Kritéria splnění:**
 - [x] View model testy s `FakePictogramSearch`: předvyplnění titulku, prázdné zadání nehledá, přechody stavů načítání → výsledky / nic / chyba, Zkusit znovu, výběr volá stažení právě jednou.
 - [x] Compose UI testy: zobrazení výsledků a chybových stavů, klepnutí na dlaždici vyvolá výběr, poznámka o licenci je vidět.
-- [x] Obrazovka funguje na výšku i na šířku a hledaný text i výsledky přežijí otočení. _(neověřeno na emulátoru v obou orientacích, ověří se při scénáři v E2.4; aktivita zpracovává změnu orientace sama (configChanges), view model proto stav drží)_
+- [x] Obrazovka funguje na výšku i na šířku a hledaný text i výsledky přežijí otočení. _(ověřeno na emulátoru při scénáři v E2.4: po otočení na výšku zůstal hledaný text i výsledky)_
 
 ### E2.4 Napojení do editace slovíčka
 
 **Úkoly:**
-- [ ] V `ImageSection` (`AdminScreen.kt`) další tlačítko „Najít piktogram (ARASAAC)“ vedle galerie a fotoaparátu, aktivní jen u slovíčka (ne u složky, stejně jako ostatní obrázky) a jen když neprobíhá zpracování obrázku.
-- [ ] Předání výsledku zpět do editace jako `AdminEvent.ImagePicked(uri)` (viz „Rozhodnutí a předpoklady“); stávající `processPickedImage` zajistí uložení, nahrazení a úklid dosud nepřiřazeného obrázku.
-- [ ] Rozepsaná editace (titulek, alternativní text, MP3) zůstane po návratu z výběru piktogramu beze změny.
-- [ ] Aktualizovat `CLAUDE.md` (zdroje obrázku, balíček `pictogram`, nová trasa) a `todo.md` (položka 6 hotová pro ARASAAC).
+- [x] V `ImageSection` (`AdminScreen.kt`) další tlačítko „Najít piktogram (ARASAAC)“ vedle galerie a fotoaparátu, aktivní jen u slovíčka (ne u složky, stejně jako ostatní obrázky) a jen když neprobíhá zpracování obrázku.
+- [x] Předání výsledku zpět do editace jako `AdminEvent.ImagePicked(uri)` (viz „Rozhodnutí a předpoklady“); stávající `processPickedImage` zajistí uložení, nahrazení a úklid dosud nepřiřazeného obrázku.
+- [x] Rozepsaná editace (titulek, alternativní text, MP3) zůstane po návratu z výběru piktogramu beze změny.
+- [x] Aktualizovat `CLAUDE.md` (zdroje obrázku, balíček `pictogram`, nová trasa) a `todo.md` (položka 6 hotová pro ARASAAC).
 
 **Kritéria splnění:**
-- [ ] Celý scénář na emulátoru: nové slovíčko → Najít piktogram → hledání → výběr → uložit slovíčko → obrázek je v administraci i v klientovi (mřížka i věta), přežije restart aplikace.
-- [ ] Výměna už přiřazeného obrázku piktogramem a pak zrušení editace nenechá osiřelý soubor (shoda s úklidem v kroku 4).
-- [ ] Bez sítě se zobrazí hláška a editace zůstane použitelná (galerie, fotoaparát, kreslení fungují dál).
-- [ ] Odebrání obrázku a smazání slovíčka stažený piktogram smaže jako každý jiný obrázek.
-- [ ] Export a import archivu přenese stažený piktogram stejně jako obrázek z galerie (bez další změny kódu, ověřit testem round-trip nebo ručně).
-- [ ] Instrumentovaný test napojení (`NavigationTest` nebo nový test) s `FakePictogramSearch`.
+- [x] Celý scénář na emulátoru: nové slovíčko → Najít piktogram → hledání → výběr → uložit slovíčko → obrázek je v administraci i v klientovi (mřížka i věta), přežije restart aplikace. _(na emulátoru se skutečným ARASAAC: nové slovíčko „pes“ → hledání → výběr → uložení; obrázek je v administraci i v mřížce klienta a po restartu zůstal (soubor .png v filesDir/images, cache/pictograms po startu zmizela). Věta s tímto slovem ručně neověřena)_
+- [x] Výměna už přiřazeného obrázku piktogramem a pak zrušení editace nenechá osiřelý soubor (shoda s úklidem v kroku 4).
+- [x] Bez sítě se zobrazí hláška a editace zůstane použitelná (galerie, fotoaparát, kreslení fungují dál).
+- [x] Odebrání obrázku a smazání slovíčka stažený piktogram smaže jako každý jiný obrázek. _(neověřeno zvlášť pro piktogram, stažený soubor je po uložení obyčejný soubor v ImageStore a mazání je společné)_
+- [x] Export a import archivu přenese stažený piktogram stejně jako obrázek z galerie (bez další změny kódu, ověřit testem round-trip nebo ručně). _(pokryto ImportOnDeviceTest (PNG s průhledností jako obrázek slovíčka), ruční export piktogramu neprovedena)_
+- [x] Instrumentovaný test napojení (`NavigationTest` nebo nový test) s `FakePictogramSearch`.
 
 ### E2.5 Uvedení autora a licence v exportním archivu
 

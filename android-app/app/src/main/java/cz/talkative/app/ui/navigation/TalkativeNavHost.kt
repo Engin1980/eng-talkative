@@ -2,6 +2,8 @@ package cz.talkative.app.ui.navigation
 
 import android.net.Uri
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
@@ -30,6 +32,17 @@ object Routes {
     const val PICKED_IMAGE_KEY = "pickedImageUri"
 }
 
+/** Přechody z administrace na další obrazovky a obrázek, který se z nich vrací (viz [Routes.PICKED_IMAGE_KEY]). */
+class AdminNavigation(
+    val backToClient: () -> Unit,
+    val openConfig: () -> Unit,
+    val openExchange: () -> Unit,
+    val openAbout: () -> Unit,
+    val openArasaac: (query: String) -> Unit,
+    val pickedImageUri: String?,
+    val onPickedImageConsumed: () -> Unit,
+)
+
 /**
  * Navigace mezi klientem, administrací a konfigurací, exportem a importem i „O aplikaci“ (ty se otevírají z administrace). Klient je vždy startovní obrazovka.
  * Obrazovky jsou parametry, aby šly v testech nahradit bezstavovými verzemi (bez Hilt).
@@ -38,15 +51,17 @@ object Routes {
 fun TalkativeNavHost(
     navController: NavHostController,
     client: @Composable (openAdmin: () -> Unit) -> Unit = { openAdmin -> ClientRoute(onOpenAdmin = openAdmin) },
-    admin: @Composable (backToClient: () -> Unit, openConfig: () -> Unit, openExchange: () -> Unit, openAbout: () -> Unit) -> Unit =
-        { backToClient, openConfig, openExchange, openAbout ->
-            AdminRoute(
-                onBackToClient = backToClient,
-                onOpenConfig = openConfig,
-                onOpenExchange = openExchange,
-                onOpenAbout = openAbout,
-            )
-        },
+    admin: @Composable (AdminNavigation) -> Unit = { navigation ->
+        AdminRoute(
+            onBackToClient = navigation.backToClient,
+            onOpenConfig = navigation.openConfig,
+            onOpenExchange = navigation.openExchange,
+            onOpenAbout = navigation.openAbout,
+            onOpenArasaac = navigation.openArasaac,
+            pickedImageUri = navigation.pickedImageUri,
+            onPickedImageConsumed = navigation.onPickedImageConsumed,
+        )
+    },
     config: @Composable (back: () -> Unit) -> Unit = { back -> ConfigRoute(onBack = back) },
     exchange: @Composable (back: () -> Unit) -> Unit = { back -> ExchangeRoute(onBack = back) },
     about: @Composable (back: () -> Unit) -> Unit = { back -> AboutRoute(onBack = back) },
@@ -57,12 +72,19 @@ fun TalkativeNavHost(
         composable(Routes.CLIENT) {
             client { navController.navigate(Routes.ADMIN) }
         }
-        composable(Routes.ADMIN) {
+        composable(Routes.ADMIN) { entry ->
+            // Obrázek vybraný na jiné obrazovce se vrací přes savedStateHandle této obrazovky.
+            val picked by entry.savedStateHandle.getStateFlow<String?>(Routes.PICKED_IMAGE_KEY, null).collectAsState()
             admin(
-                { navController.popBackStack(Routes.CLIENT, inclusive = false) },
-                { navController.navigate(Routes.CONFIG) },
-                { navController.navigate(Routes.EXCHANGE) },
-                { navController.navigate(Routes.ABOUT) },
+                AdminNavigation(
+                    backToClient = { navController.popBackStack(Routes.CLIENT, inclusive = false) },
+                    openConfig = { navController.navigate(Routes.CONFIG) },
+                    openExchange = { navController.navigate(Routes.EXCHANGE) },
+                    openAbout = { navController.navigate(Routes.ABOUT) },
+                    openArasaac = { query -> navController.navigate(Routes.arasaac(query)) },
+                    pickedImageUri = picked,
+                    onPickedImageConsumed = { entry.savedStateHandle[Routes.PICKED_IMAGE_KEY] = null },
+                ),
             )
         }
         composable(Routes.CONFIG) {
