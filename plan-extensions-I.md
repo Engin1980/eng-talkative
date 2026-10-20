@@ -87,16 +87,16 @@ Rozhodnutí zadavatele: při prvním spuštění se před klientem zobrazí ozn�
 ### E2.1 Síťová vrstva a vyhledávání
 
 **Úkoly:**
-- [ ] Oprávnění `INTERNET` v `AndroidManifest.xml`; do `libs.versions.toml` a `build.gradle.kts` OkHttp a `coil-network-okhttp` (Coil 3 pak umí načítat URL), pro testy `mockwebserver`.
-- [ ] Doména (`domain/pictogram`): `PictogramSearch` (rozhraní, `suspend fun search(text: String): PictogramSearchResult`), `Pictogram(id, title, previewUrl)`, výsledek `Found(list)` / `Failed(PictogramError)` a `PictogramError` (`NO_NETWORK`, `TIMEOUT`, `SERVER_ERROR`, `BAD_RESPONSE`). Čistá funkce pro sestavení URL obrázku (`id`, velikost 300 / 500) s unit testem.
-- [ ] Datová vrstva (`data/pictogram`): implementace nad OkHttp s adresou serveru jako parametrem (kvůli testům), časový limit 10 s, URL-kódování hledaného textu včetně diakritiky, parsování pomocí `kotlinx.serialization` s `ignoreUnknownKeys`. Titulek piktogramu = první `keyword`. Položky bez klíčového slova nebo s neplatným ID se přeskočí. Počet výsledků se omezí na rozumné maximum (např. 100).
-- [ ] Hilt modul `PictogramModule`, falešná implementace `FakePictogramSearch` do `src/sharedTest/java` pro testy view modelu a UI.
-- [ ] Prázdný hledaný text (jen mezery) se nehledá.
+- [x] Oprávnění `INTERNET` v `AndroidManifest.xml`; do `libs.versions.toml` a `build.gradle.kts` OkHttp a `coil-network-okhttp` (Coil 3 pak umí načítat URL), pro testy `mockwebserver`.
+- [x] Doména (`domain/pictogram`): `PictogramSearch` (rozhraní, `suspend fun search(text: String): PictogramSearchResult`), `Pictogram(id, title, previewUrl)`, výsledek `Found(list)` / `Failed(PictogramError)` a `PictogramError` (`NO_NETWORK`, `TIMEOUT`, `SERVER_ERROR`, `BAD_RESPONSE`). Čistá funkce pro sestavení URL obrázku (`id`, velikost 300 / 500) s unit testem. _(OkHttp 4.12.0 (stejná verze, kterou si přes coil-network-okhttp stejně tahá Coil 3.6.3); HTTP 404 s prázdným polem server vrací při nenalezení, bere se jako prázdný výsledek)_
+- [x] Datová vrstva (`data/pictogram`): implementace nad OkHttp s adresou serveru jako parametrem (kvůli testům), časový limit 10 s, URL-kódování hledaného textu včetně diakritiky, parsování pomocí `kotlinx.serialization` s `ignoreUnknownKeys`. Titulek piktogramu = první `keyword`. Položky bez klíčového slova nebo s neplatným ID se přeskočí. Počet výsledků se omezí na rozumné maximum (např. 100).
+- [x] Hilt modul `PictogramModule`, falešná implementace `FakePictogramSearch` do `src/sharedTest/java` pro testy view modelu a UI.
+- [x] Prázdný hledaný text (jen mezery) se nehledá.
 
 **Kritéria splnění:**
-- [ ] Unit testy s `MockWebServer`: úspěšná odpověď (správné ID a titulky, diakritika v dotazu odeslána správně zakódovaná), prázdné pole výsledků, poškozený JSON → `BAD_RESPONSE`, HTTP 500 → `SERVER_ERROR`, nedostupný server → `NO_NETWORK`, zpomalená odpověď → `TIMEOUT`.
-- [ ] Žádná závislost nevyžaduje minSdk vyšší než 26.
-- [ ] Ruční ověření proti skutečnému API (hledání „dům“ vrátí výsledky, náhled s ID z výsledku se načte).
+- [x] Unit testy s `MockWebServer`: úspěšná odpověď (správné ID a titulky, diakritika v dotazu odeslána správně zakódovaná), prázdné pole výsledků, poškozený JSON → `BAD_RESPONSE`, HTTP 500 → `SERVER_ERROR`, nedostupný server → `NO_NETWORK`, zpomalená odpověď → `TIMEOUT`.
+- [x] Žádná závislost nevyžaduje minSdk vyšší než 26.
+- [x] Ruční ověření proti skutečnému API (hledání „dům“ vrátí výsledky, náhled s ID z výsledku se načte). _(dočasný instrumentovaný test na emulátoru: hledání „dům“ vrátilo přes 20 výsledků, náhled prvního se stáhl; test jsem nekomitoval)_
 
 ### E2.2 Stažení vybraného piktogramu
 

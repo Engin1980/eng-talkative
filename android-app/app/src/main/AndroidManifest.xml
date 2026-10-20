@@ -1,6 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
+    <!-- Síť se používá jen při hledání a stahování piktogramů ARASAAC v administraci. -->
+    <uses-permission android:name="android.permission.INTERNET" />
+
     <!-- Od Androidu 11 musí aplikace deklarovat, že se chce vázat na TTS engine. -->
     <uses-feature android:name="android.hardware.camera" android:required="false" />
 
