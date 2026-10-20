@@ -41,6 +41,7 @@ import cz.talkative.app.domain.model.AppConfig
 import cz.talkative.app.domain.model.ConfigLimits
 import cz.talkative.app.domain.model.GridSize
 import cz.talkative.app.ui.theme.TalkativeTheme
+import cz.talkative.app.ui.common.ScrollableColumn
 import java.util.Locale
 
 /** Značka hodnoty u nastavení, např. `config-value-remove-hold`; testy podle ní čtou zobrazenou hodnotu. */
@@ -84,8 +85,8 @@ fun ConfigScreen(
         }
         Text(stringResource(R.string.config_local_note), style = MaterialTheme.typography.bodyMedium)
 
-        Column(
-            modifier = Modifier.weight(1f).verticalScroll(rememberScrollState()),
+        ScrollableColumn(
+            modifier = Modifier.weight(1f),
             verticalArrangement = Arrangement.spacedBy(dimens.spaceSmall),
         ) {
             SectionTitle(R.string.config_section_sentence)
@@ -280,7 +281,7 @@ private fun ResetDialog(onEvent: (ConfigEvent) -> Unit) {
     AlertDialog(
         onDismissRequest = { onEvent(ConfigEvent.ResetDismissed) },
         title = { Text(stringResource(R.string.config_reset_title)) },
-        text = { Text(stringResource(R.string.config_reset_message)) },
+        text = { ScrollableColumn { Text(stringResource(R.string.config_reset_message)) } },
         confirmButton = {
             Button(
                 onClick = { onEvent(ConfigEvent.ResetConfirmed) },

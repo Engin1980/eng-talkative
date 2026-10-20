@@ -5,6 +5,8 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -34,6 +36,7 @@ import cz.talkative.app.R
 import cz.talkative.app.domain.exchange.ExportError
 import cz.talkative.app.ui.common.FolderPickerDialog
 import cz.talkative.app.ui.theme.TalkativeTheme
+import cz.talkative.app.ui.common.ScrollableColumn
 
 /** Značka stavového řádku exportu (průběh, výsledek nebo chyba). */
 const val EXPORT_STATUS_TAG = "export-status"
@@ -64,6 +67,7 @@ fun ExchangeRoute(onBack: () -> Unit, viewModel: ExchangeViewModel = hiltViewMod
 }
 
 /** Bezstavová obrazovka exportu a importu. [onChooseExportFile] a [onChooseArchive] spustí systémový výběr souboru. */
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun ExchangeScreen(
     state: ExchangeUiState,
@@ -95,8 +99,8 @@ fun ExchangeScreen(
             }
         }
 
-        Column(
-            modifier = Modifier.weight(1f).verticalScroll(rememberScrollState()),
+        ScrollableColumn(
+            modifier = Modifier.weight(1f),
             verticalArrangement = Arrangement.spacedBy(dimens.spaceSmall),
         ) {
             Text(stringResource(R.string.exchange_section_export), style = MaterialTheme.typography.titleLarge)
@@ -107,7 +111,10 @@ fun ExchangeScreen(
                 style = MaterialTheme.typography.titleMedium,
                 modifier = Modifier.testTag(EXPORT_SCOPE_TAG),
             )
-            Row(horizontalArrangement = Arrangement.spacedBy(dimens.spaceMedium)) {
+            FlowRow(
+                horizontalArrangement = Arrangement.spacedBy(dimens.spaceMedium),
+                verticalArrangement = Arrangement.spacedBy(dimens.spaceSmall),
+            ) {
                 OutlinedButton(
                     onClick = { onEvent(ExchangeEvent.ExportWholeDictionary) },
                     enabled = !running && state.exportFolder != null,

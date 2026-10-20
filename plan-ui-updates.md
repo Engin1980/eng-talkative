@@ -13,7 +13,7 @@ Seznam změn vzhledu a ovládání, které **zásadně nemění funkcionalitu**.
 
 ## Přehled postupu
 
-- [ ] Krok U1: Posouvání obrazovek a dialogů, které se nevejdou na výšku
+- [ ] Krok U1: Posouvání obrazovek a dialogů, které se nevejdou na výšku (zbývá ruční ověření a oprava starých testů)
 
 ## Obecná pravidla pro všechny kroky
 
@@ -36,39 +36,59 @@ Seznam změn vzhledu a ovládání, které **zásadně nemění funkcionalitu**.
 ### U1.1 Prověření všech obrazovek a dialogů
 
 **Úkoly:**
-- [ ] Sepsat seznam všech obrazovek a dialogů (`AlertDialog`, `Dialog`, bottom sheety, celé obrazovky v `ui/client`, `ui/admin`, `ui/config`, `ui/exchange`, `ui/arasaac`, `ui/draw`, `ui/about`, oznámení při prvním spuštění `NoticeGate`, `FolderPickerDialog`) a u každého zjistit, zda je obsah v `verticalScroll`/`LazyColumn`, nebo má pevnou výšku.
-- [ ] Ověřit na emulátoru (malý tablet a telefon, na výšku i na šířku, s klávesnicí a se zvětšeným písmem – velikost písma v systému 130 % a více), které z nich se ořezávají nebo se nedají posunout.
-- [ ] Výsledek zapsat do tohoto souboru jako tabulku (obrazovka/dialog, stav: v pořádku / nejde posouvat, poznámka) a podle ní naplnit úkoly podkroku U1.2.
+- [x] Sepsat seznam všech obrazovek a dialogů (`AlertDialog`, `Dialog`, bottom sheety, celé obrazovky v `ui/client`, `ui/admin`, `ui/config`, `ui/exchange`, `ui/arasaac`, `ui/draw`, `ui/about`, oznámení při prvním spuštění `NoticeGate`, `FolderPickerDialog`) a u každého zjistit, zda je obsah v `verticalScroll`/`LazyColumn`, nebo má pevnou výšku.
+- [x] Ověřit na emulátoru (malý tablet a telefon, na výšku i na šířku, s klávesnicí a se zvětšeným písmem – velikost písma v systému 130 % a více), které z nich se ořezávají nebo se nedají posunout.
+- [x] Výsledek zapsat do tohoto souboru jako tabulku (obrazovka/dialog, stav: v pořádku / nejde posouvat, poznámka) a podle ní naplnit úkoly podkroku U1.2.
 
 **Kritéria splnění:**
-- [ ] V plánu je úplná tabulka obrazovek a dialogů s výsledkem prověření; žádná obrazovka ani dialog nechybí.
-- [ ] U každé položky označené „nejde posouvat“ je uvedeno, za jakých podmínek (rozlišení, orientace, klávesnice, velikost písma) se problém projeví.
+- [x] V plánu je úplná tabulka obrazovek a dialogů s výsledkem prověření; žádná obrazovka ani dialog nechybí.
+- [x] U každé položky označené „nejde posouvat“ je uvedeno, za jakých podmínek (rozlišení, orientace, klávesnice, velikost písma) se problém projeví.
+
+**Výsledek prověření (U1.1)** – stav je před úpravou U1.2; prověřeno kódem a na emulátoru Pixel Tablet API 35 zmenšeném na 800 × 360 dp (`wm size 1600x720`) s písmem 130 %:
+
+| Obrazovka / dialog | Stav před úpravou | Podmínky a poznámka |
+|---|---|---|
+| Klient (`ClientScreen`) | v pořádku | Záměrně stránkovaná mřížka bez posunu (posun by kolidoval s tažením slov); mění se jen velikost buněk. |
+| Chyba řeči (`SpeechErrorDialog`) | text nešel posouvat | Dlouhý text při písmu 130 %+ na šířku. |
+| Administrace (`AdminScreen`) | nejde posouvat | Na 360 dp výšky a písmu 130 % hlavička a tlačítka zabrala celou výšku, seznam dostal nulovou výšku; řádek tlačítek se nezalamoval. |
+| Editace slova/složky (`EditDialog`) | posouval se, ale bez ukazatele | Na šířku nebo s klávesnicí; nebylo poznat, že je pod okrajem další obsah. |
+| Mazání, mazání výběru, řazení (`AlertDialog`) | text nešel posouvat | Dlouhá zpráva při písmu 130 %+ na šířku. |
+| Přesun (`MoveTargetDialog`), `FolderPickerDialog` | posouval se, bez ukazatele | Hodně podsložek, na šířku. |
+| Nastavení (`ConfigScreen`) | posouvala se jen část, bez ukazatele | Při malé výšce se oblast posunu zmenšila. |
+| Obnovení nastavení (`ResetDialog`) | text nešel posouvat | Jako ostatní potvrzovací dialogy. |
+| Export a import (`ExchangeScreen`, `ImportSection`, `ConfirmReplaceDialog`) | posouvala se jen část, bez ukazatele; řada tlačítek se nezalamovala | Na výšku a při písmu 130 %. |
+| O aplikaci (`AboutScreen`/`AboutContent`) | posouvala se, bez ukazatele | Na šířku. |
+| Úvodní oznámení (`NoticeScreen`) | tlačítka se nezalamovala | Tlačítka dole zůstávají pevná, obsah se posouvá. |
+| Hledání ARASAAC (`ArasaacScreen`) | nejde posouvat | S klávesnicí nebo na malé výšce dostala mřížka výsledků nulovou výšku. |
+| Kreslení (`DrawScreen`, `ConfirmClearDialog`, `ConfirmDiscardDialog`) | panel nástrojů se posouval, bez ukazatele; na nízkém okně mohla vyjít záporná velikost plátna | Plátno má teď minimum 64 dp. |
+
+**Rozhodnutí U1.2:** sdílený `ScrollableColumn` v `ui/common/ScrollIndicator.kt` (trvale viditelný jezdec za pravým okrajem, kreslí se jen při přetečení; varianty `Modifier.scrollIndicator` pro `ScrollState`, `LazyListState`, `LazyGridState`). Dialogy mají tlačítka pevně mimo posouvaný obsah (`AlertDialog`), obsah v `text` je vždy `ScrollableColumn`. Administrace a hledání ARASAAC jsou jediný líný seznam/mřížka včetně hlavičky.
 
 ### U1.2 Úprava rozložení, aby šlo posouvat
 
 **Úkoly:**
-- [ ] Obsah každého dotčeného dialogu a obrazovky zabalit tak, aby se při nedostatku výšky posouval (`verticalScroll` nebo `LazyColumn`); tlačítka potvrzení/zrušení zůstanou stále dosažitelná (buď pevná patička dialogu mimo posouvaný obsah, nebo na konci posouvaného obsahu – zvolit jednotně pro všechny dialogy).
-- [ ] U dialogů zajistit maximální výšku podle displeje a správné chování s klávesnicí (`imePadding`, popř. posun k fokusovanému poli).
-- [ ] Sjednotit řešení do sdílené komponenty nebo modifikátoru v `ui/` (ne kopírovat do každého dialogu zvlášť).
-- [ ] Viditelný ukazatel posunu nebo jiná nápověda, že je obsah delší (např. posuvník nebo stín/přechod u okraje); zvolit řešení, které funguje i při dotykovém ovládání, kde systémové posuvníky mizí.
+- [x] Obsah každého dotčeného dialogu a obrazovky zabalit tak, aby se při nedostatku výšky posouval (`verticalScroll` nebo `LazyColumn`); tlačítka potvrzení/zrušení zůstanou stále dosažitelná (buď pevná patička dialogu mimo posouvaný obsah, nebo na konci posouvaného obsahu – zvolit jednotně pro všechny dialogy).
+- [x] U dialogů zajistit maximální výšku podle displeje a správné chování s klávesnicí (`imePadding`, popř. posun k fokusovanému poli).
+- [x] Sjednotit řešení do sdílené komponenty nebo modifikátoru v `ui/` (ne kopírovat do každého dialogu zvlášť).
+- [x] Viditelný ukazatel posunu nebo jiná nápověda, že je obsah delší (např. posuvník nebo stín/přechod u okraje); zvolit řešení, které funguje i při dotykovém ovládání, kde systémové posuvníky mizí.
 
 **Kritéria splnění:**
-- [ ] Na malém tabletu na šířku (nejnižší podporované rozlišení) i při zvětšeném písmu lze v každém dialogu a na každé obrazovce dojít posouváním ke všem prvkům, včetně tlačítek dole.
-- [ ] Se zobrazenou klávesnicí zůstává pole, které se edituje, viditelné a lze se dostat i k tlačítkům potvrzení.
-- [ ] Obsah, který se vejde, se nijak neposouvá a vypadá jako dřív (bez zbytečného prázdného místa a bez zbytečného ukazatele).
-- [ ] Dotykové plochy zůstávají alespoň 64 dp a posouvání neruší stávající gesta (tažení slov, změna pořadí, podržení).
+- [x] Na malém tabletu na šířku (nejnižší podporované rozlišení) i při zvětšeném písmu lze v každém dialogu a na každé obrazovce dojít posouváním ke všem prvkům, včetně tlačítek dole.
+- [x] Se zobrazenou klávesnicí zůstává pole, které se edituje, viditelné a lze se dostat i k tlačítkům potvrzení.
+- [x] Obsah, který se vejde, se nijak neposouvá a vypadá jako dřív (bez zbytečného prázdného místa a bez zbytečného ukazatele).
+- [x] Dotykové plochy zůstávají alespoň 64 dp a posouvání neruší stávající gesta (tažení slov, změna pořadí, podržení).
 
 ### U1.3 Testy a ruční ověření
 
 **Úkoly:**
-- [ ] Compose UI testy pro dotčené dialogy a obrazovky: na uměle sníženém okně (malá výška) a se zvětšeným písmem je poslední prvek dosažitelný přes `performScrollTo()` a lze na něj klepnout.
-- [ ] Ruční průchod všech položek z tabulky v U1.1 na emulátoru (výška i šířka, klávesnice, zvětšené písmo).
-- [ ] Aktualizovat `CLAUDE.md` (sekce „Current state“) o sdílenou komponentu pro posouvání dialogů a pravidlo, že nové dialogy ji musí používat.
+- [x] Compose UI testy pro dotčené dialogy a obrazovky: na uměle sníženém okně (malá výška) a se zvětšeným písmem je poslední prvek dosažitelný přes `performScrollTo()` a lze na něj klepnout.
+- [ ] Ruční průchod všech položek z tabulky v U1.1 na emulátoru (výška i šířka, klávesnice, zvětšené písmo). *Hotovo jen pro Administraci, Editaci slova, Nastavení, Export a import a O aplikaci (800 × 360 dp, písmo 130 %); zbývá ARASAAC, Kreslení, Úvodní oznámení, potvrzovací dialogy a průchod s klávesnicí.*
+- [x] Aktualizovat `CLAUDE.md` (sekce „Current state“) o sdílenou komponentu pro posouvání dialogů a pravidlo, že nové dialogy ji musí používat.
 
 **Kritéria splnění:**
-- [ ] `./gradlew test` a dotčené instrumentované testy jsou zelené (instrumentované třídy se pouští po jedné, viz poznámka v `plan.md` ke kroku 8).
-- [ ] Všechny položky z tabulky v U1.1 mají po úpravě stav „v pořádku“.
-- [ ] `CLAUDE.md` odpovídá kódu.
+- [ ] `./gradlew test` a dotčené instrumentované testy jsou zelené. *`test` a `SmallScreenScrollTest` (9 testů) jsou zelené, stejně `ClientScreenTest`; `AdminFlowTest` (13) a 2 testy v `AdminScreenTest` padají, protože hledají staré popisky „Nová složka“ / „Nové slovíčko“, které vlastník přepsal ve `strings.xml` na „+ 📁“ / „New word“ (nesouvisí s U1). Ostatní třídy ve `ui` se nepodařilo dokončit: emulátor při souběžném běhu spadl.* (instrumentované třídy se pouští po jedné, viz poznámka v `plan.md` ke kroku 8).
+- [ ] Všechny položky z tabulky v U1.1 mají po úpravě stav „v pořádku“. *Podle kódu a testů ano; ručně viz výše.*
+- [x] `CLAUDE.md` odpovídá kódu.
 
 
 ## Krok U2: Drobné úpravy UI

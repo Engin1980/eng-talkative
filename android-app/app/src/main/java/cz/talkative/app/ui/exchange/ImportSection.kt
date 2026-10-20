@@ -28,6 +28,7 @@ import androidx.compose.ui.semantics.Role
 import cz.talkative.app.R
 import cz.talkative.app.domain.exchange.ImportError
 import cz.talkative.app.ui.theme.TalkativeTheme
+import cz.talkative.app.ui.common.ScrollableColumn
 
 /** Značky částí importu, podle kterých testy hledají prvky. */
 const val IMPORT_STATUS_TAG = "import-status"
@@ -158,7 +159,7 @@ private fun ConfirmReplaceDialog(onEvent: (ExchangeEvent) -> Unit) {
     AlertDialog(
         onDismissRequest = { onEvent(ExchangeEvent.DismissReplace) },
         title = { Text(stringResource(R.string.exchange_replace_title)) },
-        text = { Text(stringResource(R.string.exchange_replace_message)) },
+        text = { ScrollableColumn { Text(stringResource(R.string.exchange_replace_message)) } },
         confirmButton = {
             Button(onClick = { onEvent(ExchangeEvent.ConfirmReplace) }, modifier = Modifier.heightIn(min = dimens.minTouchTarget)) {
                 Text(stringResource(R.string.exchange_replace_confirm))

@@ -26,6 +26,11 @@ data class Dimens(
     /** Šířka jezdce posuvníku (výška je dotyková plocha). */
     val sliderThumbWidth: Dp = 24.dp,
     val swatchInset: Dp = 6.dp,
+    /** Šířka a nejmenší délka jezdce ukazatele posunu u posouvaného obsahu. */
+    val scrollIndicatorWidth: Dp = 6.dp,
+    val scrollIndicatorMinLength: Dp = 32.dp,
+    /** Jak daleko za pravý okraj posouvaného obsahu končí jezdec; leží v okraji, který obsah obklopuje. */
+    val scrollIndicatorOutset: Dp = 12.dp,
     val sentenceBarMinHeight: Dp = 80.dp,
     val sentenceBarMaxHeight: Dp = 176.dp,
     val spaceSmall: Dp = 8.dp,

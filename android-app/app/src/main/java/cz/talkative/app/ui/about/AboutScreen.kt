@@ -35,6 +35,7 @@ import cz.talkative.app.R
 import cz.talkative.app.domain.pictogram.ArasaacLinks
 import cz.talkative.app.ui.common.openLink
 import cz.talkative.app.ui.theme.TalkativeTheme
+import cz.talkative.app.ui.common.ScrollableColumn
 
 /** Značka klepnutelného prvku s adresou, např. `about-link-https://arasaac.org`. */
 fun aboutLinkTag(url: String) = "about-link-$url"
@@ -93,8 +94,8 @@ fun AboutScreen(
 @Composable
 fun AboutContent(versionName: String, onOpenLink: (String) -> Unit, modifier: Modifier = Modifier) {
     val dimens = TalkativeTheme.dimens
-    Column(
-        modifier = modifier.fillMaxWidth().verticalScroll(rememberScrollState()),
+    ScrollableColumn(
+        modifier = modifier.fillMaxWidth(),
         verticalArrangement = Arrangement.spacedBy(dimens.spaceSmall),
     ) {
         Text(stringResource(R.string.app_name), style = MaterialTheme.typography.titleLarge)

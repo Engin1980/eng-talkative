@@ -46,8 +46,7 @@ fun FolderPickerDialog(
         onDismissRequest = onDismiss,
         title = { Text(title) },
         text = {
-            Column(
-                modifier = Modifier.verticalScroll(rememberScrollState()),
+            ScrollableColumn(
                 verticalArrangement = Arrangement.spacedBy(dimens.spaceSmall),
             ) {
                 Row(modifier = Modifier.horizontalScroll(rememberScrollState()), verticalAlignment = Alignment.CenterVertically) {

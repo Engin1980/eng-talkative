@@ -4,7 +4,8 @@ import android.app.Activity
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
@@ -64,6 +65,7 @@ fun NoticeGate(
 }
 
 /** Úvodní oznámení: „O aplikaci“ s uvedením ARASAAC a dvě tlačítka. Systémové Zpět se chová jako „Odejít“. */
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun NoticeScreen(
     versionName: String,
@@ -84,7 +86,10 @@ fun NoticeScreen(
         Text(stringResource(R.string.notice_title), style = MaterialTheme.typography.headlineMedium)
         Text(stringResource(R.string.notice_intro), style = MaterialTheme.typography.bodyLarge)
         AboutContent(versionName = versionName, onOpenLink = onOpenLink, modifier = Modifier.weight(1f))
-        Row(horizontalArrangement = Arrangement.spacedBy(dimens.spaceMedium)) {
+        FlowRow(
+            horizontalArrangement = Arrangement.spacedBy(dimens.spaceMedium),
+            verticalArrangement = Arrangement.spacedBy(dimens.spaceSmall),
+        ) {
             Button(onClick = onAcknowledge, modifier = Modifier.heightIn(min = dimens.minTouchTarget)) {
                 Text(stringResource(R.string.notice_acknowledge))
             }

@@ -14,7 +14,10 @@ import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.GridItemSpan
+import androidx.compose.foundation.lazy.grid.LazyGridScope
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
@@ -44,6 +47,7 @@ import cz.talkative.app.R
 import cz.talkative.app.domain.pictogram.Pictogram
 import cz.talkative.app.domain.pictogram.PictogramError
 import cz.talkative.app.ui.theme.TalkativeTheme
+import cz.talkative.app.ui.common.scrollIndicator
 
 /** Značky prvků obrazovky, podle kterých testy hledají. */
 const val ARASAAC_SEARCH_FIELD_TAG = "arasaac-search-field"
@@ -84,99 +88,115 @@ fun ArasaacScreen(
 ) {
     val dimens = TalkativeTheme.dimens
     BackHandler { onBack() }
-    Column(
+    // Hlavička, hledání, stavy i patička jsou součástí jedné posouvané mřížky, aby se na malé výšce
+    // (nebo se zobrazenou klávesnicí) výsledky neztratily pod ovládacími prvky.
+    val gridState = rememberLazyGridState()
+    LazyVerticalGrid(
+        state = gridState,
+        columns = GridCells.Adaptive(dimens.pictogramTileMinSize),
+        horizontalArrangement = Arrangement.spacedBy(dimens.spaceMedium),
+        verticalArrangement = Arrangement.spacedBy(dimens.spaceMedium),
         modifier = modifier
             .fillMaxSize()
             .safeDrawingPadding()
-            .padding(dimens.spaceLarge),
-        verticalArrangement = Arrangement.spacedBy(dimens.spaceMedium),
+            .padding(dimens.spaceLarge)
+            .scrollIndicator(gridState),
     ) {
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            Text(
-                text = stringResource(R.string.arasaac_title),
-                style = MaterialTheme.typography.headlineMedium,
-                modifier = Modifier.weight(1f),
-            )
-            Button(onClick = onBack, modifier = Modifier.heightIn(min = dimens.minTouchTarget)) {
-                Text(stringResource(R.string.arasaac_back))
+        fullWidthItem {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text(
+                    text = stringResource(R.string.arasaac_title),
+                    style = MaterialTheme.typography.headlineMedium,
+                    modifier = Modifier.weight(1f),
+                )
+                Button(onClick = onBack, modifier = Modifier.heightIn(min = dimens.minTouchTarget)) {
+                    Text(stringResource(R.string.arasaac_back))
+                }
             }
         }
 
-        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(dimens.spaceMedium)) {
-            OutlinedTextField(
-                value = state.query,
-                onValueChange = { onEvent(ArasaacEvent.QueryChanged(it)) },
-                label = { Text(stringResource(R.string.arasaac_query_label)) },
-                singleLine = true,
-                keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
-                keyboardActions = KeyboardActions(onSearch = { onEvent(ArasaacEvent.Search) }),
-                modifier = Modifier.weight(1f).heightIn(min = dimens.minTouchTarget).testTag(ARASAAC_SEARCH_FIELD_TAG),
-            )
-            Button(
-                onClick = { onEvent(ArasaacEvent.Search) },
-                modifier = Modifier.heightIn(min = dimens.minTouchTarget),
-            ) { Text(stringResource(R.string.arasaac_search)) }
+        fullWidthItem {
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(dimens.spaceMedium)) {
+                OutlinedTextField(
+                    value = state.query,
+                    onValueChange = { onEvent(ArasaacEvent.QueryChanged(it)) },
+                    label = { Text(stringResource(R.string.arasaac_query_label)) },
+                    singleLine = true,
+                    keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
+                    keyboardActions = KeyboardActions(onSearch = { onEvent(ArasaacEvent.Search) }),
+                    modifier = Modifier.weight(1f).heightIn(min = dimens.minTouchTarget).testTag(ARASAAC_SEARCH_FIELD_TAG),
+                )
+                Button(
+                    onClick = { onEvent(ArasaacEvent.Search) },
+                    modifier = Modifier.heightIn(min = dimens.minTouchTarget),
+                ) { Text(stringResource(R.string.arasaac_search)) }
+            }
         }
 
         state.downloadingId?.let {
-            Column(modifier = Modifier.fillMaxWidth().testTag(ARASAAC_DOWNLOAD_TAG), verticalArrangement = Arrangement.spacedBy(dimens.spaceSmall)) {
-                Text(stringResource(R.string.arasaac_downloading), style = MaterialTheme.typography.bodyLarge)
-                LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
+            fullWidthItem {
+                Column(modifier = Modifier.fillMaxWidth().testTag(ARASAAC_DOWNLOAD_TAG), verticalArrangement = Arrangement.spacedBy(dimens.spaceSmall)) {
+                    Text(stringResource(R.string.arasaac_downloading), style = MaterialTheme.typography.bodyLarge)
+                    LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
+                }
             }
         }
         state.downloadError?.let {
-            Text(
-                text = stringResource(errorText(it)),
-                color = MaterialTheme.colorScheme.error,
-                style = MaterialTheme.typography.bodyLarge,
-                modifier = Modifier.testTag(ARASAAC_DOWNLOAD_TAG),
-            )
+            fullWidthItem {
+                Text(
+                    text = stringResource(errorText(it)),
+                    color = MaterialTheme.colorScheme.error,
+                    style = MaterialTheme.typography.bodyLarge,
+                    modifier = Modifier.testTag(ARASAAC_DOWNLOAD_TAG),
+                )
+            }
         }
 
-        Box(modifier = Modifier.weight(1f).fillMaxWidth()) {
-            SearchContent(state, onEvent)
-        }
+        searchContent(state, onEvent)
 
-        Column(verticalArrangement = Arrangement.spacedBy(dimens.spaceSmall)) {
-            Text(stringResource(R.string.arasaac_credit), style = MaterialTheme.typography.bodyMedium)
-            TextButton(onClick = onOpenAbout, modifier = Modifier.heightIn(min = dimens.minTouchTarget)) {
-                Text(stringResource(R.string.arasaac_about_link))
+        fullWidthItem {
+            Column(verticalArrangement = Arrangement.spacedBy(dimens.spaceSmall)) {
+                Text(stringResource(R.string.arasaac_credit), style = MaterialTheme.typography.bodyMedium)
+                TextButton(onClick = onOpenAbout, modifier = Modifier.heightIn(min = dimens.minTouchTarget)) {
+                    Text(stringResource(R.string.arasaac_about_link))
+                }
             }
         }
     }
 }
 
-@Composable
-private fun SearchContent(state: ArasaacUiState, onEvent: (ArasaacEvent) -> Unit) {
-    val dimens = TalkativeTheme.dimens
+/** Položka mřížky přes celou šířku (hlavička, stavy, patička). */
+private fun LazyGridScope.fullWidthItem(content: @Composable () -> Unit) {
+    item(span = { GridItemSpan(maxLineSpan) }) { content() }
+}
+
+private fun LazyGridScope.searchContent(state: ArasaacUiState, onEvent: (ArasaacEvent) -> Unit) {
     when (val search = state.search) {
-        SearchStatus.NotSearched -> Message(R.string.arasaac_hint_start)
-        SearchStatus.Searching -> Column(
-            modifier = Modifier.fillMaxWidth().testTag(ARASAAC_STATUS_TAG),
-            verticalArrangement = Arrangement.spacedBy(dimens.spaceSmall),
-        ) {
-            Text(stringResource(R.string.arasaac_searching), style = MaterialTheme.typography.bodyLarge)
-            LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
-        }
-        SearchStatus.Nothing -> Message(R.string.arasaac_nothing)
-        is SearchStatus.Failed -> Column(
-            modifier = Modifier.fillMaxWidth().testTag(ARASAAC_STATUS_TAG),
-            verticalArrangement = Arrangement.spacedBy(dimens.spaceMedium),
-        ) {
-            Text(stringResource(errorText(search.error)), color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodyLarge)
-            OutlinedButton(onClick = { onEvent(ArasaacEvent.Retry) }, modifier = Modifier.heightIn(min = dimens.minTouchTarget)) {
-                Text(stringResource(R.string.arasaac_retry))
+        SearchStatus.NotSearched -> fullWidthItem { Message(R.string.arasaac_hint_start) }
+        SearchStatus.Searching -> fullWidthItem {
+            Column(
+                modifier = Modifier.fillMaxWidth().testTag(ARASAAC_STATUS_TAG),
+                verticalArrangement = Arrangement.spacedBy(TalkativeTheme.dimens.spaceSmall),
+            ) {
+                Text(stringResource(R.string.arasaac_searching), style = MaterialTheme.typography.bodyLarge)
+                LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
             }
         }
-        is SearchStatus.Results -> LazyVerticalGrid(
-            columns = GridCells.Adaptive(dimens.pictogramTileMinSize),
-            horizontalArrangement = Arrangement.spacedBy(dimens.spaceMedium),
-            verticalArrangement = Arrangement.spacedBy(dimens.spaceMedium),
-            modifier = Modifier.fillMaxSize(),
-        ) {
-            items(search.pictograms, key = { it.id }) { pictogram ->
-                PictogramTile(pictogram, enabled = state.downloadingId == null) { onEvent(ArasaacEvent.Select(pictogram)) }
+        SearchStatus.Nothing -> fullWidthItem { Message(R.string.arasaac_nothing) }
+        is SearchStatus.Failed -> fullWidthItem {
+            val dimens = TalkativeTheme.dimens
+            Column(
+                modifier = Modifier.fillMaxWidth().testTag(ARASAAC_STATUS_TAG),
+                verticalArrangement = Arrangement.spacedBy(dimens.spaceMedium),
+            ) {
+                Text(stringResource(errorText(search.error)), color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodyLarge)
+                OutlinedButton(onClick = { onEvent(ArasaacEvent.Retry) }, modifier = Modifier.heightIn(min = dimens.minTouchTarget)) {
+                    Text(stringResource(R.string.arasaac_retry))
+                }
             }
+        }
+        is SearchStatus.Results -> items(search.pictograms, key = { it.id }) { pictogram ->
+            PictogramTile(pictogram, enabled = state.downloadingId == null) { onEvent(ArasaacEvent.Select(pictogram)) }
         }
     }
 }

@@ -18,6 +18,7 @@ import androidx.compose.ui.res.stringResource
 import cz.talkative.app.R
 import cz.talkative.app.domain.speech.SpeechError
 import cz.talkative.app.ui.theme.TalkativeTheme
+import cz.talkative.app.ui.common.ScrollableColumn
 
 /** Ikona Stop (vyplněný čtverec); sada základních ikon Material ji neobsahuje. */
 private val StopIcon: ImageVector = materialIcon(name = "Filled.Stop") {
@@ -63,7 +64,7 @@ fun SpeechErrorDialog(error: SpeechError, onDismiss: () -> Unit) {
     AlertDialog(
         onDismissRequest = onDismiss,
         title = { Text(stringResource(R.string.client_speech_error_title)) },
-        text = { Text(stringResource(message)) },
+        text = { ScrollableColumn { Text(stringResource(message)) } },
         confirmButton = {
             Button(onClick = onDismiss, modifier = Modifier.heightIn(min = TalkativeTheme.dimens.minTouchTarget)) {
                 Text(stringResource(R.string.dialog_ok))

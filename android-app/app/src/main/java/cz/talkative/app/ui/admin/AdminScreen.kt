@@ -17,6 +17,7 @@ import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
@@ -68,7 +69,9 @@ import cz.talkative.app.domain.audio.AudioLimits
 import cz.talkative.app.domain.model.DictionaryItem
 import cz.talkative.app.domain.model.Folder
 import cz.talkative.app.domain.model.Word
+import cz.talkative.app.ui.common.ScrollableColumn
 import cz.talkative.app.ui.common.WordImage
+import cz.talkative.app.ui.common.scrollIndicator
 import cz.talkative.app.ui.theme.TalkativeTheme
 
 const val MOVE_PROBLEM_TAG = "move_problem"
@@ -125,109 +128,118 @@ fun AdminScreen(
     // Systémové "zpět" jde o úroveň výš; v kořeni ho zpracuje navigace (návrat do klienta).
     BackHandler(enabled = !atRoot) { onEvent(AdminEvent.NavigateUp) }
 
-    Column(
+    // Hlavička i seznam jsou jeden posouvaný celek, aby se na malé výšce (nebo při zvětšeném písmu)
+    // seznam neztratil pod ovládacími prvky.
+    val listState = rememberLazyListState()
+    LazyColumn(
+        state = listState,
         modifier = modifier
             .fillMaxSize()
             .safeDrawingPadding()
-            .padding(dimens.spaceLarge),
+            .padding(dimens.spaceLarge)
+            .scrollIndicator(listState),
         verticalArrangement = Arrangement.spacedBy(dimens.spaceMedium),
     ) {
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            Text(
-                text = stringResource(R.string.admin_title),
-                style = MaterialTheme.typography.headlineMedium,
-                modifier = Modifier.weight(1f),
-            )
-            Button(
-                onClick = onBackToClient,
-                modifier = Modifier.heightIn(min = dimens.minTouchTarget),
-            ) {
-                Text(stringResource(R.string.admin_back_to_client))
+        item {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text(
+                    text = stringResource(R.string.admin_title),
+                    style = MaterialTheme.typography.headlineMedium,
+                    modifier = Modifier.weight(1f),
+                )
+                Button(
+                    onClick = onBackToClient,
+                    modifier = Modifier.heightIn(min = dimens.minTouchTarget),
+                ) {
+                    Text(stringResource(R.string.admin_back_to_client))
+                }
             }
         }
         // Tlačítka jiných obrazovek se při nedostatku místa (na výšku) zalomí na další řádek.
-        FlowRow(
-            horizontalArrangement = Arrangement.spacedBy(dimens.spaceMedium),
-            verticalArrangement = Arrangement.spacedBy(dimens.spaceSmall),
-        ) {
-            OutlinedButton(onClick = onOpenExchange, modifier = Modifier.heightIn(min = dimens.minTouchTarget)) {
-                Text(stringResource(R.string.admin_open_exchange))
-            }
-            OutlinedButton(onClick = onOpenConfig, modifier = Modifier.heightIn(min = dimens.minTouchTarget)) {
-                Text(stringResource(R.string.admin_open_config))
-            }
-            OutlinedButton(onClick = onOpenAbout, modifier = Modifier.heightIn(min = dimens.minTouchTarget)) {
-                Text(stringResource(R.string.admin_open_about))
+        item {
+            FlowRow(
+                horizontalArrangement = Arrangement.spacedBy(dimens.spaceMedium),
+                verticalArrangement = Arrangement.spacedBy(dimens.spaceSmall),
+            ) {
+                OutlinedButton(onClick = onOpenExchange, modifier = Modifier.heightIn(min = dimens.minTouchTarget)) {
+                    Text(stringResource(R.string.admin_open_exchange))
+                }
+                OutlinedButton(onClick = onOpenConfig, modifier = Modifier.heightIn(min = dimens.minTouchTarget)) {
+                    Text(stringResource(R.string.admin_open_config))
+                }
+                OutlinedButton(onClick = onOpenAbout, modifier = Modifier.heightIn(min = dimens.minTouchTarget)) {
+                    Text(stringResource(R.string.admin_open_about))
+                }
             }
         }
 
-        Breadcrumbs(path = state.path, onGoToFolder = { onEvent(AdminEvent.GoToFolder(it)) })
+        item { Breadcrumbs(path = state.path, onGoToFolder = { onEvent(AdminEvent.GoToFolder(it)) }) }
 
-        if (state.isSelecting) {
-            SelectionBar(state = state, onEvent = onEvent)
-        } else Row(horizontalArrangement = Arrangement.spacedBy(dimens.spaceMedium)) {
-            if (!atRoot) {
-                OutlinedButton(
-                    onClick = { onEvent(AdminEvent.NavigateUp) },
+        item {
+            if (state.isSelecting) {
+                SelectionBar(state = state, onEvent = onEvent)
+            } else FlowRow(
+                horizontalArrangement = Arrangement.spacedBy(dimens.spaceMedium),
+                verticalArrangement = Arrangement.spacedBy(dimens.spaceSmall),
+            ) {
+                if (!atRoot) {
+                    OutlinedButton(
+                        onClick = { onEvent(AdminEvent.NavigateUp) },
+                        modifier = Modifier.heightIn(min = dimens.minTouchTarget),
+                    ) {
+                        Text(stringResource(R.string.admin_up))
+                    }
+                }
+                Button(
+                    onClick = { onEvent(AdminEvent.AddFolder) },
                     modifier = Modifier.heightIn(min = dimens.minTouchTarget),
                 ) {
-                    Text(stringResource(R.string.admin_up))
+                    Text(stringResource(R.string.admin_add_folder))
                 }
-            }
-            Button(
-                onClick = { onEvent(AdminEvent.AddFolder) },
-                modifier = Modifier.heightIn(min = dimens.minTouchTarget),
-            ) {
-                Text(stringResource(R.string.admin_add_folder))
-            }
-            Button(
-                onClick = { onEvent(AdminEvent.AddWord) },
-                modifier = Modifier.heightIn(min = dimens.minTouchTarget),
-            ) {
-                Text(stringResource(R.string.admin_add_word))
-            }
-            OutlinedButton(
-                onClick = { onEvent(AdminEvent.ToggleSelecting) },
-                modifier = Modifier.heightIn(min = dimens.minTouchTarget),
-            ) {
-                Text(stringResource(R.string.admin_select))
-            }
-            OutlinedButton(
-                onClick = { onEvent(AdminEvent.SortAlphabetically) },
-                enabled = state.items.size > 1,
-                modifier = Modifier.heightIn(min = dimens.minTouchTarget),
-            ) {
-                Text(stringResource(R.string.admin_sort_alphabetically))
+                Button(
+                    onClick = { onEvent(AdminEvent.AddWord) },
+                    modifier = Modifier.heightIn(min = dimens.minTouchTarget),
+                ) {
+                    Text(stringResource(R.string.admin_add_word))
+                }
+                OutlinedButton(
+                    onClick = { onEvent(AdminEvent.ToggleSelecting) },
+                    modifier = Modifier.heightIn(min = dimens.minTouchTarget),
+                ) {
+                    Text(stringResource(R.string.admin_select))
+                }
+                OutlinedButton(
+                    onClick = { onEvent(AdminEvent.SortAlphabetically) },
+                    enabled = state.items.size > 1,
+                    modifier = Modifier.heightIn(min = dimens.minTouchTarget),
+                ) {
+                    Text(stringResource(R.string.admin_sort_alphabetically))
+                }
             }
         }
 
         when {
             state.isLoading -> Unit
-            state.items.isEmpty() -> EmptyFolderHint(modifier = Modifier.weight(1f))
-            else -> LazyColumn(
-                modifier = Modifier.weight(1f),
-                verticalArrangement = Arrangement.spacedBy(dimens.spaceSmall),
-            ) {
-                items(state.items, key = { it.id }) { item ->
-                    ItemRow(
-                        item = item,
-                        isFirst = item.id == state.items.first().id,
-                        isLast = item.id == state.items.last().id,
-                        onMoveUp = { onEvent(AdminEvent.MoveItemUp(item.id)) },
-                        onMoveDown = { onEvent(AdminEvent.MoveItemDown(item.id)) },
-                        isSelecting = state.isSelecting,
-                        isSelected = item.id in state.selectedIds,
-                        onClick = {
-                            when {
-                                state.isSelecting -> onEvent(AdminEvent.ToggleSelected(item.id))
-                                item is Folder -> onEvent(AdminEvent.GoToFolder(item.id))
-                                else -> onEvent(AdminEvent.EditItem(item))
-                            }
-                        },
-                        onEdit = { onEvent(AdminEvent.EditItem(item)) },
-                        onDelete = { onEvent(AdminEvent.DeleteItem(item)) },
-                    )
-                }
+            state.items.isEmpty() -> item { EmptyFolderHint() }
+            else -> items(state.items, key = { it.id }) { item ->
+                ItemRow(
+                    item = item,
+                    isFirst = item.id == state.items.first().id,
+                    isLast = item.id == state.items.last().id,
+                    onMoveUp = { onEvent(AdminEvent.MoveItemUp(item.id)) },
+                    onMoveDown = { onEvent(AdminEvent.MoveItemDown(item.id)) },
+                    isSelecting = state.isSelecting,
+                    isSelected = item.id in state.selectedIds,
+                    onClick = {
+                        when {
+                            state.isSelecting -> onEvent(AdminEvent.ToggleSelected(item.id))
+                            item is Folder -> onEvent(AdminEvent.GoToFolder(item.id))
+                            else -> onEvent(AdminEvent.EditItem(item))
+                        }
+                    },
+                    onEdit = { onEvent(AdminEvent.EditItem(item)) },
+                    onDelete = { onEvent(AdminEvent.DeleteItem(item)) },
+                )
             }
         }
     }
@@ -442,8 +454,7 @@ private fun EditDialog(dialog: AdminDialog.Edit, onEvent: (AdminEvent) -> Unit, 
         modifier = Modifier.imePadding(),
         title = { Text(stringResource(titleRes)) },
         text = {
-            Column(
-                modifier = Modifier.verticalScroll(rememberScrollState()),
+            ScrollableColumn(
                 verticalArrangement = Arrangement.spacedBy(dimens.spaceMedium),
             ) {
                 OutlinedTextField(
@@ -701,7 +712,7 @@ private fun ConfirmDeleteDialog(dialog: AdminDialog.ConfirmDelete, onEvent: (Adm
         title = {
             Text(stringResource(if (isFolder) R.string.delete_folder_title else R.string.delete_word_title))
         },
-        text = { Text(message) },
+        text = { ScrollableColumn { Text(message) } },
         confirmButton = {
             Button(
                 onClick = { onEvent(AdminEvent.ConfirmDelete) },
@@ -732,7 +743,7 @@ private fun ConfirmDeleteSelectedDialog(dialog: AdminDialog.ConfirmDeleteSelecte
     AlertDialog(
         onDismissRequest = { onEvent(AdminEvent.DismissDialog) },
         title = { Text(stringResource(R.string.delete_selected_title)) },
-        text = { Text(message) },
+        text = { ScrollableColumn { Text(message) } },
         confirmButton = {
             Button(
                 onClick = { onEvent(AdminEvent.ConfirmDeleteSelected) },
@@ -761,8 +772,7 @@ private fun MoveTargetDialog(dialog: AdminDialog.MoveTarget, currentFolderId: St
         onDismissRequest = { onEvent(AdminEvent.DismissDialog) },
         title = { Text(stringResource(R.string.move_title, dialog.movingCount)) },
         text = {
-            Column(
-                modifier = Modifier.verticalScroll(rememberScrollState()),
+            ScrollableColumn(
                 verticalArrangement = Arrangement.spacedBy(dimens.spaceSmall),
             ) {
                 Breadcrumbs(path = dialog.path, onGoToFolder = { onEvent(AdminEvent.BrowseMoveTarget(it)) })
@@ -819,7 +829,7 @@ private fun ConfirmSortDialog(onEvent: (AdminEvent) -> Unit) {
     AlertDialog(
         onDismissRequest = { onEvent(AdminEvent.DismissDialog) },
         title = { Text(stringResource(R.string.sort_title)) },
-        text = { Text(stringResource(R.string.sort_message)) },
+        text = { ScrollableColumn { Text(stringResource(R.string.sort_message)) } },
         confirmButton = {
             Button(
                 onClick = { onEvent(AdminEvent.ConfirmSortAlphabetically) },

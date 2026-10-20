@@ -69,6 +69,7 @@ import cz.talkative.app.domain.drawing.DrawingColors
 import cz.talkative.app.domain.drawing.DrawingLimits
 import cz.talkative.app.domain.drawing.DrawingTool
 import cz.talkative.app.ui.theme.TalkativeTheme
+import cz.talkative.app.ui.common.ScrollableColumn
 
 /** Značky prvků obrazovky, podle kterých testy hledají. */
 const val DRAW_CANVAS_TAG = "draw-canvas"
@@ -116,7 +117,8 @@ fun DrawScreen(
     BackHandler { requestClose() }
     BoxWithConstraints(modifier = modifier.fillMaxSize().safeDrawingPadding().padding(dimens.spaceMedium)) {
         val landscape = maxWidth > maxHeight
-        val side = if (landscape) minOf(maxHeight, maxWidth - dimens.drawToolbarMinWidth) else minOf(maxWidth, maxHeight - dimens.drawToolbarMinHeight)
+        val side = (if (landscape) minOf(maxHeight, maxWidth - dimens.drawToolbarMinWidth) else minOf(maxWidth, maxHeight - dimens.drawToolbarMinHeight))
+            .coerceAtLeast(dimens.minTouchTarget)
         val toolbar: @Composable (Modifier) -> Unit = { toolbarModifier ->
             Toolbar(state, side, onEvent, requestClose, toolbarModifier)
         }
@@ -193,8 +195,8 @@ private fun toCanvasPoint(position: Offset, size: IntSize): DrawPoint {
 @Composable
 private fun Toolbar(state: DrawUiState, canvasSide: Dp, onEvent: (DrawEvent) -> Unit, onCloseRequested: () -> Unit, modifier: Modifier) {
     val dimens = TalkativeTheme.dimens
-    Column(
-        modifier = modifier.verticalScroll(rememberScrollState()),
+    ScrollableColumn(
+        modifier = modifier,
         verticalArrangement = Arrangement.spacedBy(dimens.spaceMedium),
     ) {
         FlowRow(horizontalArrangement = Arrangement.spacedBy(dimens.spaceSmall), verticalArrangement = Arrangement.spacedBy(dimens.spaceSmall)) {
@@ -342,7 +344,7 @@ private fun ConfirmDiscardDialog(onKeepDrawing: () -> Unit, onDiscard: () -> Uni
     AlertDialog(
         onDismissRequest = onKeepDrawing,
         title = { Text(stringResource(R.string.draw_discard_title)) },
-        text = { Text(stringResource(R.string.draw_discard_message)) },
+        text = { ScrollableColumn { Text(stringResource(R.string.draw_discard_message)) } },
         confirmButton = {
             Button(onClick = onDiscard, modifier = Modifier.heightIn(min = dimens.minTouchTarget)) {
                 Text(stringResource(R.string.draw_discard_confirm))
@@ -362,7 +364,7 @@ private fun ConfirmClearDialog(onEvent: (DrawEvent) -> Unit) {
     AlertDialog(
         onDismissRequest = { onEvent(DrawEvent.ClearAllDismissed) },
         title = { Text(stringResource(R.string.draw_clear_title)) },
-        text = { Text(stringResource(R.string.draw_clear_message)) },
+        text = { ScrollableColumn { Text(stringResource(R.string.draw_clear_message)) } },
         confirmButton = {
             Button(onClick = { onEvent(DrawEvent.ClearAllConfirmed) }, modifier = Modifier.heightIn(min = dimens.minTouchTarget)) {
                 Text(stringResource(R.string.draw_clear_confirm))
