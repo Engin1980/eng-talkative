@@ -166,18 +166,18 @@ Rozhodnutí zadavatele: autor a licence ARASAAC se do exportního ZIPu přidají
 ### E3.1 Jádro kreslení (bez UI)
 
 **Úkoly:**
-- [ ] Balíček `domain/drawing`, bez závislosti na Compose, aby šel testovat na JVM, kde to jde (`Bitmap` lze v JVM testech nahradit vlastním polem pixelů `IntArray`; operace pracují nad rozhraním/pixelovou mřížkou, ne přímo nad `android.graphics.Bitmap`):
+- [x] Balíček `domain/drawing`, bez závislosti na Compose, aby šel testovat na JVM, kde to jde (`Bitmap` lze v JVM testech nahradit vlastním polem pixelů `IntArray`; operace pracují nad rozhraním/pixelovou mřížkou, ne přímo nad `android.graphics.Bitmap`): _(PixelCanvas (pixely, tah s vyhlazením, scanline výplň), DrawingBoard (historie Zpět, akce, výplň na pozadí) a PngEncoder; paleta je v DrawingColors jako pevné ARGB hodnoty. Zápis do cache/drawings je v E3.3)_
   - `DrawingCanvas`: 512 × 512 pixelů, vždy inicializované bílou barvou, neprůhledné.
   - `DrawingTool` (`BRUSH`, `ERASER`, `FILL`), `DrawingColor` (paleta cca 8 barev z tématu včetně černé; barva se ukládá jako hodnota, ne podle tématu, aby výsledek byl stejný všude).
   - Tah štětcem/gumou: spojení bodů úsečkami s kulatými konci a zadanou šířkou (`BrushWidth` s mezemi v konstantách, např. 4–64 px); guma = totéž bílou. Samotné klepnutí bez posunu nakreslí tečku.
   - Výplň `floodFill(x, y, color, tolerance)`: scanline algoritmus (bez rekurze, nepadá na zásobníku) nad pixely ohraničenými oblastmi podobné barvy; tolerance kvůli vyhlazeným hranicím; výplň stejnou barvou, jakou už pixel má, nedělá nic. Souřadnice mimo plátno se ignorují.
   - Historie pro Zpět: zásobník snímků (nejvýše 20), operace `push` před každou akcí (jeden tah od přiložení po zvednutí prstu = jedna akce), `undo()` vrací poslední snímek, `isModified` (je na plátně něco jiného než bílá).
   - Převod na PNG (`toPng()`/zápis do souboru v `cache/drawings`).
-- [ ] Výpočet výplně a vykreslení do bitmapy běží mimo hlavní vlákno (`Dispatchers.Default`) a UI během výplně zobrazuje krátkou indikaci; více akcí se nezpracovává souběžně.
+- [x] Výpočet výplně a vykreslení do bitmapy běží mimo hlavní vlákno (`Dispatchers.Default`) a UI během výplně zobrazuje krátkou indikaci; více akcí se nezpracovává souběžně.
 
 **Kritéria splnění:**
-- [ ] Unit testy: nové plátno je celé bílé; tah zbarví pixely podél úsečky a nic mimo ni; širší štětec zbarví víc pixelů; guma vrací bílou; klepnutí vytvoří tečku; výplň zaplní jen souvislou oblast uvnitř uzavřeného tvaru a ne oblast za čárou; výplň mezi čárou a pozadím se tolerancí dostane i k vyhlazeným okrajům; výplň na plném plátně (nejhorší případ) doběhne rychle a bez pádu; výplň stejnou barvou nic nezmění; nejvýše 20 kroků Zpět, Zpět po 21. akci vrátí 20., ne původní stav; Zpět vrátí i výplň; `isModified` po Zpět na prázdné plátno je `false`.
-- [ ] Měření: výplň celého plátna 512 × 512 trvá na emulátoru řádově desítky ms (hodnotu zapsat do poznámky podkroku).
+- [x] Unit testy: nové plátno je celé bílé; tah zbarví pixely podél úsečky a nic mimo ni; širší štětec zbarví víc pixelů; guma vrací bílou; klepnutí vytvoří tečku; výplň zaplní jen souvislou oblast uvnitř uzavřeného tvaru a ne oblast za čárou; výplň mezi čárou a pozadím se tolerancí dostane i k vyhlazeným okrajům; výplň na plném plátně (nejhorší případ) doběhne rychle a bez pádu; výplň stejnou barvou nic nezmění; nejvýše 20 kroků Zpět, Zpět po 21. akci vrátí 20., ne původní stav; Zpět vrátí i výplň; `isModified` po Zpět na prázdné plátno je `false`.
+- [x] Měření: výplň celého plátna 512 × 512 trvá na emulátoru řádově desítky ms (hodnotu zapsat do poznámky podkroku). _(výplň celého plátna 512 × 512 trvá na emulátoru Pixel_Tablet_API_35 8–13 ms (DrawingPerformanceTest, logcat DrawingPerf), na JVM jednotky ms)_
 
 ### E3.2 Obrazovka kreslení
 
