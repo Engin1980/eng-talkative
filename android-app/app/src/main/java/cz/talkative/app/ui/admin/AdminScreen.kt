@@ -81,6 +81,7 @@ fun AdminRoute(
     onOpenExchange: () -> Unit,
     onOpenAbout: () -> Unit,
     onOpenArasaac: (String) -> Unit,
+    onOpenDraw: () -> Unit,
     pickedImageUri: String?,
     onPickedImageConsumed: () -> Unit,
     viewModel: AdminViewModel = hiltViewModel(),
@@ -101,6 +102,7 @@ fun AdminRoute(
         onOpenExchange = onOpenExchange,
         onOpenAbout = onOpenAbout,
         onFindPictogram = onOpenArasaac,
+        onDraw = onOpenDraw,
     )
 }
 
@@ -116,6 +118,7 @@ fun AdminScreen(
     onOpenExchange: () -> Unit = {},
     onOpenAbout: () -> Unit = {},
     onFindPictogram: (String) -> Unit = {},
+    onDraw: () -> Unit = {},
 ) {
     val dimens = TalkativeTheme.dimens
     val atRoot = state.path.isEmpty()
@@ -229,7 +232,7 @@ fun AdminScreen(
         }
     }
 
-    state.dialog?.let { AdminDialogHost(dialog = it, currentFolderId = state.path.lastOrNull()?.id, onEvent = onEvent, onFindPictogram = onFindPictogram) }
+    state.dialog?.let { AdminDialogHost(dialog = it, currentFolderId = state.path.lastOrNull()?.id, onEvent = onEvent, onFindPictogram = onFindPictogram, onDraw = onDraw) }
 }
 
 /** Lišta režimu výběru: počet označených, „vybrat vše“, smazání a konec výběru. */
@@ -413,9 +416,10 @@ private fun AdminDialogHost(
     currentFolderId: String?,
     onEvent: (AdminEvent) -> Unit,
     onFindPictogram: (String) -> Unit,
+    onDraw: () -> Unit,
 ) {
     when (dialog) {
-        is AdminDialog.Edit -> EditDialog(dialog, onEvent, onFindPictogram)
+        is AdminDialog.Edit -> EditDialog(dialog, onEvent, onFindPictogram, onDraw)
         is AdminDialog.ConfirmDelete -> ConfirmDeleteDialog(dialog, onEvent)
         is AdminDialog.ConfirmDeleteSelected -> ConfirmDeleteSelectedDialog(dialog, onEvent)
         AdminDialog.ConfirmSort -> ConfirmSortDialog(onEvent)
@@ -424,7 +428,7 @@ private fun AdminDialogHost(
 }
 
 @Composable
-private fun EditDialog(dialog: AdminDialog.Edit, onEvent: (AdminEvent) -> Unit, onFindPictogram: (String) -> Unit) {
+private fun EditDialog(dialog: AdminDialog.Edit, onEvent: (AdminEvent) -> Unit, onFindPictogram: (String) -> Unit, onDraw: () -> Unit) {
     val dimens = TalkativeTheme.dimens
     val isNew = dialog.itemId == null
     val titleRes = when (dialog.kind) {
@@ -466,7 +470,7 @@ private fun EditDialog(dialog: AdminDialog.Edit, onEvent: (AdminEvent) -> Unit, 
                         modifier = Modifier.fillMaxWidth(),
                     )
                     AudioSection(dialog, onEvent)
-                    ImageSection(dialog, onEvent, onFindPictogram)
+                    ImageSection(dialog, onEvent, onFindPictogram, onDraw)
                 }
             }
         },
@@ -566,9 +570,9 @@ private fun audioProblemMessage(problem: AudioProblem): String = when (problem) 
     AudioProblem.PLAYBACK_FAILED -> stringResource(R.string.audio_problem_playback_failed)
 }
 
-/** Náhled obrázku slovíčka a tlačítka pro výběr z galerie, pořízení fotky, hledání piktogramu a odebrání. */
+/** Náhled obrázku slovíčka a tlačítka pro výběr z galerie, pořízení fotky, hledání piktogramu, kreslení a odebrání. */
 @Composable
-private fun ImageSection(dialog: AdminDialog.Edit, onEvent: (AdminEvent) -> Unit, onFindPictogram: (String) -> Unit) {
+private fun ImageSection(dialog: AdminDialog.Edit, onEvent: (AdminEvent) -> Unit, onFindPictogram: (String) -> Unit, onDraw: () -> Unit) {
     val dimens = TalkativeTheme.dimens
     val context = LocalContext.current
     var cameraUri by rememberSaveable { mutableStateOf<Uri?>(null) }
@@ -646,6 +650,13 @@ private fun ImageSection(dialog: AdminDialog.Edit, onEvent: (AdminEvent) -> Unit
             modifier = Modifier.fillMaxWidth().heightIn(min = dimens.minTouchTarget),
         ) {
             Text(stringResource(R.string.image_find_pictogram))
+        }
+        Button(
+            onClick = onDraw,
+            enabled = !dialog.isProcessingImage,
+            modifier = Modifier.fillMaxWidth().heightIn(min = dimens.minTouchTarget),
+        ) {
+            Text(stringResource(R.string.image_draw))
         }
         if (dialog.imageFile != null) {
             OutlinedButton(

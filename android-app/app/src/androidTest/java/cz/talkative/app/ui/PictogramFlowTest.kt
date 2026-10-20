@@ -153,6 +153,7 @@ class PictogramFlowTest {
                                 onOpenExchange = navigation.openExchange,
                                 onOpenAbout = navigation.openAbout,
                                 onOpenArasaac = navigation.openArasaac,
+                                onOpenDraw = navigation.openDraw,
                                 pickedImageUri = navigation.pickedImageUri,
                                 onPickedImageConsumed = navigation.onPickedImageConsumed,
                                 viewModel = adminViewModel,

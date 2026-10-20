@@ -18,6 +18,14 @@ data class Dimens(
     val logoMaxWidth: Dp = 320.dp,
     /** Nejmenší šířka dlaždice piktogramu ve výsledcích hledání. */
     val pictogramTileMinSize: Dp = 160.dp,
+    /** Nejmenší šířka panelu nástrojů vedle plátna (kreslení na šířku). */
+    val drawToolbarMinWidth: Dp = 360.dp,
+    /** Nejmenší výška panelu nástrojů pod plátnem (kreslení na výšku). */
+    val drawToolbarMinHeight: Dp = 360.dp,
+    val swatchSelectedBorder: Dp = 4.dp,
+    /** Šířka jezdce posuvníku (výška je dotyková plocha). */
+    val sliderThumbWidth: Dp = 24.dp,
+    val swatchInset: Dp = 6.dp,
     val sentenceBarMinHeight: Dp = 80.dp,
     val sentenceBarMaxHeight: Dp = 176.dp,
     val spaceSmall: Dp = 8.dp,

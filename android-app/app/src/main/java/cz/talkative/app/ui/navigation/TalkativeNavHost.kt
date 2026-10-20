@@ -15,6 +15,7 @@ import cz.talkative.app.ui.arasaac.ARASAAC_QUERY_ARG
 import cz.talkative.app.ui.arasaac.ArasaacRoute
 import cz.talkative.app.ui.client.ClientRoute
 import cz.talkative.app.ui.config.ConfigRoute
+import cz.talkative.app.ui.draw.DrawRoute
 import cz.talkative.app.ui.exchange.ExchangeRoute
 
 object Routes {
@@ -23,6 +24,7 @@ object Routes {
     const val CONFIG = "config"
     const val EXCHANGE = "exchange"
     const val ABOUT = "about"
+    const val DRAW = "draw"
     const val ARASAAC = "arasaac?$ARASAAC_QUERY_ARG={$ARASAAC_QUERY_ARG}"
 
     /** Trasa výběru piktogramu ARASAAC s předvyplněným hledaným slovem. */
@@ -39,6 +41,7 @@ class AdminNavigation(
     val openExchange: () -> Unit,
     val openAbout: () -> Unit,
     val openArasaac: (query: String) -> Unit,
+    val openDraw: () -> Unit,
     val pickedImageUri: String?,
     val onPickedImageConsumed: () -> Unit,
 )
@@ -58,6 +61,7 @@ fun TalkativeNavHost(
             onOpenExchange = navigation.openExchange,
             onOpenAbout = navigation.openAbout,
             onOpenArasaac = navigation.openArasaac,
+            onOpenDraw = navigation.openDraw,
             pickedImageUri = navigation.pickedImageUri,
             onPickedImageConsumed = navigation.onPickedImageConsumed,
         )
@@ -65,6 +69,8 @@ fun TalkativeNavHost(
     config: @Composable (back: () -> Unit) -> Unit = { back -> ConfigRoute(onBack = back) },
     exchange: @Composable (back: () -> Unit) -> Unit = { back -> ExchangeRoute(onBack = back) },
     about: @Composable (back: () -> Unit) -> Unit = { back -> AboutRoute(onBack = back) },
+    draw: @Composable (onSaved: (String) -> Unit, close: () -> Unit) -> Unit =
+        { onSaved, close -> DrawRoute(onSaved = onSaved, onClose = close) },
     arasaac: @Composable (onPicked: (String) -> Unit, openAbout: () -> Unit, back: () -> Unit) -> Unit =
         { onPicked, openAbout, back -> ArasaacRoute(onPicked = onPicked, onOpenAbout = openAbout, onBack = back) },
 ) {
@@ -82,6 +88,7 @@ fun TalkativeNavHost(
                     openExchange = { navController.navigate(Routes.EXCHANGE) },
                     openAbout = { navController.navigate(Routes.ABOUT) },
                     openArasaac = { query -> navController.navigate(Routes.arasaac(query)) },
+                    openDraw = { navController.navigate(Routes.DRAW) },
                     pickedImageUri = picked,
                     onPickedImageConsumed = { entry.savedStateHandle[Routes.PICKED_IMAGE_KEY] = null },
                 ),
@@ -95,6 +102,16 @@ fun TalkativeNavHost(
         }
         composable(Routes.ABOUT) {
             about { navController.popBackStack() }
+        }
+        composable(Routes.DRAW) {
+            draw(
+                { uri ->
+                    // Hotová kresba se vrací předchozí obrazovce (editaci slovíčka v administraci) a kreslení se zavře.
+                    navController.previousBackStackEntry?.savedStateHandle?.set(Routes.PICKED_IMAGE_KEY, uri)
+                    navController.popBackStack()
+                },
+                { navController.popBackStack() },
+            )
         }
         composable(
             route = Routes.ARASAAC,

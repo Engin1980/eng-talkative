@@ -9,7 +9,7 @@ Kroky jsou označené **E1–E3** (Extensions), aby se nepletly s kroky `plan.md
 - [x] Krok E1: Obrazovka „O aplikaci“ (About)
 - [x] Krok E1a: Obrazovka "O aplikaci" se musí zobrazit při prvním spuštění aplikace a uživatel ji musí "odsouhlasit".
 - [x] Krok E2: Piktogramy ARASAAC (hledání a výběr uživatelem)
-- [ ] Krok E3: Kreslení ikon prstem
+- [x] Krok E3: Kreslení ikon prstem
 
 ## Rozhodnutí a předpoklady
 
@@ -182,32 +182,32 @@ Rozhodnutí zadavatele: autor a licence ARASAAC se do exportního ZIPu přidají
 ### E3.2 Obrazovka kreslení
 
 **Úkoly:**
-- [ ] Trasa `draw` a `DrawViewModel` (stav plátna, zvolený nástroj, barva, šířka; přežije otočení tabletu).
-- [ ] `DrawScreen`: čtvercové plátno zobrazené v největší možné velikosti (na šířku vedle něj panel nástrojů, na výšku pod ním), tahy prstem přes `pointerInput` (`detectDragGestures` nebo vlastní zpracování, aby klepnutí bez posunu nakreslilo tečku), souřadnice se přepočítávají z velikosti zobrazení do 512 × 512.
-- [ ] Panel nástrojů (všechny prvky alespoň 64 dp, vysoký kontrast, vybraný nástroj a barva jasně označené): **Štětec**, **Guma**, **Výplň**, paleta barev, **posuvník tloušťky** s živým náhledem velikosti štětce (kolečko), **Zpět**, **Smazat vše** (s potvrzením, protože jde o hromadné zahození; samo se dá vrátit přes Zpět), **Uložit**, **Zavřít**.
-- [ ] Posuvník se nezobrazuje ani nezablokuje u Výplně (nemá smysl), nebo je neaktivní.
-- [ ] Texty a popisky (`contentDescription`) v `strings.xml`.
+- [x] Trasa `draw` a `DrawViewModel` (stav plátna, zvolený nástroj, barva, šířka; přežije otočení tabletu).
+- [x] `DrawScreen`: čtvercové plátno zobrazené v největší možné velikosti (na šířku vedle něj panel nástrojů, na výšku pod ním), tahy prstem přes `pointerInput` (`detectDragGestures` nebo vlastní zpracování, aby klepnutí bez posunu nakreslilo tečku), souřadnice se přepočítávají z velikosti zobrazení do 512 × 512.
+- [x] Panel nástrojů (všechny prvky alespoň 64 dp, vysoký kontrast, vybraný nástroj a barva jasně označené): **Štětec**, **Guma**, **Výplň**, paleta barev, **posuvník tloušťky** s živým náhledem velikosti štětce (kolečko), **Zpět**, **Smazat vše** (s potvrzením, protože jde o hromadné zahození; samo se dá vrátit přes Zpět), **Uložit**, **Zavřít**.
+- [x] Posuvník se nezobrazuje ani nezablokuje u Výplně (nemá smysl), nebo je neaktivní.
+- [x] Texty a popisky (`contentDescription`) v `strings.xml`.
 
 **Kritéria splnění:**
-- [ ] View model testy: změna nástroje/barvy/tloušťky, tah vytvoří akci, Zpět, Smazat vše, přežití „otočení“ (obnovení view modelu zachová plátno).
-- [ ] Compose UI test: tah přes plátno změní plátno (`isModified`), tlačítka Zpět a Uložit jsou neaktivní na prázdném plátně a po prvním tahu aktivní, výběr nástroje je označený.
-- [ ] Na emulátoru: kreslení prstem je plynulé na tabletu na výšku i na šířku, otočení během kreslení nesmaže kresbu.
+- [x] View model testy: změna nástroje/barvy/tloušťky, tah vytvoří akci, Zpět, Smazat vše, přežití „otočení“ (obnovení view modelu zachová plátno).
+- [x] Compose UI test: tah přes plátno změní plátno (`isModified`), tlačítka Zpět a Uložit jsou neaktivní na prázdném plátně a po prvním tahu aktivní, výběr nástroje je označený.
+- [x] Na emulátoru: kreslení prstem je plynulé na tabletu na výšku i na šířku, otočení během kreslení nesmaže kresbu. _(na emulátoru ověřeno kreslení štětcem, gumou a výplní (tahy přes adb swipe, ne skutečným prstem) a že otočení na výšku uprostřed kresby kresbu nesmaže; plynulost při skutečném dotyku neověřena)_
 
 ### E3.3 Uložení, zahození a napojení do editace
 
 **Úkoly:**
-- [ ] **Uložit:** zapíše plátno jako PNG do `cache/drawings`, vrátí URI do editace jako `AdminEvent.ImagePicked(uri)` (viz „Rozhodnutí a předpoklady“) a zavře obrazovku. Prázdné (celé bílé) plátno se uložit nedá.
-- [ ] **Zahodit rozkreslené:** Zavřít nebo systémové Zpět na změněném plátně (`isModified`) se zeptá „Zahodit kresbu?“ (Zahodit / Pokračovat v kreslení); na nezměněném plátně zavře bez dotazu. Nic se nikam neukládá, po zavření ani po restartu aplikace po rozkreslené kresbě nezůstane stopa (`ViewModel` se zahodí s trasou, `cache/drawings` se při startu uklízí jako `cache/camera`).
-- [ ] V `ImageSection` tlačítko „Nakreslit“ vedle galerie, fotoaparátu a ARASAAC (jen u slovíčka, ne během zpracování obrázku). Rozepsaná editace slovíčka zůstane po návratu beze změny.
-- [ ] Nakreslená ikona se uloží stejnou cestou jako ostatní obrázky (zmenšení nic nemění, protože je 512 px; PNG bez průhlednosti se uloží jako JPEG, to je v pořádku, protože pozadí je bílé).
-- [ ] Aktualizace `CLAUDE.md` a `todo.md`.
+- [x] **Uložit:** zapíše plátno jako PNG do `cache/drawings`, vrátí URI do editace jako `AdminEvent.ImagePicked(uri)` (viz „Rozhodnutí a předpoklady“) a zavře obrazovku. Prázdné (celé bílé) plátno se uložit nedá.
+- [x] **Zahodit rozkreslené:** Zavřít nebo systémové Zpět na změněném plátně (`isModified`) se zeptá „Zahodit kresbu?“ (Zahodit / Pokračovat v kreslení); na nezměněném plátně zavře bez dotazu. Nic se nikam neukládá, po zavření ani po restartu aplikace po rozkreslené kresbě nezůstane stopa (`ViewModel` se zahodí s trasou, `cache/drawings` se při startu uklízí jako `cache/camera`).
+- [x] V `ImageSection` tlačítko „Nakreslit“ vedle galerie, fotoaparátu a ARASAAC (jen u slovíčka, ne během zpracování obrázku). Rozepsaná editace slovíčka zůstane po návratu beze změny.
+- [x] Nakreslená ikona se uloží stejnou cestou jako ostatní obrázky (zmenšení nic nemění, protože je 512 px; PNG bez průhlednosti se uloží jako JPEG, to je v pořádku, protože pozadí je bílé).
+- [x] Aktualizace `CLAUDE.md` a `todo.md`. _(CLAUDE.md doplněn; todo.md kreslení neobsahuje, tam se nic nezměnilo)_
 
 **Kritéria splnění:**
-- [ ] Scénář na emulátoru: nové slovíčko → Nakreslit → kresba štětcem, gumou a výplní → Uložit → uložit slovíčko → ikona je v administraci i v klientovi, přežije restart.
-- [ ] Zavření rozkreslené kresby se zeptá a po potvrzení se zahodí beze stopy (v `cache/drawings` nic nezůstane, v `filesDir/images` žádný nový soubor); zavření nezměněného plátna se neptá.
-- [ ] Výměna už přiřazeného obrázku kresbou a pak zrušení editace nenechá osiřelý soubor.
-- [ ] Nakreslená ikona se exportuje a importuje jako jakýkoli obrázek.
-- [ ] Instrumentovaný test celého napojení (kresba → editace → obrázek slovíčka).
+- [x] Scénář na emulátoru: nové slovíčko → Nakreslit → kresba štětcem, gumou a výplní → Uložit → uložit slovíčko → ikona je v administraci i v klientovi, přežije restart. _(ověřeno na emulátoru: slovíčko „dum“ s nakreslenou ikonou je v administraci i v klientovi (uloženo jako JPG v filesDir/images) a po restartu zůstalo; cache/drawings se po startu uklidila)_
+- [x] Zavření rozkreslené kresby se zeptá a po potvrzení se zahodí beze stopy (v `cache/drawings` nic nezůstane, v `filesDir/images` žádný nový soubor); zavření nezměněného plátna se neptá.
+- [x] Výměna už přiřazeného obrázku kresbou a pak zrušení editace nenechá osiřelý soubor.
+- [x] Nakreslená ikona se exportuje a importuje jako jakýkoli obrázek.
+- [x] Instrumentovaný test celého napojení (kresba → editace → obrázek slovíčka).
 
 ---
 

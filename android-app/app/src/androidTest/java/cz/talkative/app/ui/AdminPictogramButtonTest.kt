@@ -32,6 +32,7 @@ class AdminPictogramButtonTest {
     val composeRule = createComposeRule()
 
     private val requested = mutableListOf<String>()
+    private var drawRequests = 0
 
     private fun show(dialog: AdminDialog.Edit) {
         composeRule.setContent {
@@ -41,6 +42,7 @@ class AdminPictogramButtonTest {
                     onEvent = {},
                     onBackToClient = {},
                     onFindPictogram = { requested += it },
+                    onDraw = { drawRequests++ },
                 )
             }
         }
@@ -79,5 +81,28 @@ class AdminPictogramButtonTest {
         show(edit(processing = true))
 
         composeRule.onNodeWithText("Najít piktogram (ARASAAC)").performScrollTo().assertIsNotEnabled()
+    }
+
+    @Test
+    fun wordDialog_offersDrawing_asA64dpButton() {
+        show(edit())
+
+        composeRule.onNodeWithText("Nakreslit").performScrollTo().assertHeightIsAtLeast(64.dp).assertIsEnabled().performClick()
+
+        assertEquals(1, drawRequests)
+    }
+
+    @Test
+    fun folderDialog_hasNoDrawButton() {
+        show(edit(kind = ItemKind.FOLDER))
+
+        assertEquals(0, composeRule.onAllNodesWithText("Nakreslit").fetchSemanticsNodes().size)
+    }
+
+    @Test
+    fun drawButton_isDisabledWhileAnImageIsBeingProcessed() {
+        show(edit(processing = true))
+
+        composeRule.onNodeWithText("Nakreslit").performScrollTo().assertIsNotEnabled()
     }
 }
