@@ -26,8 +26,8 @@
     <string name="admin_back_to_client">Zpět do klienta</string>
     <string name="admin_breadcrumb_root">Domů</string>
     <string name="admin_up">Nahoru</string>
-    <string name="admin_add_folder">Nová složka</string>
-    <string name="admin_add_word">Nové slovíčko</string>
+    <string name="admin_add_folder">+ 📁</string>
+    <string name="admin_add_word">New word</string>
     <string name="admin_empty_title">Tato složka je prázdná</string>
     <string name="admin_empty_hint">Přidejte složku nebo slovíčko tlačítky nahoře.</string>
     <string name="admin_kind_folder">Složka</string>
