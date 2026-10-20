@@ -410,13 +410,13 @@ Plán postupuje po funkcionalitách (vertikální řezy přes UI, doménu i data
 ### 8.1 Formát archivu a serializace
 
 **Úkoly:**
-- [ ] Návrh `manifest.json` (verze schématu, struktura složek a slovíček, odkazy na média) a adresářů pro obrázky a zvuky.
-- [ ] Serializace a deserializace (kotlinx.serialization nebo ekvivalent).
-- [ ] Zdokumentovat formát (např. krátká sekce v `assignment.md` nebo samostatný soubor).
+- [x] Návrh `manifest.json` (verze schématu, struktura složek a slovíček, odkazy na média) a adresářů pro obrázky a zvuky.
+- [x] Serializace a deserializace (kotlinx.serialization nebo ekvivalent).
+- [x] Zdokumentovat formát (např. krátká sekce v `assignment.md` nebo samostatný soubor). _(`format-archivu.md`)_
 
 **Kritéria splnění:**
-- [ ] Unit testy (de)serializace včetně prázdného slovníku a slovníku s médii.
-- [ ] Archiv neobsahuje nic jiného než povolená data (žádný PIN, žádné přihlašovací údaje).
+- [x] Unit testy (de)serializace včetně prázdného slovníku a slovníku s médii.
+- [x] Archiv neobsahuje nic jiného než povolená data (žádný PIN, žádné přihlašovací údaje).
 
 ### 8.2 Export
 
