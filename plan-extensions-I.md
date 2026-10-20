@@ -7,7 +7,7 @@ Kroky jsou označené **E1–E3** (Extensions), aby se nepletly s kroky `plan.md
 ## Přehled postupu
 
 - [x] Krok E1: Obrazovka „O aplikaci“ (About)
-- [ ] Krok E1a: Obrazovka "O aplikaci" se musí zobrazit při prvním spuštění aplikace a uživatel ji musí "odsouhlasit".
+- [x] Krok E1a: Obrazovka "O aplikaci" se musí zobrazit při prvním spuštění aplikace a uživatel ji musí "odsouhlasit".
 - [ ] Krok E2: Piktogramy ARASAAC (hledání a výběr uživatelem)
 - [ ] Krok E3: Kreslení ikon prstem
 
@@ -63,6 +63,20 @@ Vycházejí ze zadání a ze zjištění ve stávajícím kódu. Cokoli z toho s
 - [x] Klepnutí na odkaz zavolá `onOpenLink` se správnou adresou; selhání otevření nezpůsobí pád.
 - [x] Compose UI test (obsah, odkazy) a rozšíření `NavigationTest` o cestu admin → About → zpět.
 - [x] Žádné natvrdo napsané texty, barvy ani rozměry.
+
+### E1a Úvodní oznámení při prvním spuštění
+
+Rozhodnutí zadavatele: při prvním spuštění se před klientem zobrazí oznámení (obsah About) a uživatel ho musí vzít na vědomí. Tlačítka jsou „Beru na vědomí“ (bere se jako souhlas) a „Odejít“ (aplikaci ukončí, příště se oznámení ukáže znovu). Souhlas se ukládá s číslem verze textu; po jeho zvýšení se oznámení ukáže znovu.
+
+**Úkoly:**
+- [x] `NoticeRepository` (`domain/notice`, konstanta `NOTICE_VERSION`) a implementace v DataStore (`DataStoreNoticeRepository`, vlastní klíč ve stejném souboru jako konfigurace, konfigurace se ho nedotýká a do exportu nepatří).
+- [x] `NoticeViewModel` (stavy `LOADING` / `REQUIRED` / `ACKNOWLEDGED`) a brána `NoticeGate` kolem celé navigace v `MainActivity`; do načtení uložené hodnoty se nezobrazuje nic.
+- [x] `NoticeScreen`: obsah About (`AboutContent` sdílený s About v administraci), tlačítka „Beru na vědomí“ a „Odejít“ (alespoň 64 dp), systémové Zpět = „Odejít“.
+
+**Kritéria splnění:**
+- [x] Unit testy view modelu (první spuštění, odsouhlaseno, starší verze, uložení po odsouhlasení).
+- [x] Compose UI testy brány (obsah, obě tlačítka, aplikace je skrytá, po odsouhlasení viditelná) a instrumentovaný test uložení do souboru.
+- [x] Na emulátoru: po vymazání dat se ukáže oznámení, „Odejít“ aplikaci zavře a příště se oznámení ukáže znovu, po „Beru na vědomí“ se otevře klient a po restartu už oznámení nepřijde.
 
 ---
 

@@ -57,6 +57,10 @@
     <string name="about_section_privacy">Soukromí a síť</string>
     <string name="about_privacy">Data (slovník, obrázky, zvuky a nastavení) zůstávají v zařízení. Síť se používá jen při hledání piktogramu v ARASAAC a odchází při něm jen hledaný text.</string>
     <string name="about_link_failed">Odkaz se nepodařilo otevřít, chybí prohlížeč. Adresu si můžete opsat.</string>
+    <string name="notice_title">Než začnete</string>
+    <string name="notice_intro">Před použitím aplikace si prosím přečtěte informace o ní a o piktogramech ARASAAC.</string>
+    <string name="notice_acknowledge">Beru na vědomí</string>
+    <string name="notice_leave">Odejít</string>
     <string name="admin_select">Vybrat</string>
     <string name="admin_selected_count">Vybráno: %1$d</string>
     <string name="admin_select_all">Vybrat vše</string>

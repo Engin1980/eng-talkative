@@ -8,6 +8,7 @@ import androidx.navigation.compose.rememberNavController
 import cz.talkative.app.domain.image.ImageStore
 import cz.talkative.app.ui.common.LocalImageResolver
 import cz.talkative.app.ui.navigation.TalkativeNavHost
+import cz.talkative.app.ui.notice.NoticeGateRoute
 import cz.talkative.app.ui.theme.TalkativeTheme
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
@@ -24,8 +25,11 @@ class MainActivity : ComponentActivity() {
         setContent {
             TalkativeTheme {
                 CompositionLocalProvider(LocalImageResolver provides { imageStore.resolve(it) }) {
-                    // Aplikace vždy startuje v klientském režimu (startDestination v navigaci).
-                    TalkativeNavHost(navController = rememberNavController())
+                    // Dokud uživatel nevzal na vědomí úvodní oznámení, nezobrazí se nic jiného.
+                    NoticeGateRoute(content = {
+                        // Aplikace vždy startuje v klientském režimu (startDestination v navigaci).
+                        TalkativeNavHost(navController = rememberNavController())
+                    })
                 }
             }
         }
