@@ -9,7 +9,6 @@ import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.tooling.preview.Preview
 
 private val LightColors = lightColorScheme(
     primary = LightPrimary,
@@ -49,7 +48,6 @@ internal val LocalHoldColors = staticCompositionLocalOf { LightHoldColors }
  * Barvy a typografie přes [MaterialTheme], rozměry přes [TalkativeTheme.dimens].
  */
 @Composable
-@Preview(showBackground=true)
 fun TalkativeTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
     textScale: Float = 1f,
