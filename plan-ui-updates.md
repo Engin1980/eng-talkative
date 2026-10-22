@@ -112,6 +112,7 @@ Rozhodnutí: použijí se ikony z Material Icons (Home, ArrowBack, PlayArrow/Sto
 - [x] V klientském okně ponech u tlačítka "Přehrát" jen ikonu bez textu.
 - [x] V klientském okně ponech u tlačítka "Smazat větu" jen ikonu bez textu.
 - [x] Ve větném řádku, když se stiskne slovo (aby při delším stisku bylo odstraněno), zvýrazně červeným orámováním, že je drženo.
+- [ ] V klientském nastavení odeber v navigačním řádku blok "Úvod" a nahraď ho ikonkou domečku (tlačítko Home). Tlačítko "Home" (s domečkem) odstraň. Takže v riboonu bude místo "Úvod" ikonka domečku a tlačítko s domečkem bude odebráno
 
 ### U3.1 rozšíření nastavení
 
