@@ -4,8 +4,12 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.getValue
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.compose.rememberNavController
 import cz.talkative.app.domain.image.ImageStore
+import cz.talkative.app.domain.model.AppConfig
+import cz.talkative.app.domain.usecase.ObserveConfigUseCase
 import cz.talkative.app.ui.common.LocalImageResolver
 import cz.talkative.app.ui.navigation.TalkativeNavHost
 import cz.talkative.app.ui.notice.NoticeGateRoute
@@ -19,11 +23,15 @@ class MainActivity : ComponentActivity() {
     @Inject
     lateinit var imageStore: ImageStore
 
+    @Inject
+    lateinit var observeConfig: ObserveConfigUseCase
+
     override fun onCreate(savedInstanceState: Bundle?) {
         // Po každém startu (i po obnovení procesu) se otevře klientský režim, ne uložená navigace do administrace.
         super.onCreate(null)
         setContent {
-            TalkativeTheme {
+            val config by observeConfig().collectAsStateWithLifecycle(initialValue = AppConfig())
+            TalkativeTheme(textScale = config.textScalePercent / 100f) {
                 CompositionLocalProvider(LocalImageResolver provides { imageStore.resolve(it) }) {
                     // Dokud uživatel nevzal na vědomí úvodní oznámení, nezobrazí se nic jiného.
                     NoticeGateRoute(content = {

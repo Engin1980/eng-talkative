@@ -19,6 +19,10 @@ object ConfigLimits {
     const val MAX_ADMIN_HOLD_MILLIS = 30_000L
     const val ADMIN_HOLD_STEP_MILLIS = 1_000L
 
+    const val MIN_TEXT_SCALE_PERCENT = 80
+    const val MAX_TEXT_SCALE_PERCENT = 200
+    const val TEXT_SCALE_STEP_PERCENT = 10
+
     /** Jazyky nabízené pro abecední řazení (BCP 47), čeština první. */
     val COLLATION_LANGUAGES = listOf("cs", "sk", "en", "de", "pl")
 }
@@ -36,4 +40,5 @@ fun AppConfig.sanitized(): AppConfig = copy(
     gridPortrait = gridPortrait.sanitized(),
     gridLandscape = gridLandscape.sanitized(),
     collationLanguageTag = collationLanguageTag.ifBlank { AppConfig().collationLanguageTag },
+    textScalePercent = textScalePercent.coerceIn(ConfigLimits.MIN_TEXT_SCALE_PERCENT, ConfigLimits.MAX_TEXT_SCALE_PERCENT),
 )

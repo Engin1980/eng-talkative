@@ -54,6 +54,7 @@ class ManifestCodecTest {
             collationLanguageTag = "sk",
             hideCaptionsInSentence = true,
             autoClearAfterPlayback = true,
+            textScalePercent = 150,
         )
         val without = roundTrip(ArchiveManifest(ARCHIVE_SCHEMA_VERSION))
         val with = roundTrip(ArchiveManifest(ARCHIVE_SCHEMA_VERSION, config = ArchiveConfig.from(config)))
@@ -89,6 +90,7 @@ class ManifestCodecTest {
             setOf(
                 "addWordMode", "allowReorderInSentence", "addHoldMillis", "removeHoldMillis", "adminHoldMillis", "speakWordOnTap",
                 "gridPortrait", "gridLandscape", "collationLanguageTag", "hideCaptionsInSentence", "autoClearAfterPlayback",
+                "textScalePercent",
             ),
             root.getValue("config").jsonObject.keys,
         )

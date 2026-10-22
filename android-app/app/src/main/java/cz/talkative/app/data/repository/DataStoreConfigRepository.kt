@@ -49,6 +49,7 @@ class DataStoreConfigRepository @Inject constructor(
             collationLanguageTag = this[COLLATION] ?: defaults.collationLanguageTag,
             hideCaptionsInSentence = this[HIDE_CAPTIONS] ?: defaults.hideCaptionsInSentence,
             autoClearAfterPlayback = this[AUTO_CLEAR] ?: defaults.autoClearAfterPlayback,
+            textScalePercent = this[TEXT_SCALE_PERCENT] ?: defaults.textScalePercent,
         ).sanitized() // poškozená nebo ručně upravená hodnota nesmí rozbít klienta
     }
 
@@ -66,6 +67,7 @@ class DataStoreConfigRepository @Inject constructor(
         this[COLLATION] = config.collationLanguageTag
         this[HIDE_CAPTIONS] = config.hideCaptionsInSentence
         this[AUTO_CLEAR] = config.autoClearAfterPlayback
+        this[TEXT_SCALE_PERCENT] = config.textScalePercent
     }
 
     private companion object {
@@ -82,5 +84,6 @@ class DataStoreConfigRepository @Inject constructor(
         val COLLATION = stringPreferencesKey("collation_language_tag")
         val HIDE_CAPTIONS = booleanPreferencesKey("hide_captions_in_sentence")
         val AUTO_CLEAR = booleanPreferencesKey("auto_clear_after_playback")
+        val TEXT_SCALE_PERCENT = intPreferencesKey("text_scale_percent")
     }
 }

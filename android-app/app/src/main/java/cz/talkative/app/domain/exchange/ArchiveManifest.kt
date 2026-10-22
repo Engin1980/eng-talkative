@@ -70,6 +70,7 @@ data class ArchiveConfig(
     val collationLanguageTag: String = "cs",
     val hideCaptionsInSentence: Boolean = false,
     val autoClearAfterPlayback: Boolean = false,
+    val textScalePercent: Int = 100,
 ) {
     /** Hodnoty mimo meze se srazí na povolené (viz [AppConfig.sanitized]). */
     fun toAppConfig() = AppConfig(
@@ -84,6 +85,7 @@ data class ArchiveConfig(
         collationLanguageTag = collationLanguageTag,
         hideCaptionsInSentence = hideCaptionsInSentence,
         autoClearAfterPlayback = autoClearAfterPlayback,
+        textScalePercent = textScalePercent,
     ).sanitized()
 
     companion object {
@@ -99,6 +101,7 @@ data class ArchiveConfig(
             collationLanguageTag = config.collationLanguageTag,
             hideCaptionsInSentence = config.hideCaptionsInSentence,
             autoClearAfterPlayback = config.autoClearAfterPlayback,
+            textScalePercent = config.textScalePercent,
         )
     }
 }

@@ -38,6 +38,14 @@ class ConfigLimitsTest {
     }
 
     @Test
+    fun textScale_isClampedToLimits_andDefaultsTo100() {
+        assertEquals(100, AppConfig().textScalePercent)
+        assertEquals(ConfigLimits.MIN_TEXT_SCALE_PERCENT, AppConfig(textScalePercent = 10).sanitized().textScalePercent)
+        assertEquals(ConfigLimits.MAX_TEXT_SCALE_PERCENT, AppConfig(textScalePercent = 900).sanitized().textScalePercent)
+        assertEquals(130, AppConfig(textScalePercent = 130).sanitized().textScalePercent)
+    }
+
+    @Test
     fun valuesInsideLimits_stayUntouched() {
         val config = AppConfig(removeHoldMillis = 2_500, adminHoldMillis = 7_000, gridPortrait = GridSize(2, 5))
 

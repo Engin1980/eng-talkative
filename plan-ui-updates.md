@@ -112,3 +112,13 @@ Rozhodnutí: použijí se ikony z Material Icons (Home, ArrowBack, PlayArrow/Sto
 - [x] V klientském okně ponech u tlačítka "Přehrát" jen ikonu bez textu.
 - [x] V klientském okně ponech u tlačítka "Smazat větu" jen ikonu bez textu.
 - [x] Ve větném řádku, když se stiskne slovo (aby při delším stisku bylo odstraněno), zvýrazně červeným orámováním, že je drženo.
+
+### U3.1 rozšíření nastavení
+
+V nastavení ještě přidej, ať uživatel je schopen měnit velikost textu v aplikaci. Pokud se používá nějak propojeně velikost (např že nadpisy jsou +2 oproti klasickému textu atp), tak stačí jedno nastavení, jinak to rozděl.
+
+Provedení: veškerý text bere styl z `MaterialTheme.typography` (v kódu nejsou žádné natvrdo zadané velikosti) a velikosti stylů jsou propojené (nadpisy větší než text), takže stačí **jedno nastavení** `textScalePercent` (80–200 %, krok 10 %, výchozí 100 %, `ConfigLimits`). `TalkativeTheme(textScale)` vynásobí písmo i řádkování všech stylů (`Typography.scaled`); násobí se lineárně, nikoli přes `fontScale`, protože systémové škálování na Androidu 14+ je nelineární a 150 % by pak nebylo 150 %. Systémové zvětšení písma se tím neruší, přičítá se navíc. Hodnota je v DataStore (`text_scale_percent`), lokální pro zařízení, součástí volitelné konfigurace v archivu (`ArchiveConfig`, starší archivy = 100 %); `MainActivity` ji sleduje, takže se změna projeví hned. V nastavení nová sekce „Vzhled“.
+
+- [x] Nastavení velikosti textu v aplikaci (jedno společné pro všechny styly), ukládané lokálně, s okamžitým projevem.
+- [x] Testy: `ConfigLimitsTest`, `DataStoreConfigRepositoryTest`, `ManifestCodecTest`, `ConfigScreenTest` (stepper, meze), `TextScaleThemeTest` (všechny styly se zvětší stejným poměrem).
+- [ ] *Ruční kontrola na emulátoru (vzhled při 200 %, přetékání dlouhých textů a tlačítek) zatím neproběhla.*

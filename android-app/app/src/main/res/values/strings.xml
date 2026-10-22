@@ -226,6 +226,8 @@
   <string name="config_add_hold">Podržení pro přidání slova do věty (při klepnutí)</string>
   <string name="config_add_hold_immediately">Hned</string>
   <string name="config_remove_hold">Podržení pro odebrání slova</string>
+  <string name="config_section_appearance">Vzhled</string>
+  <string name="config_text_scale">Velikost textu</string>
   <string name="config_section_grid">Velikost mřížky</string>
   <string name="config_grid_portrait">Na výšku</string>
   <string name="config_grid_landscape">Na šířku</string>

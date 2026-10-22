@@ -6,8 +6,10 @@ import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.tooling.preview.Preview
 
 private val LightColors = lightColorScheme(
     primary = LightPrimary,
@@ -47,17 +49,21 @@ internal val LocalHoldColors = staticCompositionLocalOf { LightHoldColors }
  * Barvy a typografie přes [MaterialTheme], rozměry přes [TalkativeTheme.dimens].
  */
 @Composable
+@Preview(showBackground=true)
 fun TalkativeTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
+    textScale: Float = 1f,
     content: @Composable () -> Unit,
 ) {
+    // Velikost textu se násobí přímo ve stylech typografie (lineárně); systémové zvětšení písma se přičítá navíc.
+    val typography = remember(textScale) { TalkativeTypography.scaled(textScale) }
     CompositionLocalProvider(
         LocalDimens provides Dimens(),
         LocalHoldColors provides if (darkTheme) DarkHoldColors else LightHoldColors,
     ) {
         MaterialTheme(
             colorScheme = if (darkTheme) DarkColors else LightColors,
-            typography = TalkativeTypography,
+            typography = typography,
             content = content,
         )
     }

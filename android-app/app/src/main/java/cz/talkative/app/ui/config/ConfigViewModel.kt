@@ -39,6 +39,7 @@ class ConfigViewModel @Inject constructor(
             is ConfigEvent.CollationChanged -> update { it.copy(collationLanguageTag = event.languageTag) }
             is ConfigEvent.HideCaptionsChanged -> update { it.copy(hideCaptionsInSentence = event.enabled) }
             is ConfigEvent.AutoClearChanged -> update { it.copy(autoClearAfterPlayback = event.enabled) }
+            is ConfigEvent.TextScaleChanged -> update { it.copy(textScalePercent = event.percent) }
             ConfigEvent.ResetRequested -> confirmReset.value = true
             ConfigEvent.ResetDismissed -> confirmReset.value = false
             ConfigEvent.ResetConfirmed -> {

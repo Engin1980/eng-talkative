@@ -87,6 +87,15 @@ class DataStoreConfigRepositoryTest {
     }
 
     @Test
+    fun textScale_isStoredAndClampedWhenRead() = runTest {
+        repository.update { it.copy(textScalePercent = 140) }
+        assertEquals(140, repository.config.first().textScalePercent)
+
+        dataStore.edit { it[androidx.datastore.preferences.core.intPreferencesKey("text_scale_percent")] = 5000 }
+        assertEquals(200, repository.config.first().textScalePercent)
+    }
+
+    @Test
     fun addHold_isStoredAndClampedWhenRead() = runTest {
         repository.update { it.copy(addHoldMillis = 1_500L) }
         assertEquals(1_500L, repository.config.first().addHoldMillis)

@@ -102,9 +102,10 @@ class ConfigScreenTest {
         show(AppConfig(gridPortrait = GridSize(3, 3), gridLandscape = GridSize(4, 3)))
 
         // pořadí tlačítek na obrazovce: [0] podržení pro přidání (jen v režimu klepnutí), [1] podržení pro odebrání,
-        // [2] sloupce a [3] řádky na výšku, [4] sloupce a [5] řádky na šířku, [6] podržení pro vstup do administrace
-        composeRule.onAllNodesWithText("+")[2].performScrollTo().performClick()
-        composeRule.onAllNodesWithText("−")[5].performScrollTo().performClick()
+        // [2] velikost textu, [3] sloupce a [4] řádky na výšku, [5] sloupce a [6] řádky na šířku,
+        // [7] podržení pro vstup do administrace
+        composeRule.onAllNodesWithText("+")[3].performScrollTo().performClick()
+        composeRule.onAllNodesWithText("−")[6].performScrollTo().performClick()
 
         assertEquals(
             listOf<ConfigEvent>(
@@ -128,9 +129,26 @@ class ConfigScreenTest {
         // pořadí steppérů: viz gridSteppers_changeOneValueAtATime
         composeRule.onAllNodesWithText("−")[1].performScrollTo().assertIsNotEnabled()
         composeRule.onAllNodesWithText("+")[1].performScrollTo().assertIsEnabled()
-        composeRule.onAllNodesWithText("+")[2].performScrollTo().assertIsNotEnabled() // sloupce na výšku = max
-        composeRule.onAllNodesWithText("−")[3].performScrollTo().assertIsNotEnabled() // řádky na výšku = min
-        composeRule.onAllNodesWithText("+")[6].performScrollTo().assertIsNotEnabled() // vstup do administrace = max
+        composeRule.onAllNodesWithText("+")[3].performScrollTo().assertIsNotEnabled() // sloupce na výšku = max
+        composeRule.onAllNodesWithText("−")[4].performScrollTo().assertIsNotEnabled() // řádky na výšku = min
+        composeRule.onAllNodesWithText("+")[7].performScrollTo().assertIsNotEnabled() // vstup do administrace = max
+    }
+
+    @Test
+    fun textScale_isShownInPercent_andStepsByTenPercent() {
+        show(AppConfig(textScalePercent = 100))
+
+        composeRule.onNodeWithTag(configValueTag("text-scale")).performScrollTo().assertTextEquals("100 %")
+        composeRule.onAllNodesWithText("+")[2].performScrollTo().performClick()
+        composeRule.onAllNodesWithText("−")[2].performScrollTo().performClick()
+
+        assertEquals(listOf<ConfigEvent>(ConfigEvent.TextScaleChanged(110), ConfigEvent.TextScaleChanged(90)), events)
+    }
+
+    @Test
+    fun textScale_isDisabledAtLimits() {
+        show(AppConfig(textScalePercent = ConfigLimits.MAX_TEXT_SCALE_PERCENT))
+        composeRule.onAllNodesWithText("+")[2].performScrollTo().assertIsNotEnabled()
     }
 
     @Test
@@ -138,7 +156,7 @@ class ConfigScreenTest {
         show(AppConfig(removeHoldMillis = 1_000, adminHoldMillis = 10_000))
 
         composeRule.onAllNodesWithText("+")[1].performScrollTo().performClick()
-        composeRule.onAllNodesWithText("−")[6].performScrollTo().performClick()
+        composeRule.onAllNodesWithText("−")[7].performScrollTo().performClick()
 
         assertEquals(
             listOf<ConfigEvent>(ConfigEvent.RemoveHoldChanged(1_500), ConfigEvent.AdminHoldChanged(9_000)),

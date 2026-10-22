@@ -24,6 +24,7 @@ sealed interface ConfigEvent {
     data class CollationChanged(val languageTag: String) : ConfigEvent
     data class HideCaptionsChanged(val enabled: Boolean) : ConfigEvent
     data class AutoClearChanged(val enabled: Boolean) : ConfigEvent
+    data class TextScaleChanged(val percent: Int) : ConfigEvent
 
     data object ResetRequested : ConfigEvent
     data object ResetConfirmed : ConfigEvent

@@ -28,4 +28,6 @@ data class AppConfig(
     val collationLanguageTag: String = "cs",
     val hideCaptionsInSentence: Boolean = false,
     val autoClearAfterPlayback: Boolean = false,
+    /** Velikost veškerého textu v aplikaci v procentech (100 = výchozí velikost). */
+    val textScalePercent: Int = 100,
 )

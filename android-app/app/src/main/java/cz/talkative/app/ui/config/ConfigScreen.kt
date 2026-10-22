@@ -130,6 +130,19 @@ fun ConfigScreen(
             )
 
             HorizontalDivider()
+            SectionTitle(R.string.config_section_appearance)
+            StepperRow(
+                label = stringResource(R.string.config_text_scale),
+                key = "text-scale",
+                value = config.textScalePercent.toLong(),
+                min = ConfigLimits.MIN_TEXT_SCALE_PERCENT.toLong(),
+                max = ConfigLimits.MAX_TEXT_SCALE_PERCENT.toLong(),
+                step = ConfigLimits.TEXT_SCALE_STEP_PERCENT.toLong(),
+                format = { "$it %" },
+                onChange = { onEvent(ConfigEvent.TextScaleChanged(it.toInt())) },
+            )
+
+            HorizontalDivider()
             SectionTitle(R.string.config_section_grid)
             GridRows(R.string.config_grid_portrait, "portrait", config.gridPortrait) { onEvent(ConfigEvent.GridChanged(false, it)) }
             GridRows(R.string.config_grid_landscape, "landscape", config.gridLandscape) { onEvent(ConfigEvent.GridChanged(true, it)) }
