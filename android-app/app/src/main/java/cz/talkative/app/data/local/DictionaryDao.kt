@@ -2,6 +2,7 @@ package cz.talkative.app.data.local
 
 import androidx.room.Dao
 import androidx.room.Insert
+import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import androidx.room.Transaction
 import kotlinx.coroutines.flow.Flow
@@ -52,6 +53,40 @@ abstract class DictionaryDao {
 
     @Insert
     abstract suspend fun insertFolder(entity: FolderEntity)
+
+    // ---- synchronizace: čtení včetně tombstonů a zápis beze změny `updatedAt`
+
+    @Query("SELECT * FROM folders WHERE profileId = :profileId")
+    abstract suspend fun allFoldersWithDeleted(profileId: String): List<FolderEntity>
+
+    @Query("SELECT * FROM words WHERE profileId = :profileId")
+    abstract suspend fun allWordsWithDeleted(profileId: String): List<WordEntity>
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    abstract suspend fun upsertFolders(entities: List<FolderEntity>)
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    abstract suspend fun upsertWords(entities: List<WordEntity>)
+
+    @Query("DELETE FROM folders WHERE profileId = :profileId AND id IN (:ids)")
+    abstract suspend fun purgeFolders(profileId: String, ids: List<String>)
+
+    @Query("DELETE FROM words WHERE profileId = :profileId AND id IN (:ids)")
+    abstract suspend fun purgeWords(profileId: String, ids: List<String>)
+
+    /**
+     * Zapíše výsledek synchronizace v jedné transakci: položky se uloží přesně tak, jak přišly (včetně `updatedAt`
+     * a příznaku smazání), a prošlé tombstony se smažou úplně. Bez omezení počtu položek v jednom SQL dotazu.
+     */
+    @Transaction
+    open suspend fun applySync(profileId: String, folders: List<FolderEntity>, words: List<WordEntity>, purgeIds: Collection<String>) {
+        upsertFolders(folders)
+        upsertWords(words)
+        purgeIds.chunked(500).forEach { chunk ->
+            purgeFolders(profileId, chunk)
+            purgeWords(profileId, chunk)
+        }
+    }
 
     @Insert
     abstract suspend fun insertWord(entity: WordEntity)

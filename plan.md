@@ -485,13 +485,15 @@ Plán postupuje po funkcionalitách (vertikální řezy přes UI, doménu i data
 ### 9.3 Implementace Drive a přenos médií
 
 **Úkoly:**
-- [ ] Implementace úložiště nad Drive API (`drive.appdata`).
-- [ ] Nahrávání a stahování obrázků a MP3; přenášejí se jen změněné soubory.
-- [ ] Lokální data se mění až po úspěšném stažení (aplikace změn v transakci), aby výpadek sítě nenechal poškozený stav.
+- [x] Implementace úložiště nad Drive API (`drive.appdata`). _(`DriveRemoteStore` nad OkHttp a Drive REST v3, ověřeno `MockWebServer`em; proti skutečnému Drive neověřeno)_
+- [x] Nahrávání a stahování obrázků a zvuků; přenášejí se jen změněné soubory. _(název média se nikdy nemění, takže rozdíl množin názvů stačí)_
+- [x] Lokální data se mění až po úspěšném stažení (aplikace změn v transakci), aby výpadek sítě nenechal poškozený stav. _(`SyncDictionaryUseCase`: stažení do `cache/sync`, nahrání médií, zápis metadat a teprve pak média do úložišť a jedna transakce)_
 
 **Kritéria splnění:**
-- [ ] Po instalaci na druhém zařízení (nebo po vymazání dat) a přihlášení stejným účtem se objeví stejný slovník včetně obrázků a zvuků.
-- [ ] Výpadek sítě uprostřed synchronizace nenechá lokální data v poškozeném stavu.
+- [ ] *Neověřeno na skutečném Drive (chybí OAuth).* Po instalaci na druhém zařízení (nebo po vymazání dat) a přihlášení stejným účtem se objeví stejný slovník včetně obrázků a zvuků.
+- [ ] *Algoritmus ověřen testy s falešným úložištěm (`SyncDictionaryUseCaseTest`: výpadek při stahování i při zápisu metadat nechá místní data beze změny); na skutečném Drive neověřeno.* Výpadek sítě uprostřed synchronizace nenechá lokální data v poškozeném stavu.
+
+*Provedení: `RoomSyncLocalStore` čte i tombstony a zapisuje přes `DictionaryDao.applySync` beze změny `updatedAt`, `FileSyncMediaStore` ukládá média pod přesným názvem. Testy: `DriveRemoteStoreTest` (MockWebServer: seznam, multipart vytvoření, aktualizace, mazání, 401 s obnovením tokenu, chybové stavy, duplicitní `dictionary.json`), `SyncDictionaryUseCaseTest` (dvě zařízení, mazání, souběh, výpadky), `SyncLocalStoreTest` (Room a soubory na emulátoru).*
 
 ### 9.4 Spouštění a stav synchronizace
 

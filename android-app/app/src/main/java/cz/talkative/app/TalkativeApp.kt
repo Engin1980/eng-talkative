@@ -25,6 +25,7 @@ class TalkativeApp : Application() {
             runCatching { File(cacheDir, "pictograms").deleteRecursively() }
             runCatching { File(cacheDir, "drawings").deleteRecursively() }
             runCatching { File(cacheDir, "recordings").deleteRecursively() }
+            runCatching { File(cacheDir, "sync").deleteRecursively() }
             runCatching { cleanUpOrphanFiles() }
         }
     }
