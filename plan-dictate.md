@@ -8,7 +8,7 @@ Nejde o převod řeči na text (rozpoznávání řeči); nahrává se přímo zv
 
 - [x] Krok D.1: Formát nahrávky a úprava úložiště zvuku
 - [x] Krok D.2: Nahrávání mikrofonem (doménová a datová vrstva)
-- [ ] Krok D.3: Nahrávání v editaci slovíčka (UI)
+- [x] Krok D.3: Nahrávání v editaci slovíčka (UI)
 - [ ] Krok D.4: Export/import, dokumentace a ruční ověření
 
 ## Zda a za jakých podmínek to lze
@@ -82,21 +82,23 @@ Nejde o převod řeči na text (rozpoznávání řeči); nahrává se přímo zv
 **Cíl:** Administrátor v editaci slovíčka zvuk nahraje, poslechne si ho a uloží.
 
 **Úkoly:**
-- [ ] `AndroidManifest.xml`: oprávnění `RECORD_AUDIO` a `uses-feature` mikrofon s `required="false"`.
-- [ ] V sekci zvuku v editaci slovíčka (vedle „Vybrat MP3“) tlačítko **Nahrát hlasem**. Po stisku: žádost o oprávnění (`ActivityResultContracts.RequestPermission`), při zamítnutí hláška s nápovědou; při udělení začne nahrávání.
-- [ ] Stav nahrávání v `AdminContract` (nové události např. `StartRecording`, `StopRecording`, `CancelRecording`, `RecordingFinished`, `RecordingFailed`; stav `isRecording`, uplynulý čas, `audioProblem`); stav se v `AdminViewModel` řídí stejným stylem jako `isProcessingAudio` a `isPreviewingAudio`.
-- [ ] Během nahrávání: výrazně viditelný stav (text „Nahrávám…“, uplynulý čas, ikona), velké tlačítko **Zastavit** (klepnutí), **Zrušit**; ostatní zvukové akce a Uložit slovíčko jsou neaktivní; po 60 s se nahrávání samo ukončí s upozorněním.
-- [ ] Po zastavení se nahrávka uloží do `AudioStore` (jako při výběru souboru), v editaci se objeví jako nově vybraný zvuk a lze si ji **přehrát** stávajícím náhledem, **nahrát znovu** (původní nepotvrzená nahrávka se smaže jako dnes vyměněný soubor) nebo **odebrat**. Konečné uložení slovíčka nese nahrávku stejně jako vybraný MP3.
-- [ ] Odchod z editace, zrušení dialogu, otočení tabletu nebo odchod aplikace do pozadí nahrávání zastaví a zahodí (otočení: `MainActivity` má `configChanges`, nahrávání nesmí přežít smrt `ViewModelu` ani zůstat „viset“).
-- [ ] Před začátkem nahrávání zastavit náhled zvuku (a TTS, pokud je aktivní).
-- [ ] Texty v češtině v `strings.xml`, rozměry z tématu, dotykové plochy ≥ 64 dp, obsah dialogu v `ScrollableColumn` (viz pravidla pro posuvný obsah v `CLAUDE.md`).
+- [x] `AndroidManifest.xml`: oprávnění `RECORD_AUDIO` a `uses-feature` mikrofon s `required="false"`.
+- [x] V sekci zvuku v editaci slovíčka (vedle „Vybrat MP3“) tlačítko **Nahrát hlasem**. Po stisku: žádost o oprávnění (`ActivityResultContracts.RequestPermission`), při zamítnutí hláška s nápovědou; při udělení začne nahrávání.
+- [x] Stav nahrávání v `AdminContract` (nové události např. `StartRecording`, `StopRecording`, `CancelRecording`, `RecordingFinished`, `RecordingFailed`; stav `isRecording`, uplynulý čas, `audioProblem`); stav se v `AdminViewModel` řídí stejným stylem jako `isProcessingAudio` a `isPreviewingAudio`.
+- [x] Během nahrávání: výrazně viditelný stav (text „Nahrávám…“, uplynulý čas, ikona), velké tlačítko **Zastavit** (klepnutí), **Zrušit**; ostatní zvukové akce a Uložit slovíčko jsou neaktivní; po 60 s se nahrávání samo ukončí s upozorněním.
+- [x] Po zastavení se nahrávka uloží do `AudioStore` (jako při výběru souboru), v editaci se objeví jako nově vybraný zvuk a lze si ji **přehrát** stávajícím náhledem, **nahrát znovu** (původní nepotvrzená nahrávka se smaže jako dnes vyměněný soubor) nebo **odebrat**. Konečné uložení slovíčka nese nahrávku stejně jako vybraný MP3.
+- [x] Odchod z editace, zrušení dialogu, otočení tabletu nebo odchod aplikace do pozadí nahrávání zastaví a zahodí (otočení: `MainActivity` má `configChanges`, nahrávání nesmí přežít smrt `ViewModelu` ani zůstat „viset“).
+- [x] Před začátkem nahrávání zastavit náhled zvuku (a TTS, pokud je aktivní).
+- [x] Texty v češtině v `strings.xml`, rozměry z tématu, dotykové plochy ≥ 64 dp, obsah dialogu v `ScrollableColumn` (viz pravidla pro posuvný obsah v `CLAUDE.md`).
 
 **Kritéria splnění:**
-- [ ] Compose UI test (s `FakeAudioRecorder`): Nahrát → Zastavit → Náhled → Uložit slovíčko → slovíčko má zvuk; Nahrát → Zrušit → nic se neuložilo; zamítnuté oprávnění → hláška bez pádu a zbytek editace funguje.
-- [ ] Test `SmallScreenScrollTest`: nová tlačítka jsou dosažitelná na okně 240 dp s písmem 150 %.
-- [ ] Unit testy `AdminViewModel`: stavové přechody včetně automatického ukončení po limitu, výměny nahrávky a odchodu z editace během nahrávání.
-- [ ] Nahrávání neproběhne při obsazeném mikrofonu ani bez mikrofonu; uživatel dostane hlášku, aplikace nespadne.
-- [ ] Věta „A, [nahrávka], B, C“ se přehraje v klientovi stejně jako s MP3 (využít `SentencePlaybackTest`).
+- [x] Compose UI test (s `FakeAudioRecorder`): Nahrát → Zastavit → Náhled → Uložit slovíčko → slovíčko má zvuk; Nahrát → Zrušit → nic se neuložilo; zamítnuté oprávnění → hláška bez pádu a zbytek editace funguje.
+- [x] Test `SmallScreenScrollTest`: nová tlačítka jsou dosažitelná na okně 240 dp s písmem 150 %.
+- [x] Unit testy `AdminViewModel`: stavové přechody včetně automatického ukončení po limitu, výměny nahrávky a odchodu z editace během nahrávání.
+- [x] Nahrávání neproběhne při obsazeném mikrofonu ani bez mikrofonu; uživatel dostane hlášku, aplikace nespadne.
+- [x] Věta „A, [nahrávka], B, C“ se přehraje v klientovi stejně jako s MP3 (využít `SentencePlaybackTest`).
+
+*Provedení: události `StartRecording` / `StopRecording` / `CancelRecording` / `RecordingPermissionDenied(permanently)`; konec nahrávky (`RecordingFinished`, `RecordingFailed` z plánu) řeší `AdminViewModel` interně, protože `AudioRecorder.record()` je suspend funkce a výsledek vrací přímo. Stav `isRecording` a `recordingElapsedMillis` je v `AdminDialog.Edit`. Oprávnění se žádá v `AudioSection` při klepnutí na „Nahrát hlasem“ (`RequestPermission`); trvalé zamítnutí se pozná podle `shouldShowRequestPermissionRationale`. Odchod aplikace do pozadí (`ON_STOP`) a zavření dialogu nahrávku zahodí; `MainActivity` má `configChanges`, takže otočení nic nerestartuje. Řeč TTS v administraci neběží (TTS má jen klient), proto se před nahráváním zastavuje jen náhled zvuku. Ikona nahrávání je červená tečka (v projektu je jen `material-icons-core`, ikona mikrofonu v něm není), stav je vždy i textem „Nahrávám…“ a časem. Testy: `AdminViewModelTest` (12 nových), `AdminScreenTest` (panel, tlačítka, texty hlášek), `AdminFlowTest` (nahrát → zastavit → přehrát → uložit; nahrát → zrušit), `SmallScreenScrollTest`, `ClientViewModelTest` (věta s M4A). Zamítnuté oprávnění se na úrovni systémového dialogu v Compose testu ověřit nedá, je ověřené na úrovni view modelu a textů. `AdminFlowTest` je občas nestabilní (starší testy s obrázky, „connection pool has been closed“ při úklidu databáze po předchozím testu); při opakování prošel.*
 
 ---
 

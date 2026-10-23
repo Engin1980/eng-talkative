@@ -5,6 +5,9 @@ import androidx.lifecycle.viewModelScope
 import cz.talkative.app.domain.audio.AudioError
 import cz.talkative.app.domain.audio.AudioPlaybackException
 import cz.talkative.app.domain.audio.AudioPlayer
+import cz.talkative.app.domain.audio.AudioRecorder
+import cz.talkative.app.domain.audio.RecordingError
+import cz.talkative.app.domain.audio.RecordingResult
 import cz.talkative.app.domain.audio.AudioSaveResult
 import cz.talkative.app.domain.image.ImageError
 import cz.talkative.app.domain.image.ImageSaveResult
@@ -16,6 +19,7 @@ import cz.talkative.app.domain.usecase.CountFolderContentsUseCase
 import cz.talkative.app.domain.usecase.DeleteFolderUseCase
 import cz.talkative.app.domain.usecase.DiscardAudioUseCase
 import cz.talkative.app.domain.usecase.SaveAudioUseCase
+import cz.talkative.app.domain.usecase.SaveRecordingUseCase
 import cz.talkative.app.domain.usecase.DeleteItemsUseCase
 import cz.talkative.app.domain.usecase.DeleteWordUseCase
 import cz.talkative.app.domain.usecase.DiscardImageUseCase
@@ -61,6 +65,8 @@ class AdminViewModel @Inject constructor(
     private val saveAudio: SaveAudioUseCase,
     private val discardAudio: DiscardAudioUseCase,
     private val audioPlayer: AudioPlayer,
+    private val audioRecorder: AudioRecorder,
+    private val saveRecording: SaveRecordingUseCase,
 ) : ViewModel() {
 
     private val currentFolderId = MutableStateFlow<String?>(null)
@@ -68,6 +74,7 @@ class AdminViewModel @Inject constructor(
     private val selection = MutableStateFlow<Set<String>?>(null) // null = režim výběru je vypnutý
     private var nextSessionId = 0
     private var previewJob: Job? = null
+    private var recordJob: Job? = null
 
     private val browsing = currentFolderId.flatMapLatest { folderId ->
         observeItems(folderId).map { items -> AdminUiState(path = getPath(folderId), items = items, isLoading = false) }
@@ -99,6 +106,14 @@ class AdminViewModel @Inject constructor(
             is AdminEvent.AudioSelectionFailed -> updateEditDialog { it.copy(audioProblem = event.problem) }
             AdminEvent.ToggleAudioPreview -> toggleAudioPreview()
             AdminEvent.DismissAudioProblem -> updateEditDialog { it.copy(audioProblem = null) }
+            AdminEvent.StartRecording -> startRecording()
+            AdminEvent.StopRecording -> audioRecorder.stop()
+            AdminEvent.CancelRecording -> cancelRecording()
+            is AdminEvent.RecordingPermissionDenied -> updateEditDialog {
+                it.copy(
+                    audioProblem = if (event.permanently) AudioProblem.MICROPHONE_PERMISSION_BLOCKED else AudioProblem.MICROPHONE_PERMISSION_DENIED,
+                )
+            }
             AdminEvent.ToggleSelecting -> selection.value = if (selection.value == null) emptySet() else null
             is AdminEvent.ToggleSelected -> toggleSelected(event.itemId)
             AdminEvent.ToggleSelectAll -> toggleSelectAll()
@@ -228,7 +243,7 @@ class AdminViewModel @Inject constructor(
 
     private fun confirmEdit() {
         val edit = dialog.value as? AdminDialog.Edit ?: return
-        if (edit.isProcessingImage || edit.isProcessingAudio) return
+        if (edit.isProcessingImage || edit.isProcessingAudio || edit.isRecording) return
         viewModelScope.launch {
             val parentId = currentFolderId.value
             val result = when (edit.kind) {
@@ -253,6 +268,7 @@ class AdminViewModel @Inject constructor(
     }
 
     private fun closeDialog() {
+        cancelRecording()
         stopPreview()
         dialog.value = null
     }
@@ -295,7 +311,7 @@ class AdminViewModel @Inject constructor(
 
     private fun processPickedAudio(uri: String) {
         val edit = dialog.value as? AdminDialog.Edit ?: return
-        if (edit.kind != ItemKind.WORD || edit.isProcessingAudio) return
+        if (edit.kind != ItemKind.WORD || edit.isProcessingAudio || edit.isRecording) return
         stopPreview()
         updateEditDialog { it.copy(isProcessingAudio = true, audioProblem = null) }
         viewModelScope.launch {
@@ -319,6 +335,82 @@ class AdminViewModel @Inject constructor(
         }
     }
 
+    /**
+     * Nahrávání z mikrofonu: po zastavení se nahrávka uloží stejnou cestou jako vybraný soubor (nahrazuje dosud
+     * nepřiřazený zvuk). Zrušení ([cancelRecording], zavření dialogu, smrt view modelu) nahrávku zahodí.
+     */
+    private fun startRecording() {
+        val edit = dialog.value as? AdminDialog.Edit ?: return
+        if (edit.kind != ItemKind.WORD || edit.isRecording || edit.isProcessingAudio) return
+        stopPreview()
+        updateEditDialog { it.copy(isRecording = true, recordingElapsedMillis = 0L, audioProblem = null) }
+        recordJob = viewModelScope.launch {
+            val elapsedJob = launch {
+                audioRecorder.elapsedMillis.collect { millis -> updateEditDialog { it.copy(recordingElapsedMillis = millis) } }
+            }
+            val result = try {
+                audioRecorder.record()
+            } finally {
+                elapsedJob.cancel()
+            }
+            finishRecording(edit.sessionId, result)
+        }
+    }
+
+    private suspend fun finishRecording(sessionId: Int, result: RecordingResult) {
+        val current = dialog.value as? AdminDialog.Edit
+        if (current == null || current.sessionId != sessionId) {
+            if (result is RecordingResult.Recorded) saveRecording.discard(result) // dialog mezitím zmizel
+            return
+        }
+        when (result) {
+            is RecordingResult.Recorded -> {
+                dialog.value = current.copy(isRecording = false, recordingElapsedMillis = 0L, isProcessingAudio = true)
+                when (val saved = saveRecording(result)) {
+                    is AudioSaveResult.Saved -> {
+                        val latest = dialog.value as? AdminDialog.Edit
+                        if (latest == null || latest.sessionId != sessionId) {
+                            discardAudio(saved.fileName)
+                            return
+                        }
+                        discardPendingAudio(latest) // nahrazená (ještě nepřiřazená) nahrávka nebo vybraný soubor
+                        dialog.value = latest.copy(
+                            audioFile = saved.fileName,
+                            isProcessingAudio = false,
+                            audioProblem = if (result.reachedLimit) AudioProblem.RECORDING_LIMIT_REACHED else null,
+                        )
+                    }
+                    is AudioSaveResult.Failed -> {
+                        val latest = dialog.value as? AdminDialog.Edit ?: return
+                        if (latest.sessionId == sessionId) {
+                            dialog.value = latest.copy(isProcessingAudio = false, audioProblem = saved.error.toProblem())
+                        }
+                    }
+                }
+            }
+            RecordingResult.TooShort ->
+                dialog.value = current.copy(isRecording = false, recordingElapsedMillis = 0L, audioProblem = AudioProblem.NOTHING_RECORDED)
+            is RecordingResult.Failed -> dialog.value = current.copy(
+                isRecording = false,
+                recordingElapsedMillis = 0L,
+                audioProblem = when (result.error) {
+                    RecordingError.NO_MICROPHONE -> AudioProblem.NO_MICROPHONE
+                    RecordingError.MICROPHONE_UNAVAILABLE -> AudioProblem.MICROPHONE_UNAVAILABLE
+                    RecordingError.STORAGE_FULL -> AudioProblem.STORAGE_FULL
+                },
+            )
+        }
+    }
+
+    /** Zahodí běžící nahrávku (soubor smaže nahrávač při zrušení); po skončení nahrávání, při ukládání, nedělá nic. */
+    private fun cancelRecording() {
+        val edit = dialog.value as? AdminDialog.Edit
+        if (edit?.isRecording != true) return
+        recordJob?.cancel()
+        recordJob = null
+        updateEditDialog { it.copy(isRecording = false, recordingElapsedMillis = 0L) }
+    }
+
     private fun AudioError.toProblem() = when (this) {
         AudioError.UNREADABLE -> AudioProblem.UNREADABLE
         AudioError.UNSUPPORTED_FORMAT -> AudioProblem.UNSUPPORTED_FORMAT
@@ -329,7 +421,7 @@ class AdminViewModel @Inject constructor(
 
     private fun removeAudio() {
         val current = dialog.value as? AdminDialog.Edit ?: return
-        if (current.audioFile == null) return
+        if (current.audioFile == null || current.isRecording) return
         stopPreview()
         discardPendingAudio(current)
         dialog.value = current.copy(audioFile = null, audioProblem = null, isPreviewingAudio = false)
@@ -342,6 +434,7 @@ class AdminViewModel @Inject constructor(
             return
         }
         val fileName = edit.audioFile ?: return
+        if (edit.isRecording) return // mikrofon a přehrávání se nesmí potkat
         updateEditDialog { it.copy(isPreviewingAudio = true, audioProblem = null) }
         previewJob = viewModelScope.launch {
             var problem: AudioProblem? = null

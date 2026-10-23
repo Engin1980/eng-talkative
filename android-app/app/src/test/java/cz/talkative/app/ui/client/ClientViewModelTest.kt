@@ -427,6 +427,22 @@ class ClientViewModelTest {
     }
 
     @Test
+    fun sentenceWithRecordedM4a_playsLikeWithMp3() = runVmTest {
+        subscribe()
+        pick("A")
+        pick("nahravka", audioFile = "nahravka.m4a")
+        pick("B")
+        pick("C")
+
+        viewModel.onEvent(ClientEvent.TogglePlayback)
+        speech.finishSpeaking()
+        assertEquals(listOf("nahravka.m4a"), audioPlayer.played)
+
+        audioPlayer.finishPlaying()
+        assertEquals(listOf("A", "B C"), speech.spoken)
+    }
+
+    @Test
     fun stopButton_duringMp3_stopsEverything() = runVmTest {
         subscribe()
         pick("zvonek", audioFile = "zvonek.mp3")

@@ -13,6 +13,10 @@ import cz.talkative.app.domain.usecase.DiscardImageUseCase
 import cz.talkative.app.domain.usecase.SaveImageUseCase
 import cz.talkative.app.domain.image.ImageError
 import cz.talkative.app.testing.FakeAudioPlayer
+import cz.talkative.app.testing.FakeAudioRecorder
+import cz.talkative.app.domain.audio.RecordingError
+import cz.talkative.app.domain.audio.RecordingResult
+import cz.talkative.app.domain.usecase.SaveRecordingUseCase
 import cz.talkative.app.testing.FakeAudioStore
 import cz.talkative.app.testing.FakeImageStore
 import cz.talkative.app.domain.audio.AudioError
@@ -47,6 +51,7 @@ class AdminViewModelTest {
     private val imageStore = FakeImageStore()
     private val audioStore = FakeAudioStore()
     private val audioPlayer = FakeAudioPlayer()
+    private val audioRecorder = FakeAudioRecorder()
     private val config = FakeConfigRepository()
     private lateinit var viewModel: AdminViewModel
 
@@ -70,6 +75,8 @@ class AdminViewModelTest {
             SaveAudioUseCase(audioStore),
             DiscardAudioUseCase(audioStore),
             audioPlayer,
+            audioRecorder,
+            SaveRecordingUseCase(audioStore),
         )
     }
 
@@ -610,6 +617,175 @@ class AdminViewModelTest {
 
         assertEquals(setOf(original), audioStore.files)
         assertEquals(original, audioOf("slovo"))
+    }
+
+    private fun startWordWithRecording(title: String = "slovo") {
+        viewModel.onEvent(AdminEvent.AddWord)
+        viewModel.onEvent(AdminEvent.TitleChanged(title))
+        viewModel.onEvent(AdminEvent.StartRecording)
+    }
+
+    @Test
+    fun recording_stopSavesItAsTheWordsAudio() = runVmTest {
+        subscribe()
+        startWordWithRecording()
+        assertTrue(editDialog().isRecording)
+        assertEquals(1, audioRecorder.starts)
+
+        viewModel.onEvent(AdminEvent.StopRecording)
+
+        val dialog = editDialog()
+        assertEquals(false, dialog.isRecording)
+        assertNotNull(dialog.audioFile)
+        assertEquals(setOf(dialog.audioFile), audioStore.files)
+        assertTrue(audioRecorder.files.none { it.exists() }) // dočasný soubor je smazaný
+        viewModel.onEvent(AdminEvent.ConfirmEdit)
+        assertEquals(dialog.audioFile, audioOf("slovo"))
+    }
+
+    @Test
+    fun recording_cancelDiscardsEverything() = runVmTest {
+        subscribe()
+        startWordWithRecording()
+
+        viewModel.onEvent(AdminEvent.CancelRecording)
+
+        assertEquals(false, editDialog().isRecording)
+        assertEquals(1, audioRecorder.cancellations)
+        assertNull(editDialog().audioFile)
+        assertTrue(audioStore.files.isEmpty())
+    }
+
+    @Test
+    fun recording_reachingTheLimit_savesItAndShowsNotice() = runVmTest {
+        subscribe()
+        startWordWithRecording()
+
+        audioRecorder.reachLimit()
+
+        assertEquals(false, editDialog().isRecording)
+        assertNotNull(editDialog().audioFile)
+        assertEquals(AudioProblem.RECORDING_LIMIT_REACHED, editDialog().audioProblem)
+    }
+
+    @Test
+    fun recording_elapsedTimeIsShownWhileRecording() = runVmTest {
+        subscribe()
+        startWordWithRecording()
+
+        audioRecorder.setElapsed(7_000)
+
+        assertEquals(7_000L, editDialog().recordingElapsedMillis)
+    }
+
+    @Test
+    fun recordingAgain_replacesThePendingAudio_andDiscardsTheOldFile() = runVmTest {
+        subscribe()
+        viewModel.onEvent(AdminEvent.AddWord)
+        viewModel.onEvent(AdminEvent.TitleChanged("slovo"))
+        viewModel.onEvent(AdminEvent.StartRecording)
+        viewModel.onEvent(AdminEvent.StopRecording)
+        val first = editDialog().audioFile
+
+        viewModel.onEvent(AdminEvent.StartRecording)
+        viewModel.onEvent(AdminEvent.StopRecording)
+
+        val second = editDialog().audioFile
+        assertTrue(first != second)
+        assertEquals(setOf(second), audioStore.files)
+    }
+
+    @Test
+    fun recording_leavingTheDialogStopsAndDiscardsIt() = runVmTest {
+        subscribe()
+        startWordWithRecording()
+
+        viewModel.onEvent(AdminEvent.DismissDialog)
+
+        assertNull(viewModel.uiState.value.dialog)
+        assertEquals(1, audioRecorder.cancellations)
+        assertEquals(false, audioRecorder.isRecording)
+        assertTrue(audioStore.files.isEmpty())
+    }
+
+    @Test
+    fun recording_blocksSavingAndOtherAudioActions() = runVmTest {
+        subscribe()
+        startWordWithRecording()
+
+        viewModel.onEvent(AdminEvent.ConfirmEdit)
+        viewModel.onEvent(AdminEvent.AudioPicked("content://soubor"))
+        viewModel.onEvent(AdminEvent.StartRecording)
+
+        assertTrue(viewModel.uiState.value.items.isEmpty())
+        assertTrue(audioStore.files.isEmpty())
+        assertEquals(1, audioRecorder.starts)
+        assertTrue(editDialog().isRecording)
+    }
+
+    @Test
+    fun recording_stopsThePreviewFirst() = runVmTest {
+        subscribe()
+        pickAudio()
+        viewModel.onEvent(AdminEvent.ToggleAudioPreview)
+        assertEquals(1, audioPlayer.activePlays)
+
+        viewModel.onEvent(AdminEvent.StartRecording)
+
+        assertEquals(0, audioPlayer.activePlays)
+        assertEquals(false, editDialog().isPreviewingAudio)
+        assertTrue(editDialog().isRecording)
+    }
+
+    @Test
+    fun recording_tooShort_savesNothingAndExplains() = runVmTest {
+        subscribe()
+        audioRecorder.tooShort = true
+        startWordWithRecording()
+
+        viewModel.onEvent(AdminEvent.StopRecording)
+
+        assertEquals(AudioProblem.NOTHING_RECORDED, editDialog().audioProblem)
+        assertNull(editDialog().audioFile)
+        assertTrue(audioStore.files.isEmpty())
+    }
+
+    @Test
+    fun recording_failures_showMessage_andDialogStaysUsable() = runVmTest {
+        subscribe()
+        val expected = mapOf(
+            RecordingError.NO_MICROPHONE to AudioProblem.NO_MICROPHONE,
+            RecordingError.MICROPHONE_UNAVAILABLE to AudioProblem.MICROPHONE_UNAVAILABLE,
+            RecordingError.STORAGE_FULL to AudioProblem.STORAGE_FULL,
+        )
+        viewModel.onEvent(AdminEvent.AddWord)
+        viewModel.onEvent(AdminEvent.TitleChanged("slovo"))
+
+        for ((error, problem) in expected) {
+            audioRecorder.immediateResult = RecordingResult.Failed(error)
+            viewModel.onEvent(AdminEvent.StartRecording)
+            assertEquals(problem, editDialog().audioProblem)
+            assertEquals(false, editDialog().isRecording)
+        }
+
+        viewModel.onEvent(AdminEvent.ConfirmEdit)
+        assertNull(audioOf("slovo"))
+    }
+
+    @Test
+    fun recording_deniedPermission_showsHint_andDialogStaysUsable() = runVmTest {
+        subscribe()
+        viewModel.onEvent(AdminEvent.AddWord)
+        viewModel.onEvent(AdminEvent.TitleChanged("slovo"))
+
+        viewModel.onEvent(AdminEvent.RecordingPermissionDenied(permanently = false))
+        assertEquals(AudioProblem.MICROPHONE_PERMISSION_DENIED, editDialog().audioProblem)
+        viewModel.onEvent(AdminEvent.RecordingPermissionDenied(permanently = true))
+        assertEquals(AudioProblem.MICROPHONE_PERMISSION_BLOCKED, editDialog().audioProblem)
+
+        assertEquals(0, audioRecorder.starts)
+        viewModel.onEvent(AdminEvent.ConfirmEdit)
+        assertEquals("slovo", titles().single())
     }
 
     @Test

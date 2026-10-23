@@ -13,7 +13,7 @@ enum class ImageProblem {
     NO_CAMERA,
 }
 
-/** Proč se MP3 nepodařilo vybrat, uložit nebo přehrát; UI k tomu zobrazí srozumitelnou hlášku. */
+/** Proč se zvuk nepodařilo vybrat, nahrát, uložit nebo přehrát; UI k tomu zobrazí srozumitelnou hlášku. */
 enum class AudioProblem {
     UNREADABLE,
     UNSUPPORTED_FORMAT,
@@ -22,6 +22,20 @@ enum class AudioProblem {
     STORAGE_FULL,
     NO_PICKER,
     PLAYBACK_FAILED,
+
+    /** Oprávnění k mikrofonu je zamítnuté (lze zažádat znovu). */
+    MICROPHONE_PERMISSION_DENIED,
+
+    /** Oprávnění k mikrofonu je zamítnuté natrvalo; jde ho povolit jen v nastavení systému. */
+    MICROPHONE_PERMISSION_BLOCKED,
+    NO_MICROPHONE,
+    MICROPHONE_UNAVAILABLE,
+
+    /** Nahrávka byla příliš krátká, nic se neuložilo. */
+    NOTHING_RECORDED,
+
+    /** Upozornění, ne chyba: nahrávání se po nejdelší povolené době samo ukončilo a nahrávka se uložila. */
+    RECORDING_LIMIT_REACHED,
 }
 
 /** Proč se přesun nepodařil; nic se přitom nepřesunulo. */
@@ -51,6 +65,9 @@ sealed interface AdminDialog {
         val originalAudioFile: String? = null,
         val isProcessingAudio: Boolean = false,
         val isPreviewingAudio: Boolean = false,
+        /** Běží nahrávání z mikrofonu; [recordingElapsedMillis] je uplynulý čas nahrávky. */
+        val isRecording: Boolean = false,
+        val recordingElapsedMillis: Long = 0L,
         val audioProblem: AudioProblem? = null,
         val isProcessingImage: Boolean = false,
         val imageProblem: ImageProblem? = null,
@@ -133,6 +150,18 @@ sealed interface AdminEvent {
     data object ToggleAudioPreview : AdminEvent
 
     data object DismissAudioProblem : AdminEvent
+
+    /** Spustí nahrávání z mikrofonu; UI ho posílá až po udělení oprávnění. */
+    data object StartRecording : AdminEvent
+
+    /** Ukončí nahrávání normálně; nahrávka se uloží jako vlastní zvuk slovíčka. */
+    data object StopRecording : AdminEvent
+
+    /** Zahodí běžící nahrávku (tlačítko Zrušit, odchod aplikace do pozadí). */
+    data object CancelRecording : AdminEvent
+
+    /** Uživatel oprávnění k mikrofonu zamítl; [permanently] = systém už se znovu neptá. */
+    data class RecordingPermissionDenied(val permanently: Boolean) : AdminEvent
 
     /** Zapne nebo vypne režim výběru (vypnutím se výběr zruší). */
     data object ToggleSelecting : AdminEvent

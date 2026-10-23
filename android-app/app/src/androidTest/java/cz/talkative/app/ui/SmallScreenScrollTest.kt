@@ -149,6 +149,32 @@ class SmallScreenScrollTest {
     }
 
     @Test
+    fun editDialog_recordingButtonsAreReachableInTheScrollingContent() {
+        var events = emptyList<cz.talkative.app.ui.admin.AdminEvent>()
+        val word = cz.talkative.app.ui.admin.AdminDialog.Edit(
+            kind = cz.talkative.app.ui.admin.ItemKind.WORD,
+            itemId = null,
+            title = "",
+            isRecording = true,
+            recordingElapsedMillis = 3_000,
+        )
+        showSmall {
+            AdminScreen(
+                state = AdminUiState(isLoading = false, dialog = word),
+                onEvent = { events = events + it },
+                onBackToClient = {},
+            )
+        }
+
+        composeRule.onNodeWithText(string(R.string.audio_record_stop)).performScrollTo().performClick()
+        composeRule.onNodeWithText(string(R.string.audio_record_cancel)).performScrollTo().performClick()
+        assertEquals(
+            listOf(cz.talkative.app.ui.admin.AdminEvent.StopRecording, cz.talkative.app.ui.admin.AdminEvent.CancelRecording),
+            events,
+        )
+    }
+
+    @Test
     fun scrollableColumn_lastDialogButtonIsReachable() {
         var clicks = 0
         showSmall {

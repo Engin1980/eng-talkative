@@ -7,6 +7,7 @@ import androidx.compose.ui.layout.positionInRoot
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.test.junit4.v2.createComposeRule
 import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.assertIsNotEnabled
 import androidx.compose.ui.test.onAllNodesWithTag
 import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithContentDescription
@@ -69,12 +70,16 @@ class AdminFlowTest {
     private val imageStore = FakeImageStore()
     private val audioStore = FakeAudioStore()
     private val audioPlayer = FakeAudioPlayer()
+    private val audioRecorder = cz.talkative.app.testing.FakeAudioRecorder()
     private val config = FakeConfigRepository()
     private lateinit var viewModel: AdminViewModel
 
     @Before
     fun setUp() {
         val context = ApplicationProvider.getApplicationContext<Context>()
+        // Bez oprávnění by klepnutí na Nahrát hlasem otevřelo systémový dialog, který Compose test neovládá.
+        androidx.test.platform.app.InstrumentationRegistry.getInstrumentation().uiAutomation
+            .grantRuntimePermission(context.packageName, android.Manifest.permission.RECORD_AUDIO)
         database = Room.inMemoryDatabaseBuilder(context, TalkativeDatabase::class.java).build()
         val repository = RoomDictionaryRepository(database.dictionaryDao(), { System.currentTimeMillis() }, imageStore, audioStore)
         viewModel = AdminViewModel(
@@ -94,6 +99,8 @@ class AdminFlowTest {
             SaveAudioUseCase(audioStore),
             DiscardAudioUseCase(audioStore),
             audioPlayer,
+            audioRecorder,
+            cz.talkative.app.domain.usecase.SaveRecordingUseCase(audioStore),
         )
         composeRule.setContent {
             TalkativeTheme {
@@ -133,6 +140,41 @@ class AdminFlowTest {
         waitForText("Tato složka je prázdná")
         create("Nová složka", "Úroveň 3")
         create("Nové slovíčko", "Slovo")
+    }
+
+    @Test
+    fun recordedSound_canBePreviewed_andIsKeptWithTheWord() {
+        waitForText("Tato složka je prázdná")
+        composeRule.onNodeWithText("Nové slovíčko").performClick()
+        composeRule.onNodeWithText("Titulek").performTextInput("Pes")
+
+        composeRule.onNodeWithText("Nahrát hlasem").performScrollTo().performClick()
+        waitForText("Nahrávám…")
+        composeRule.onNodeWithText("Uložit").assertIsNotEnabled() // během nahrávání nejde uložit
+        composeRule.onNodeWithText("Zastavit nahrávání").performScrollTo().performClick()
+        waitForText("Slovíčko má vlastní zvuk. Jiný text pro čtení se nepoužije.")
+
+        composeRule.onNodeWithText("Přehrát zvuk").performScrollTo().performClick()
+        composeRule.waitUntil(5_000) { audioPlayer.played.size == 1 }
+        composeRule.onNodeWithText("Zastavit zvuk").performScrollTo().performClick()
+        composeRule.onNodeWithText("Uložit").performClick()
+        waitForText("Pes")
+
+        assertEquals(1, audioStore.files.size) // nahrávka zůstala u slovíčka
+    }
+
+    @Test
+    fun cancelledRecording_savesNothing() {
+        waitForText("Tato složka je prázdná")
+        composeRule.onNodeWithText("Nové slovíčko").performClick()
+
+        composeRule.onNodeWithText("Nahrát hlasem").performScrollTo().performClick()
+        waitForText("Nahrávám…")
+        composeRule.onNodeWithText("Zrušit nahrávání").performScrollTo().performClick()
+
+        waitForText("Slovíčko nemá vlastní zvuk, čte se text.")
+        assertTrue(audioStore.files.isEmpty())
+        assertEquals(1, audioRecorder.cancellations)
     }
 
     @Test

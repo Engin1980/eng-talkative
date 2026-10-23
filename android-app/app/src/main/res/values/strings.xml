@@ -157,6 +157,17 @@
   <string name="audio_none">Slovíčko nemá vlastní zvuk, čte se text.</string>
   <string name="audio_present">Slovíčko má vlastní zvuk. Jiný text pro čtení se nepoužije.</string>
   <string name="audio_pick">Vybrat soubor</string>
+  <string name="audio_record">Nahrát hlasem</string>
+  <string name="audio_recording">Nahrávám…</string>
+  <string name="audio_recording_time">%1$s z %2$s</string>
+  <string name="audio_record_stop">Zastavit nahrávání</string>
+  <string name="audio_record_cancel">Zrušit nahrávání</string>
+  <string name="audio_problem_permission_denied">Bez oprávnění k mikrofonu nelze nahrávat. Klepněte znovu na Nahrát hlasem a oprávnění povolte.</string>
+  <string name="audio_problem_permission_blocked">Oprávnění k mikrofonu je zamítnuté. Povolte ho v nastavení systému (Aplikace, Talkative, Oprávnění).</string>
+  <string name="audio_problem_no_microphone">Toto zařízení nemá mikrofon, nahrávat nelze.</string>
+  <string name="audio_problem_microphone_unavailable">Mikrofon se nepodařilo spustit. Možná ho právě používá jiná aplikace.</string>
+  <string name="audio_problem_nothing_recorded">Nic se nenahrálo. Nahrávejte alespoň chvilku.</string>
+  <string name="audio_problem_limit_reached">Nahrávání se po %1$d sekundách samo ukončilo. Nahrávka je uložená.</string>
   <string name="audio_play">Přehrát zvuk</string>
   <string name="audio_stop">Zastavit zvuk</string>
   <string name="audio_remove">Odebrat zvuk</string>

@@ -3,6 +3,7 @@ package cz.talkative.app.ui
 import androidx.compose.ui.test.assertHeightIsAtLeast
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertIsEnabled
+import androidx.compose.ui.test.assertCountEquals
 import androidx.compose.ui.test.assertIsNotEnabled
 import androidx.compose.ui.test.onAllNodesWithTag
 import androidx.compose.ui.test.onNodeWithTag
@@ -392,10 +393,40 @@ class AdminScreenTest {
     }
 
     @Test
+    fun recording_showsStateTimeAndBigButtons_andBlocksOtherActions() {
+        show(state(dialog = wordDialog().copy(isRecording = true, recordingElapsedMillis = 7_000, audioFile = "stary.m4a")))
+
+        composeRule.onNodeWithText("Nahrávám…").assertIsDisplayed()
+        composeRule.onNodeWithText("0:07 z 1:00").assertIsDisplayed()
+        composeRule.onNodeWithText("Zastavit nahrávání").assertHeightIsAtLeast(64.dp).performClick()
+        composeRule.onNodeWithText("Zrušit nahrávání").assertHeightIsAtLeast(64.dp).performClick()
+        composeRule.onNodeWithText("Vybrat soubor").assertIsNotEnabled()
+        composeRule.onNodeWithText("Přehrát zvuk").assertIsNotEnabled()
+        composeRule.onNodeWithText("Odebrat zvuk").assertIsNotEnabled()
+        composeRule.onNodeWithText("Uložit").assertIsNotEnabled()
+        composeRule.onAllNodesWithText("Nahrát hlasem").assertCountEquals(0)
+        assertEquals(listOf<AdminEvent>(AdminEvent.StopRecording, AdminEvent.CancelRecording), events)
+    }
+
+    @Test
+    fun recordButton_isThereWhenNotRecording_andHasMinimumTouchTarget() {
+        show(state(dialog = wordDialog()))
+
+        composeRule.onNodeWithText("Nahrát hlasem").assertHeightIsAtLeast(64.dp).assertIsDisplayed()
+        composeRule.onAllNodesWithText("Nahrávám…").assertCountEquals(0)
+    }
+
+    @Test
     fun audioProblems_showUnderstandableMessages() {
         val expected = mapOf(
             AudioProblem.UNREADABLE to "Soubor se nepodařilo načíst jako zvuk.",
             AudioProblem.UNSUPPORTED_FORMAT to "Vybraný soubor není MP3 ani M4A.",
+            AudioProblem.MICROPHONE_PERMISSION_DENIED to "Bez oprávnění k mikrofonu nelze nahrávat.",
+            AudioProblem.MICROPHONE_PERMISSION_BLOCKED to "nastavení systému",
+            AudioProblem.NO_MICROPHONE to "nemá mikrofon",
+            AudioProblem.MICROPHONE_UNAVAILABLE to "Mikrofon se nepodařilo spustit.",
+            AudioProblem.NOTHING_RECORDED to "Nic se nenahrálo.",
+            AudioProblem.RECORDING_LIMIT_REACHED to "samo ukončilo",
             AudioProblem.TOO_LONG to "Zvuk je příliš dlouhý. Nejdelší povolená délka je 60 sekund.",
             AudioProblem.TOO_LARGE to "Soubor je příliš velký. Nejvíc může mít 5 MB.",
             AudioProblem.STORAGE_FULL to "Na zařízení není dost místa",

@@ -56,7 +56,18 @@ import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.compose.rememberLauncherForActivityResult
 import android.net.Uri
 import android.content.Context
+import android.Manifest
+import android.app.Activity
 import android.content.ActivityNotFoundException
+import android.content.ContextWrapper
+import android.content.pm.PackageManager
+import androidx.core.app.ActivityCompat
+import androidx.core.content.ContextCompat
+import androidx.compose.foundation.background
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.runtime.remember
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.compose.LifecycleEventEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -500,7 +511,7 @@ private fun EditDialog(dialog: AdminDialog.Edit, onEvent: (AdminEvent) -> Unit, 
         confirmButton = {
             Button(
                 onClick = { onEvent(AdminEvent.ConfirmEdit) },
-                enabled = !dialog.isProcessingImage && !dialog.isProcessingAudio,
+                enabled = !dialog.isProcessingImage && !dialog.isProcessingAudio && !dialog.isRecording,
                 modifier = Modifier.heightIn(min = dimens.minTouchTarget),
             ) {
                 Text(stringResource(R.string.dialog_save))
@@ -517,7 +528,7 @@ private fun EditDialog(dialog: AdminDialog.Edit, onEvent: (AdminEvent) -> Unit, 
     )
 }
 
-/** Vlastní zvuk slovíčka (MP3 nebo M4A): výběr souboru, náhled (přehrát/zastavit) a odebrání. */
+/** Vlastní zvuk slovíčka (MP3 nebo M4A): výběr souboru, nahrání mikrofonem, náhled (přehrát/zastavit) a odebrání. */
 @Composable
 private fun AudioSection(dialog: AdminDialog.Edit, onEvent: (AdminEvent) -> Unit) {
     val dimens = TalkativeTheme.dimens
@@ -525,9 +536,25 @@ private fun AudioSection(dialog: AdminDialog.Edit, onEvent: (AdminEvent) -> Unit
         if (uri != null) onEvent(AdminEvent.AudioPicked(uri.toString()))
     }
 
+    val context = LocalContext.current
+    val hasMicrophone = remember { context.packageManager.hasSystemFeature(PackageManager.FEATURE_MICROPHONE) }
+    val requestMicrophone = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
+        if (granted) {
+            onEvent(AdminEvent.StartRecording)
+        } else {
+            // Po zamítnutí už systém o oprávnění znovu nežádá, když nelze zobrazit vysvětlení: bere se jako natrvalo zamítnuté.
+            val activity = context.findActivity()
+            val permanently = activity != null && !ActivityCompat.shouldShowRequestPermissionRationale(activity, Manifest.permission.RECORD_AUDIO)
+            onEvent(AdminEvent.RecordingPermissionDenied(permanently))
+        }
+    }
+    // Mikrofon nikdy neběží skrytě: odchod aplikace do pozadí nebo zamčení displeje nahrávku zahodí.
+    if (dialog.isRecording) LifecycleEventEffect(Lifecycle.Event.ON_STOP) { onEvent(AdminEvent.CancelRecording) }
+
     Column(verticalArrangement = Arrangement.spacedBy(dimens.spaceSmall)) {
         Text(text = stringResource(R.string.audio_label), style = MaterialTheme.typography.titleLarge)
         when {
+            dialog.isRecording -> RecordingPanel(dialog.recordingElapsedMillis, onEvent)
             dialog.isProcessingAudio -> Row(verticalAlignment = Alignment.CenterVertically) {
                 CircularProgressIndicator(modifier = Modifier.size(dimens.iconSize))
                 Text(
@@ -556,28 +583,95 @@ private fun AudioSection(dialog: AdminDialog.Edit, onEvent: (AdminEvent) -> Unit
                     onEvent(AdminEvent.AudioSelectionFailed(AudioProblem.NO_PICKER))
                 }
             },
-            enabled = !dialog.isProcessingAudio,
+            enabled = !dialog.isProcessingAudio && !dialog.isRecording,
             modifier = Modifier.fillMaxWidth().heightIn(min = dimens.minTouchTarget),
         ) {
             Text(stringResource(R.string.audio_pick))
         }
+        if (!dialog.isRecording) {
+            Button(
+                onClick = {
+                    val granted = ContextCompat.checkSelfPermission(context, Manifest.permission.RECORD_AUDIO) == PackageManager.PERMISSION_GRANTED
+                    if (granted) onEvent(AdminEvent.StartRecording) else requestMicrophone.launch(Manifest.permission.RECORD_AUDIO)
+                },
+                enabled = hasMicrophone && !dialog.isProcessingAudio,
+                modifier = Modifier.fillMaxWidth().heightIn(min = dimens.minTouchTarget),
+            ) {
+                Text(stringResource(R.string.audio_record))
+            }
+            if (!hasMicrophone) {
+                Text(stringResource(R.string.audio_problem_no_microphone), style = MaterialTheme.typography.bodyLarge)
+            }
+        }
         if (dialog.audioFile != null) {
             Button(
                 onClick = { onEvent(AdminEvent.ToggleAudioPreview) },
-                enabled = !dialog.isProcessingAudio,
+                enabled = !dialog.isProcessingAudio && !dialog.isRecording,
                 modifier = Modifier.fillMaxWidth().heightIn(min = dimens.minTouchTarget),
             ) {
                 Text(stringResource(if (dialog.isPreviewingAudio) R.string.audio_stop else R.string.audio_play))
             }
             OutlinedButton(
                 onClick = { onEvent(AdminEvent.RemoveAudio) },
-                enabled = !dialog.isProcessingAudio,
+                enabled = !dialog.isProcessingAudio && !dialog.isRecording,
                 modifier = Modifier.fillMaxWidth().heightIn(min = dimens.minTouchTarget),
             ) {
                 Text(stringResource(R.string.audio_remove))
             }
         }
     }
+}
+
+/** Stav běžícího nahrávání: tečka, text „Nahrávám…“ a uplynulý čas (stav není poznat jen podle barvy), Zastavit a Zrušit. */
+@Composable
+private fun RecordingPanel(elapsedMillis: Long, onEvent: (AdminEvent) -> Unit) {
+    val dimens = TalkativeTheme.dimens
+    Column(
+        modifier = Modifier.testTag(RECORDING_PANEL_TAG),
+        verticalArrangement = Arrangement.spacedBy(dimens.spaceSmall),
+    ) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Box(Modifier.size(dimens.iconSize).background(MaterialTheme.colorScheme.error, CircleShape))
+            Text(
+                text = stringResource(R.string.audio_recording),
+                style = MaterialTheme.typography.titleLarge,
+                modifier = Modifier.padding(start = dimens.spaceMedium),
+            )
+        }
+        Text(
+            text = stringResource(R.string.audio_recording_time, formatClock(elapsedMillis), formatClock(AudioLimits.MAX_DURATION_MILLIS)),
+            style = MaterialTheme.typography.bodyLarge,
+        )
+        Button(
+            onClick = { onEvent(AdminEvent.StopRecording) },
+            modifier = Modifier.fillMaxWidth().heightIn(min = dimens.minTouchTarget),
+        ) {
+            Text(stringResource(R.string.audio_record_stop))
+        }
+        OutlinedButton(
+            onClick = { onEvent(AdminEvent.CancelRecording) },
+            modifier = Modifier.fillMaxWidth().heightIn(min = dimens.minTouchTarget),
+        ) {
+            Text(stringResource(R.string.audio_record_cancel))
+        }
+    }
+}
+
+const val RECORDING_PANEL_TAG = "recording-panel"
+
+/** Čas jako m:ss. */
+private fun formatClock(millis: Long): String {
+    val seconds = (millis / 1000).toInt()
+    return "%d:%02d".format(seconds / 60, seconds % 60)
+}
+
+private fun Context.findActivity(): Activity? {
+    var current: Context? = this
+    while (current is ContextWrapper) {
+        if (current is Activity) return current
+        current = current.baseContext
+    }
+    return null
 }
 
 const val AUDIO_PROBLEM_TAG = "audio-problem"
@@ -591,6 +685,13 @@ private fun audioProblemMessage(problem: AudioProblem): String = when (problem) 
     AudioProblem.STORAGE_FULL -> stringResource(R.string.audio_problem_storage_full)
     AudioProblem.NO_PICKER -> stringResource(R.string.audio_problem_no_picker)
     AudioProblem.PLAYBACK_FAILED -> stringResource(R.string.audio_problem_playback_failed)
+    AudioProblem.MICROPHONE_PERMISSION_DENIED -> stringResource(R.string.audio_problem_permission_denied)
+    AudioProblem.MICROPHONE_PERMISSION_BLOCKED -> stringResource(R.string.audio_problem_permission_blocked)
+    AudioProblem.NO_MICROPHONE -> stringResource(R.string.audio_problem_no_microphone)
+    AudioProblem.MICROPHONE_UNAVAILABLE -> stringResource(R.string.audio_problem_microphone_unavailable)
+    AudioProblem.NOTHING_RECORDED -> stringResource(R.string.audio_problem_nothing_recorded)
+    AudioProblem.RECORDING_LIMIT_REACHED ->
+        stringResource(R.string.audio_problem_limit_reached, (AudioLimits.MAX_DURATION_MILLIS / 1000).toInt())
 }
 
 /** Náhled obrázku slovíčka a tlačítka pro výběr z galerie, pořízení fotky, hledání piktogramu, kreslení a odebrání. */
