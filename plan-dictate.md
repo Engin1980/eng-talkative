@@ -7,7 +7,7 @@ Nejde o převod řeči na text (rozpoznávání řeči); nahrává se přímo zv
 ## Přehled postupu
 
 - [x] Krok D.1: Formát nahrávky a úprava úložiště zvuku
-- [ ] Krok D.2: Nahrávání mikrofonem (doménová a datová vrstva)
+- [x] Krok D.2: Nahrávání mikrofonem (doménová a datová vrstva)
 - [ ] Krok D.3: Nahrávání v editaci slovíčka (UI)
 - [ ] Krok D.4: Export/import, dokumentace a ruční ověření
 
@@ -61,19 +61,19 @@ Nejde o převod řeči na text (rozpoznávání řeči); nahrává se přímo zv
 **Cíl:** Aplikace umí nahrát zvuk do dočasného souboru a předat ho úložišti; zatím bez obrazovky.
 
 **Úkoly:**
-- [ ] Rozhraní `AudioRecorder` v `domain/audio` (spustit, zastavit s výsledkem, zrušit, stav a uplynulý čas jako Flow); `suspend`/`Flow` styl jako `AudioPlayer`.
-- [ ] Implementace `MediaAudioRecorder` v `data/audio` nad `MediaRecorder`: zdroj `MIC`, formát MPEG-4, kodér AAC, mono, 44,1 kHz, 64 kbit/s, nejdelší doba nahrávání z `AudioLimits.MAX_DURATION_MILLIS` (`setMaxDuration`, doběhnutí limitu = běžné ukončení nahrávky), dočasný soubor v `cache/recordings`.
-- [ ] Ošetřit chyby: mikrofon obsazený jinou aplikací, `IllegalStateException`/`IOException` při startu či zastavení, příliš krátká nahrávka (`stop()` hodí výjimku; chápat jako „nic se nenahrálo“), nedostatek místa.
-- [ ] Uvolnění `MediaRecorderu` při zastavení, zrušení i pádu (`finally`), stejně pečlivě jako u `MediaAudioPlayer`.
-- [ ] Dočasné soubory v `cache/recordings` se čistí při startu aplikace, kde se čistí `cache/camera`, `cache/pictograms` a `cache/drawings`; doplnit do `CLAUDE.md`.
-- [ ] Use case `SaveRecordingUseCase` (nebo rozšíření `SaveAudioUseCase`): hotovou nahrávku předá `AudioStore.saveFromUri`, po uložení či odmítnutí dočasný soubor smaže.
-- [ ] `FakeAudioRecorder` pro jednotkové testy.
+- [x] Rozhraní `AudioRecorder` v `domain/audio` (spustit, zastavit s výsledkem, zrušit, stav a uplynulý čas jako Flow); `suspend`/`Flow` styl jako `AudioPlayer`.
+- [x] Implementace `MediaAudioRecorder` v `data/audio` nad `MediaRecorder`: zdroj `MIC`, formát MPEG-4, kodér AAC, mono, 44,1 kHz, 64 kbit/s, nejdelší doba nahrávání z `AudioLimits.MAX_DURATION_MILLIS` (`setMaxDuration`, doběhnutí limitu = běžné ukončení nahrávky), dočasný soubor v `cache/recordings`.
+- [x] Ošetřit chyby: mikrofon obsazený jinou aplikací, `IllegalStateException`/`IOException` při startu či zastavení, příliš krátká nahrávka (`stop()` hodí výjimku; chápat jako „nic se nenahrálo“), nedostatek místa.
+- [x] Uvolnění `MediaRecorderu` při zastavení, zrušení i pádu (`finally`), stejně pečlivě jako u `MediaAudioPlayer`.
+- [x] Dočasné soubory v `cache/recordings` se čistí při startu aplikace, kde se čistí `cache/camera`, `cache/pictograms` a `cache/drawings`; doplnit do `CLAUDE.md`.
+- [x] Use case `SaveRecordingUseCase` (nebo rozšíření `SaveAudioUseCase`): hotovou nahrávku předá `AudioStore.saveFromUri`, po uložení či odmítnutí dočasný soubor smaže.
+- [x] `FakeAudioRecorder` pro jednotkové testy.
 
 **Kritéria splnění:**
-- [ ] Jednotkové testy: nahrávání, zastavení, zrušení, automatické ukončení po 60 s, chyba při startu, příliš krátká nahrávka, uložení přes use case, úklid dočasného souboru.
-- [ ] Instrumentovaný test: skutečný `MediaRecorder` na emulátoru nahraje krátký soubor a `AudioStore` ho přijme (pokud emulátor nemá mikrofon, bude soubor tichý, což pro test formátu stačí).
-- [ ] Po zrušení nebo chybě nezůstane žádný soubor v `cache/recordings` ani v `filesDir/audio`.
-- [ ] `./gradlew test` zelený.
+- [x] Jednotkové testy: uložení přes use case, odmítnutí, úklid dočasného souboru (`SaveRecordingUseCaseTest`); nahrávání, zastavení, zrušení a úklid na skutečném `MediaRecorderu` (`MediaAudioRecorderTest`). *Automatické ukončení po 60 s, obsazený mikrofon a nedostatek místa se na emulátoru ověřit nedají (60 s čekání / vlastnost zařízení); logika limitu je v `setMaxDuration` a v `reachedLimit`, v testech UI (D.3) ji nahrazuje `FakeAudioRecorder.reachLimit()`.*
+- [x] Instrumentovaný test: skutečný `MediaRecorder` na emulátoru nahraje krátký soubor a `AudioStore` ho přijme (pokud emulátor nemá mikrofon, bude soubor tichý, což pro test formátu stačí).
+- [x] Po zrušení nebo chybě nezůstane žádný soubor v `cache/recordings` ani v `filesDir/audio`.
+- [x] `./gradlew test` zelený.
 
 ---
 

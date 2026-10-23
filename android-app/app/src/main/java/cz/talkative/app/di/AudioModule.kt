@@ -2,7 +2,9 @@ package cz.talkative.app.di
 
 import cz.talkative.app.data.audio.FileAudioStore
 import cz.talkative.app.data.audio.MediaAudioPlayer
+import cz.talkative.app.data.audio.MediaAudioRecorder
 import cz.talkative.app.domain.audio.AudioPlayer
+import cz.talkative.app.domain.audio.AudioRecorder
 import cz.talkative.app.domain.audio.AudioStore
 import dagger.Binds
 import dagger.Module
@@ -21,4 +23,8 @@ abstract class AudioModule {
     /** Přehrávač nemá stav, každé přehrání je nezávislé. */
     @Binds
     abstract fun bindAudioPlayer(impl: MediaAudioPlayer): AudioPlayer
+
+    /** Nahrávač drží stav jedné nahrávky (uplynulý čas), proto se nesdílí: každý view model má vlastní. */
+    @Binds
+    abstract fun bindAudioRecorder(impl: MediaAudioRecorder): AudioRecorder
 }

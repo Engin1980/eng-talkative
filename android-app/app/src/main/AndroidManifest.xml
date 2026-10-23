@@ -4,6 +4,10 @@
     <!-- Síť se používá jen při hledání a stahování piktogramů ARASAAC v administraci. -->
     <uses-permission android:name="android.permission.INTERNET" />
 
+    <!-- Mikrofon se používá jen při nahrávání vlastního zvuku slovíčka v administraci, na výslovný pokyn administrátora. -->
+    <uses-permission android:name="android.permission.RECORD_AUDIO" />
+    <uses-feature android:name="android.hardware.microphone" android:required="false" />
+
     <!-- Od Androidu 11 musí aplikace deklarovat, že se chce vázat na TTS engine. -->
     <uses-feature android:name="android.hardware.camera" android:required="false" />
 
