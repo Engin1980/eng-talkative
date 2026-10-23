@@ -513,6 +513,8 @@ Plán postupuje po funkcionalitách (vertikální řezy přes UI, doménu i data
 
 ---
 
+*Bezpečnost dat při souběhu s běžnou prací v administraci: synchronizace maže jen média, která sama opustila (ne plošný úklid osiřelých souborů, ten zůstává jen při startu), a `DictionaryDao.applySync` uvnitř transakce zahodí příchozí verzi starší než uložená a maže jen tombstony; `WorkManagerSyncSchedulerTest` ověřuje, že `HiltWorkerFactory` úlohu skutečně vytvoří a doběhne.*
+
 *Provedení: `RunSyncUseCase` (výsledek a stav do DataStore, přerušení nenechá svítit „probíhá“), `SyncWorker` + `WorkManagerSyncScheduler` (unikátní úloha `sync`, omezení CONNECTED, REPLACE sloučí série žádostí), `SyncTrigger` (start aplikace po úklidu souborů a změny tabulek `folders`/`words`, zpoždění 5 s po 2 s ticha). WorkManager se inicializuje v `TalkativeApp` (`Configuration.Provider` s `HiltWorkerFactory`, výchozí inicializátor odebrán z manifestu). Použití vzdálených změn vyvolá jednu další prázdnou synchronizaci, která nic nezapisuje, takže smyčka skončí.*
 
 ## Krok 10: Nekonzistence a zotavení

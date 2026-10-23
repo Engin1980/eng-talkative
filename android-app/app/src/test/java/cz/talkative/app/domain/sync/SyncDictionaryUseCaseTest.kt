@@ -117,10 +117,41 @@ class SyncDictionaryUseCaseTest {
         a.media.removeOrphans()
         sync(a)
         sync(b)
-        b.media.removeOrphans() // jako skutečný úklid po zápisu
 
+        // soubor smazalo samo použití synchronizace, bez plošného úklidu
         assertTrue(b.local.items.getValue("w").deleted)
         assertNull(b.media.files[image("w.png")])
+    }
+
+    @Test
+    fun syncNeverDeletesFilesItDidNotMakeUnused() {
+        // soubory, které si administrátor vybral v otevřené editaci a ještě neuložil: nic na ně neodkazuje
+        b.media.put(image("rozepsany-obrazek.png"))
+        b.media.put(audio("rozepsana-nahravka.m4a"))
+        a.put(word("w", image = "w.png"))
+        a.media.put(image("w.png"))
+        sync(a)
+
+        sync(b)
+
+        assertNotNull(b.media.files[image("rozepsany-obrazek.png")])
+        assertNotNull(b.media.files[audio("rozepsana-nahravka.m4a")])
+        assertNotNull(b.media.files[image("w.png")])
+    }
+
+    @Test
+    fun replacedMediaOfAWord_isDeletedLocally_afterTheRemoteChangeWins() {
+        a.put(word("w", updatedAt = 1_000_000L, image = "stary.png"))
+        a.media.put(image("stary.png"))
+        sync(a)
+        sync(b)
+        a.put(word("w", updatedAt = 2_000_000L, image = "novy.png"))
+        a.media.put(image("novy.png"))
+        sync(a)
+
+        sync(b)
+
+        assertEquals(setOf(image("novy.png")), b.media.files.keys)
     }
 
     @Test

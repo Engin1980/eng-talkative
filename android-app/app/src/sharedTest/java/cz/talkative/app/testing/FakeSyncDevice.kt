@@ -16,8 +16,6 @@ class FakeSyncLocalStore : SyncLocalStore {
     val items = linkedMapOf<String, SyncItem>()
     var applyCalls = 0
         private set
-    var orphanCleanups = 0
-        private set
 
     /** Když je nastavené, `apply` skončí touto výjimkou (selhání zápisu do databáze). */
     var applyFailure: Exception? = null
@@ -29,10 +27,6 @@ class FakeSyncLocalStore : SyncLocalStore {
         applyCalls++
         changed.forEach { items[it.id] = it }
         purgeIds.forEach { items.remove(it) }
-    }
-
-    override suspend fun cleanUpOrphanFiles() {
-        orphanCleanups++
     }
 }
 

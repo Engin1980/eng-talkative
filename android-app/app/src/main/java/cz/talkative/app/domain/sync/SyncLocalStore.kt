@@ -7,11 +7,13 @@ interface SyncLocalStore {
     /** Všechny položky profilu včetně smazaných (tombstonů). */
     suspend fun readAll(): List<SyncItem>
 
-    /** Zapíše [changed] přesně tak, jak jsou, a úplně smaže [purgeIds]; vše v jedné transakci. */
+    /**
+     * Zapíše [changed] přesně tak, jak jsou, a úplně smaže [purgeIds]; vše v jedné transakci. Zápis nikdy nepřepíše
+     * novější místní verzi (úprava, kterou administrátor udělal během synchronizace) a nesmaže tombstonem nepodložené
+     * položky (oživené během synchronizace).
+     */
     suspend fun apply(changed: List<SyncItem>, purgeIds: Set<String>)
 
-    /** Smaže soubory médií, na které už žádné slovíčko neodkazuje. */
-    suspend fun cleanUpOrphanFiles()
 }
 
 /** Soubory médií v místních úložištích obrázků a zvuků. */

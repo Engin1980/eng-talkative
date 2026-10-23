@@ -70,7 +70,10 @@ class SyncDictionaryUseCase @Inject constructor(
 
         // 4. místní změny
         applyLocally(result, downloaded)
-        local.cleanUpOrphanFiles()
+        // Smažou se jen soubory, které tahle synchronizace opustila. Plošný úklid osiřelých souborů by smazal i obrázek,
+        // zvuk nebo kresbu, kterou administrátor právě vybral v otevřené editaci a ještě neuložil.
+        val stillReferenced = referencedMedia(local.readAll())
+        for (ref in referencedMedia(localItems) - stillReferenced) media.delete(ref)
 
         // úklid nepoužitých médií na Drive je jen doplněk: jeho selhání synchronizaci nepokazí
         for (ref in SyncMerge.remoteGarbage(remoteMedia, referenced, now)) {

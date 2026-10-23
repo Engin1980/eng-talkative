@@ -42,7 +42,7 @@ class SyncLocalStoreTest {
     fun setUp() {
         database = Room.inMemoryDatabaseBuilder(context, TalkativeDatabase::class.java).build()
         repository = RoomDictionaryRepository(database.dictionaryDao(), { 5_000L }, FakeImageStore(), FakeAudioStore())
-        store = RoomSyncLocalStore(database.dictionaryDao(), repository)
+        store = RoomSyncLocalStore(database.dictionaryDao())
     }
 
     @After
@@ -85,6 +85,39 @@ class SyncLocalStoreTest {
         assertEquals(setOf("w"), all.keys)
         assertEquals(200L, all.getValue("w").updatedAt)
         assertTrue(all.getValue("w").deleted)
+    }
+
+    @Test
+    fun incomingVersionOlderThanTheStoredOne_isDropped() = runBlocking {
+        // administrátor upravil slovíčko během synchronizace: uložená verze (500) je novější než příchozí (300)
+        store.apply(listOf(word("w", updatedAt = 500).copy(title = "čerstvá úprava"), folder("f", updatedAt = 500)), emptySet())
+
+        store.apply(listOf(word("w", updatedAt = 300), folder("f", updatedAt = 300), word("novy", updatedAt = 300)), emptySet())
+
+        val all = store.readAll().associateBy { it.id }
+        assertEquals("čerstvá úprava", all.getValue("w").title)
+        assertEquals(500L, all.getValue("w").updatedAt)
+        assertEquals(500L, all.getValue("f").updatedAt)
+        assertEquals(300L, all.getValue("novy").updatedAt) // nové položky se zapíšou
+    }
+
+    @Test
+    fun incomingVersionWithTheSameOrNewerTime_overwrites() = runBlocking {
+        store.apply(listOf(word("w", updatedAt = 300)), emptySet())
+
+        store.apply(listOf(word("w", updatedAt = 300).copy(title = "stejný čas")), emptySet())
+        assertEquals("stejný čas", store.readAll().single().title)
+        store.apply(listOf(word("w", updatedAt = 400).copy(title = "novější")), emptySet())
+        assertEquals("novější", store.readAll().single().title)
+    }
+
+    @Test
+    fun purge_keepsAnItemThatCameToLifeMeanwhile() = runBlocking {
+        store.apply(listOf(word("ozivene", updatedAt = 900, deleted = false), word("tombstone", updatedAt = 50, deleted = true)), emptySet())
+
+        store.apply(emptyList(), setOf("ozivene", "tombstone"))
+
+        assertEquals(setOf("ozivene"), store.readAll().map { it.id }.toSet())
     }
 
     @Test

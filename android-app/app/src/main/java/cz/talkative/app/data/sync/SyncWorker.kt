@@ -39,8 +39,10 @@ class SyncWorker @AssistedInject constructor(
 }
 
 /**
- * Plánovač nad WorkManagerem: jedna unikátní úloha s omezením na připojení k síti. Nová žádost nahradí dosud
- * nespuštěnou (série úprav v administraci se sloučí do jedné synchronizace), exponenciální backoff při selhání.
+ * Plánovač nad WorkManagerem: jedna unikátní úloha s omezením na připojení k síti. Nová žádost nahradí předchozí:
+ * čekající (série úprav v administraci se sloučí do jedné synchronizace), ale i právě běžící, která se zruší a začne znovu.
+ * Zrušení uprostřed je bezpečné, protože místní data se mění až v posledním kroku a slučování je idempotentní.
+ * Exponenciální backoff při selhání.
  */
 class WorkManagerSyncScheduler @Inject constructor(
     @ApplicationContext private val context: Context,

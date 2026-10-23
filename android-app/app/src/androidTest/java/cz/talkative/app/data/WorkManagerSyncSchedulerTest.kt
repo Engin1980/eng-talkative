@@ -48,6 +48,22 @@ class WorkManagerSyncSchedulerTest {
     }
 
     @Test
+    fun theWorkIsCreatedByTheHiltWorkerFactory_andRunsToTheEnd() {
+        // Bez přihlášeného účtu se synchronizace přeskočí a úloha skončí úspěchem; selhání továrny nebo manifestu
+        // (WorkManager „Could not instantiate“) by skončilo FAILED.
+        scheduler.requestSync(delayMillis = 0)
+
+        val deadline = System.currentTimeMillis() + 30_000
+        var state = infos().single().state
+        while (!state.isFinished && System.currentTimeMillis() < deadline) {
+            Thread.sleep(250)
+            state = infos().single().state
+        }
+
+        assertEquals(WorkInfo.State.SUCCEEDED, state)
+    }
+
+    @Test
     fun repeatedRequests_areMergedIntoOneWaitingWork() {
         repeat(5) { scheduler.requestSync(delayMillis = 10 * 60_000L) }
 

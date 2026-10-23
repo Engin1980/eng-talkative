@@ -68,20 +68,29 @@ abstract class DictionaryDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     abstract suspend fun upsertWords(entities: List<WordEntity>)
 
-    @Query("DELETE FROM folders WHERE profileId = :profileId AND id IN (:ids)")
+    @Query("SELECT * FROM folders WHERE profileId = :profileId AND id = :id")
+    abstract suspend fun getFolderIncludingDeleted(profileId: String, id: String): FolderEntity?
+
+    @Query("SELECT * FROM words WHERE profileId = :profileId AND id = :id")
+    abstract suspend fun getWordIncludingDeleted(profileId: String, id: String): WordEntity?
+
+    /** Maže jen tombstony: položka, která mezitím ožila (nová úprava), zůstane. */
+    @Query("DELETE FROM folders WHERE profileId = :profileId AND deleted = 1 AND id IN (:ids)")
     abstract suspend fun purgeFolders(profileId: String, ids: List<String>)
 
-    @Query("DELETE FROM words WHERE profileId = :profileId AND id IN (:ids)")
+    @Query("DELETE FROM words WHERE profileId = :profileId AND deleted = 1 AND id IN (:ids)")
     abstract suspend fun purgeWords(profileId: String, ids: List<String>)
 
     /**
      * Zapíše výsledek synchronizace v jedné transakci: položky se uloží přesně tak, jak přišly (včetně `updatedAt`
-     * a příznaku smazání), a prošlé tombstony se smažou úplně. Bez omezení počtu položek v jednom SQL dotazu.
+     * a příznaku smazání), a prošlé tombstony se smažou úplně. Synchronizace trvá sekundy, během nichž administrátor
+     * mohl položku upravit, proto se uvnitř transakce znovu zkontroluje „novější vyhrává“: příchozí verze, která je
+     * starší než uložená, se zahodí. Bez omezení počtu položek v jednom SQL dotazu.
      */
     @Transaction
     open suspend fun applySync(profileId: String, folders: List<FolderEntity>, words: List<WordEntity>, purgeIds: Collection<String>) {
-        upsertFolders(folders)
-        upsertWords(words)
+        upsertFolders(folders.filter { incoming -> getFolderIncludingDeleted(profileId, incoming.id).let { it == null || it.updatedAt <= incoming.updatedAt } })
+        upsertWords(words.filter { incoming -> getWordIncludingDeleted(profileId, incoming.id).let { it == null || it.updatedAt <= incoming.updatedAt } })
         purgeIds.chunked(500).forEach { chunk ->
             purgeFolders(profileId, chunk)
             purgeWords(profileId, chunk)

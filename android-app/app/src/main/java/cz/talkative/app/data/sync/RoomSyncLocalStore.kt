@@ -5,7 +5,6 @@ import cz.talkative.app.data.local.DictionaryDao
 import cz.talkative.app.data.local.FolderEntity
 import cz.talkative.app.data.local.WordEntity
 import cz.talkative.app.domain.model.Profile
-import cz.talkative.app.domain.repository.DictionaryRepository
 import cz.talkative.app.domain.sync.SyncError
 import cz.talkative.app.domain.sync.SyncException
 import cz.talkative.app.domain.sync.SyncItem
@@ -19,7 +18,6 @@ import javax.inject.Inject
  */
 class RoomSyncLocalStore @Inject constructor(
     private val dao: DictionaryDao,
-    private val repository: DictionaryRepository,
 ) : SyncLocalStore {
 
     // Zatím existuje jen výchozí profil.
@@ -37,8 +35,6 @@ class RoomSyncLocalStore @Inject constructor(
             throw SyncException(SyncError.LOCAL_STORAGE, "Zápis do databáze selhal", e)
         }
     }
-
-    override suspend fun cleanUpOrphanFiles() = repository.cleanUpOrphanFiles()
 }
 
 internal fun FolderEntity.toSyncItem() =
