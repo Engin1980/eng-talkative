@@ -58,7 +58,7 @@ class ConfigEffectTest {
         }
 
         composeRule.onAllNodesWithText("+")[3].performScrollTo().performClick() // sloupce na výšku: 3 -> 4, tj. 4×3 = 12 slov
-        composeRule.onNodeWithText("Zpět do administrace").performClick()
+        composeRule.onNodeWithText("Zpět do administrace").performScrollTo().performClick()
 
         composeRule.onNodeWithText("slovo12").assertExists() // 12 slov se vejde na jednu stránku
         composeRule.onAllNodesWithText("Další").assertCountEquals(0)

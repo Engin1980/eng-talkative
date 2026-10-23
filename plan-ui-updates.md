@@ -86,7 +86,7 @@ Seznam změn vzhledu a ovládání, které **zásadně nemění funkcionalitu**.
 - [x] Aktualizovat `CLAUDE.md` (sekce „Current state“) o sdílenou komponentu pro posouvání dialogů a pravidlo, že nové dialogy ji musí používat.
 
 **Kritéria splnění:**
-- [ ] `./gradlew test` a dotčené instrumentované testy jsou zelené. *`test` a `SmallScreenScrollTest` (9 testů) jsou zelené, stejně `ClientScreenTest`; `AdminFlowTest` (13) a 2 testy v `AdminScreenTest` padají, protože hledají staré popisky „Nová složka“ / „Nové slovíčko“, které vlastník přepsal ve `strings.xml` na „+ 📁“ / „New word“ (nesouvisí s U1). Ostatní třídy ve `ui` se nepodařilo dokončit: emulátor při souběžném běhu spadl.* (instrumentované třídy se pouští po jedné, viz poznámka v `plan.md` ke kroku 8).
+- [x] `./gradlew test` a dotčené instrumentované testy jsou zelené. *Ověřeno po U3.1 a po úpravě Nastavení na jeden posouvaný celek: všechny třídy ve `ui` i `data` procházejí, včetně `AdminScreenTest`, `AdminFlowTest`, `SmallScreenScrollTest`, `ConfigScreenTest`, `ExchangeScreenTest`, `ClientScreenTest`. Dvě třídy jsou občas nestabilní bez souvislosti s UI změnami: `SentencePlaybackTest` (fixture 1 s MP3 se někdy nenačte, `UNREADABLE`; stejné chování bylo ověřeno i před kroky D) a `AdminFlowTest` (starší testy s obrázky, databáze zavřená po předchozím testu).* (instrumentované třídy se pouští po jedné, viz poznámka v `plan.md` ke kroku 8).
 - [ ] Všechny položky z tabulky v U1.1 mají po úpravě stav „v pořádku“. *Podle kódu a testů ano; ručně viz výše.*
 - [x] `CLAUDE.md` odpovídá kódu.
 

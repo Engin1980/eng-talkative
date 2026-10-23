@@ -61,7 +61,9 @@ class SentencePlaybackTest {
     private fun storedMp3(seconds: Double): String = runBlocking {
         val (file, uri) = AudioFixtures.writeToCache(context, "sentence-${System.nanoTime()}.mp3", AudioFixtures.silentMp3(seconds))
         sources += file
-        (store.saveFromUri(uri) as AudioSaveResult.Saved).fileName
+        val result = store.saveFromUri(uri)
+        check(result is AudioSaveResult.Saved) { "uložení fixture: $result" }
+        result.fileName
     }
 
     private fun waitUntil(timeoutMillis: Long = 10_000, condition: () -> Boolean) = runBlocking {

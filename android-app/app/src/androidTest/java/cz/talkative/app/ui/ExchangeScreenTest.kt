@@ -9,6 +9,7 @@ import androidx.compose.ui.test.assertTextEquals
 import androidx.compose.ui.test.junit4.v2.createComposeRule
 import androidx.compose.ui.test.onAllNodesWithTag
 import androidx.compose.ui.test.onNodeWithTag
+import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.unit.dp
@@ -176,7 +177,7 @@ class ExchangeScreenTest {
 
         composeRule.onNodeWithText("Tato složka nemá žádné podsložky.").assertIsDisplayed()
         composeRule.onNodeWithText("Vybrat tuto složku").performClick()
-        composeRule.onNodeWithText("Domů").performClick()
+        composeRule.onNodeWithContentDescription("Domů").performClick()
         composeRule.onNodeWithText("Zrušit").performClick()
 
         assertEquals(
