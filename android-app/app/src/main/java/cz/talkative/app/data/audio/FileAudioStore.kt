@@ -18,7 +18,7 @@ import java.io.InputStream
 import java.util.UUID
 import javax.inject.Inject
 
-/** MP3 v `filesDir/audio`. Kontroluje se dočasná kopie, teprve potom se přejmenuje; odmítnutý soubor nezůstane. */
+/** Vlastní zvuk (MP3 nebo M4A) v `filesDir/audio`. Kontroluje se dočasná kopie, teprve potom se přejmenuje; odmítnutý soubor nezůstane. */
 class FileAudioStore @Inject constructor(
     @ApplicationContext private val context: Context,
 ) : AudioStore {
@@ -27,13 +27,14 @@ class FileAudioStore @Inject constructor(
 
     override suspend fun saveFromUri(uri: String): AudioSaveResult = withContext(Dispatchers.IO) {
         directory.mkdirs()
-        val name = UUID.randomUUID().toString() + ".mp3"
-        val temp = File(directory, "$name.tmp")
+        val baseName = UUID.randomUUID().toString()
+        val temp = File(directory, "$baseName.tmp")
         try {
             if (!copyWithinLimit(Uri.parse(uri), temp)) return@withContext AudioSaveResult.Failed(AudioError.TOO_LARGE)
             val (mimeType, durationMillis) = readMetadata(temp)
                 ?: return@withContext AudioSaveResult.Failed(AudioError.UNREADABLE)
             AudioLimits.check(mimeType, durationMillis)?.let { return@withContext AudioSaveResult.Failed(it) }
+            val name = baseName + "." + AudioLimits.fileExtension(mimeType)
             if (!temp.renameTo(File(directory, name))) throw IOException("Soubor nelze přejmenovat")
             AudioSaveResult.Saved(name)
         } catch (e: IOException) {

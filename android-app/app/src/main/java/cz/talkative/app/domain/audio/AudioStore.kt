@@ -3,12 +3,12 @@ package cz.talkative.app.domain.audio
 import java.io.File
 import java.io.InputStream
 
-/** Proč se MP3 nepodařilo uložit. */
+/** Proč se zvuk nepodařilo uložit. */
 enum class AudioError {
     /** Soubor nejde otevřít nebo ho systém nedokáže přečíst jako zvuk. */
     UNREADABLE,
 
-    /** Soubor je zvuk, ale ne MP3. */
+    /** Soubor je zvuk, ale ne MP3 ani M4A. */
     UNSUPPORTED_FORMAT,
 
     /** Zvuk je delší než [AudioLimits.MAX_DURATION_MILLIS]. */
@@ -28,15 +28,15 @@ sealed interface AudioSaveResult {
     data class Failed(val error: AudioError) : AudioSaveResult
 }
 
-/** Soukromé úložiště vlastních MP3 slovíček. Uloží se jen MP3, které projde kontrolou formátu, délky a velikosti. */
+/** Soukromé úložiště vlastního zvuku slovíček (MP3 nebo M4A). Uloží se jen zvuk, který projde kontrolou formátu, délky a velikosti. */
 interface AudioStore {
-    /** Zkopíruje MP3 z [uri], zkontroluje ho a uloží; při odmítnutí po sobě nenechá žádný soubor. */
+    /** Zkopíruje zvuk z [uri], zkontroluje ho a uloží; při odmítnutí po sobě nenechá žádný soubor. */
     suspend fun saveFromUri(uri: String): AudioSaveResult
 
-    /** Totéž pro MP3, který je v [input] (např. z archivu); [input] zavírá volající. */
+    /** Totéž pro zvuk, který je v [input] (např. z archivu); [input] zavírá volající. */
     suspend fun saveFromStream(input: InputStream): AudioSaveResult
 
-    /** Soubor MP3, nebo `null`, pokud neexistuje. */
+    /** Soubor se zvukem, nebo `null`, pokud neexistuje. */
     fun resolve(fileName: String): File?
 
     /** Smaže soubor; neexistující soubor nevadí. */

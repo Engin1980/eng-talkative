@@ -153,18 +153,18 @@
   <string name="dialog_cancel">Zrušit</string>
   <string name="dialog_ok">Rozumím</string>
 
-  <string name="audio_label">Vlastní zvuk (MP3)</string>
+  <string name="audio_label">Vlastní zvuk</string>
   <string name="audio_none">Slovíčko nemá vlastní zvuk, čte se text.</string>
   <string name="audio_present">Slovíčko má vlastní zvuk. Jiný text pro čtení se nepoužije.</string>
-  <string name="audio_pick">Vybrat MP3</string>
+  <string name="audio_pick">Vybrat soubor</string>
   <string name="audio_play">Přehrát zvuk</string>
   <string name="audio_stop">Zastavit zvuk</string>
   <string name="audio_remove">Odebrat zvuk</string>
   <string name="audio_processing">Kontroluji zvuk…</string>
   <string name="audio_problem_unreadable">Soubor se nepodařilo načíst jako zvuk. Zkuste vybrat jiný
     soubor.</string>
-  <string name="audio_problem_unsupported_format">Vybraný soubor není MP3. Vyberte soubor ve formátu
-    MP3.</string>
+  <string name="audio_problem_unsupported_format">Vybraný soubor není MP3 ani M4A. Vyberte zvuk v jednom
+    z těchto formátů.</string>
   <string name="audio_problem_too_long">Zvuk je příliš dlouhý. Nejdelší povolená délka je %1$d
     sekund.</string>
   <string name="audio_problem_too_large">Soubor je příliš velký. Nejvíc může mít %1$d MB.</string>

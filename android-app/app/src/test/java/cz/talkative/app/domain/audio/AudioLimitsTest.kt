@@ -18,6 +18,20 @@ class AudioLimitsTest {
     }
 
     @Test
+    fun m4a_isAccepted_inBothMimeTypes_andLongerThanLimitIsTooLong() {
+        assertNull(AudioLimits.check("audio/mp4", 3_000))
+        assertNull(AudioLimits.check("audio/x-m4a", 3_000))
+        assertEquals(AudioError.TOO_LONG, AudioLimits.check("audio/mp4", AudioLimits.MAX_DURATION_MILLIS + 1))
+    }
+
+    @Test
+    fun fileExtension_followsTheFormat() {
+        assertEquals("mp3", AudioLimits.fileExtension("audio/mpeg"))
+        assertEquals("m4a", AudioLimits.fileExtension("audio/mp4"))
+        assertEquals("m4a", AudioLimits.fileExtension("audio/x-m4a"))
+    }
+
+    @Test
     fun otherFormats_areUnsupported() {
         assertEquals(AudioError.UNSUPPORTED_FORMAT, AudioLimits.check("audio/ogg", 3_000))
         assertEquals(AudioError.UNSUPPORTED_FORMAT, AudioLimits.check("audio/x-wav", 3_000))

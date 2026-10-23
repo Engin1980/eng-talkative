@@ -89,6 +89,41 @@ class FileAudioStoreTest {
     }
 
     @Test
+    fun fixture_isReallyAnM4a_ofTheExpectedLength() {
+        val (file, _) = AudioFixtures.writeToCache(context, "fixture-check.m4a", AudioFixtures.silentM4a(context, 3.0))
+        sources += file
+        val retriever = MediaMetadataRetriever()
+        try {
+            retriever.setDataSource(file.path)
+            assertTrue(retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_MIMETYPE) in AudioLimits.ACCEPTED_MIME_TYPES)
+        } finally {
+            retriever.release()
+        }
+        assertEquals(3000.0, durationOf(file).toDouble(), 400.0)
+    }
+
+    @Test
+    fun validM4a_isSavedWithM4aExtension_andResolvable() {
+        val result = save(source("ok.m4a", AudioFixtures.silentM4a(context, 2.0)))
+
+        assertTrue(result is AudioSaveResult.Saved)
+        val name = (result as AudioSaveResult.Saved).fileName
+        assertTrue(name.endsWith(".m4a"))
+        assertNotNull(store.resolve(name))
+        assertEquals(listOf(name), filesInStore())
+        assertEquals(2000.0, durationOf(store.resolve(name)!!).toDouble(), 400.0)
+    }
+
+    @Test
+    fun m4aLongerThanTheLimit_isRejected_andLeavesNothing() {
+        val seconds = AudioLimits.MAX_DURATION_MILLIS / 1000.0 + 10
+        val result = save(source("long.m4a", AudioFixtures.silentM4a(context, seconds)))
+
+        assertEquals(AudioSaveResult.Failed(AudioError.TOO_LONG), result)
+        assertTrue(filesInStore().isEmpty())
+    }
+
+    @Test
     fun mp3LongerThanTheLimit_isRejected_andLeavesNothing() {
         val seconds = AudioLimits.MAX_DURATION_MILLIS / 1000.0 + 10
         val result = save(source("long.mp3", AudioFixtures.silentMp3(seconds)))

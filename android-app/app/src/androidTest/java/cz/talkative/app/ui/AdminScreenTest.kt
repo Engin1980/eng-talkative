@@ -339,7 +339,7 @@ class AdminScreenTest {
     fun wordDialog_withoutAudio_offersOnlyPicker() {
         show(state(dialog = wordDialog()))
 
-        composeRule.onNodeWithText("Vybrat MP3").assertHeightIsAtLeast(64.dp).assertIsEnabled()
+        composeRule.onNodeWithText("Vybrat soubor").assertHeightIsAtLeast(64.dp).assertIsEnabled()
         composeRule.onNodeWithText("Slovíčko nemá vlastní zvuk, čte se text.").assertIsDisplayed()
         assertEquals(0, composeRule.onAllNodesWithTextCount("Přehrát zvuk"))
         assertEquals(0, composeRule.onAllNodesWithTextCount("Odebrat zvuk"))
@@ -387,7 +387,7 @@ class AdminScreenTest {
         show(state(dialog = wordDialog().copy(isProcessingAudio = true)))
 
         composeRule.onNodeWithText("Kontroluji zvuk…").assertIsDisplayed()
-        composeRule.onNodeWithText("Vybrat MP3").assertIsNotEnabled()
+        composeRule.onNodeWithText("Vybrat soubor").assertIsNotEnabled()
         composeRule.onNodeWithText("Uložit").assertIsNotEnabled()
     }
 
@@ -395,7 +395,7 @@ class AdminScreenTest {
     fun audioProblems_showUnderstandableMessages() {
         val expected = mapOf(
             AudioProblem.UNREADABLE to "Soubor se nepodařilo načíst jako zvuk.",
-            AudioProblem.UNSUPPORTED_FORMAT to "Vybraný soubor není MP3.",
+            AudioProblem.UNSUPPORTED_FORMAT to "Vybraný soubor není MP3 ani M4A.",
             AudioProblem.TOO_LONG to "Zvuk je příliš dlouhý. Nejdelší povolená délka je 60 sekund.",
             AudioProblem.TOO_LARGE to "Soubor je příliš velký. Nejvíc může mít 5 MB.",
             AudioProblem.STORAGE_FULL to "Na zařízení není dost místa",
@@ -424,7 +424,7 @@ class AdminScreenTest {
     fun folderDialog_hasNoAudioSection() {
         show(state(dialog = wordDialog(kind = ItemKind.FOLDER)))
 
-        assertEquals(0, composeRule.onAllNodesWithTextCount("Vybrat MP3"))
+        assertEquals(0, composeRule.onAllNodesWithTextCount("Vybrat soubor"))
     }
 
     // --- multi-výběr (6.1)

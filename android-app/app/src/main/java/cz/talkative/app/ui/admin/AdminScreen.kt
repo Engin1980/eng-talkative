@@ -517,7 +517,7 @@ private fun EditDialog(dialog: AdminDialog.Edit, onEvent: (AdminEvent) -> Unit, 
     )
 }
 
-/** Vlastní MP3 slovíčka: výběr souboru, náhled (přehrát/zastavit) a odebrání. */
+/** Vlastní zvuk slovíčka (MP3 nebo M4A): výběr souboru, náhled (přehrát/zastavit) a odebrání. */
 @Composable
 private fun AudioSection(dialog: AdminDialog.Edit, onEvent: (AdminEvent) -> Unit) {
     val dimens = TalkativeTheme.dimens
@@ -551,7 +551,7 @@ private fun AudioSection(dialog: AdminDialog.Edit, onEvent: (AdminEvent) -> Unit
         Button(
             onClick = {
                 try {
-                    pickAudio.launch(arrayOf(AudioLimits.MP3_MIME_TYPE))
+                    pickAudio.launch(AudioLimits.ACCEPTED_MIME_TYPES)
                 } catch (e: ActivityNotFoundException) {
                     onEvent(AdminEvent.AudioSelectionFailed(AudioProblem.NO_PICKER))
                 }
