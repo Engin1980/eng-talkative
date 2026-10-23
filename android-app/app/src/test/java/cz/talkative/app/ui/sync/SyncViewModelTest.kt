@@ -5,6 +5,7 @@ import cz.talkative.app.domain.sync.ConsentRequest
 import cz.talkative.app.domain.sync.SyncError
 import cz.talkative.app.domain.sync.SyncState
 import cz.talkative.app.testing.FakeSyncAuthorizer
+import cz.talkative.app.testing.FakeSyncScheduler
 import cz.talkative.app.testing.FakeSyncStateRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -27,12 +28,13 @@ class SyncViewModelTest {
 
     private val state = FakeSyncStateRepository()
     private val authorizer = FakeSyncAuthorizer()
+    private val scheduler = FakeSyncScheduler()
     private lateinit var viewModel: SyncViewModel
 
     @Before
     fun setUp() {
         Dispatchers.setMain(UnconfinedTestDispatcher())
-        viewModel = SyncViewModel(state, authorizer)
+        viewModel = SyncViewModel(state, authorizer, scheduler)
     }
 
     @After
@@ -131,5 +133,53 @@ class SyncViewModelTest {
 
         assertEquals(1, authorizer.revokeCalls)
         assertEquals(SyncState(), viewModel.uiState.value.sync)
+    }
+
+    @Test
+    fun signIn_schedulesTheFirstSync() = runVmTest {
+        subscribe()
+
+        viewModel.onEvent(SyncEvent.SignInRequested)
+
+        assertEquals(listOf(0L), scheduler.requests)
+    }
+
+    @Test
+    fun syncNow_requestsSync_andShowsPendingUntilTheStateChanges() = runVmTest {
+        subscribe()
+        state.setAccount("a@example.com")
+
+        viewModel.onEvent(SyncEvent.SyncNowRequested)
+
+        assertEquals(listOf(0L), scheduler.requests)
+        assertTrue(viewModel.uiState.value.syncPending)
+        state.markStarted()
+        assertFalse(viewModel.uiState.value.syncPending) // už běží
+        state.markSuccess(5_000)
+        assertFalse(viewModel.uiState.value.syncPending)
+    }
+
+    @Test
+    fun syncNow_isIgnoredWhenSignedOutOrAlreadyRunning() = runVmTest {
+        subscribe()
+        viewModel.onEvent(SyncEvent.SyncNowRequested)
+        assertTrue(scheduler.requests.isEmpty())
+
+        state.setAccount("a@example.com")
+        state.markStarted()
+        viewModel.onEvent(SyncEvent.SyncNowRequested)
+        assertTrue(scheduler.requests.isEmpty())
+        assertFalse(viewModel.uiState.value.syncPending)
+    }
+
+    @Test
+    fun pendingEndsAlsoWhenTheSyncFails() = runVmTest {
+        subscribe()
+        state.setAccount("a@example.com")
+        viewModel.onEvent(SyncEvent.SyncNowRequested)
+
+        state.markFailed(SyncError.NO_NETWORK)
+
+        assertFalse(viewModel.uiState.value.syncPending)
     }
 }

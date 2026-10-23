@@ -6,10 +6,12 @@ import cz.talkative.app.data.sync.DriveRemoteStore
 import cz.talkative.app.data.sync.FileSyncMediaStore
 import cz.talkative.app.data.sync.GoogleAuthorizer
 import cz.talkative.app.data.sync.RoomSyncLocalStore
+import cz.talkative.app.data.sync.WorkManagerSyncScheduler
 import cz.talkative.app.domain.sync.AccessTokenProvider
 import cz.talkative.app.domain.sync.RemoteStore
 import cz.talkative.app.domain.sync.SyncAuthorizer
 import cz.talkative.app.domain.sync.SyncLocalStore
+import cz.talkative.app.domain.sync.SyncScheduler
 import cz.talkative.app.domain.sync.SyncMediaStore
 import cz.talkative.app.domain.sync.SyncStagingDir
 import cz.talkative.app.domain.sync.SyncStateRepository
@@ -27,6 +29,9 @@ abstract class SyncModule {
 
     @Binds
     abstract fun bindSyncLocalStore(impl: RoomSyncLocalStore): SyncLocalStore
+
+    @Binds
+    abstract fun bindSyncScheduler(impl: WorkManagerSyncScheduler): SyncScheduler
 
     @Binds
     abstract fun bindSyncMediaStore(impl: FileSyncMediaStore): SyncMediaStore

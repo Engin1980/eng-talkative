@@ -21,7 +21,7 @@ Plán postupuje po funkcionalitách (vertikální řezy přes UI, doménu i data
 - [x] Krok 6: Pokročilá správa slovníku
 - [x] Krok 7: Konfigurace a pokročilé ovládání klienta
 - [x] Krok 8: Export a import _(všech 22 instrumentovaných tříd, 260 testů, prošlo po jedné; jeden společný běh systém ukončil pro nedostatek paměti)_
-- [ ] Krok 9: Synchronizace s Google Drive
+- [ ] Krok 9: Synchronizace s Google Drive _(kód, testy a dokumentace hotové; zbývá založit OAuth klienta v Google Cloud a ručně ověřit s ostrým účtem na dvou zařízeních, viz `format-synchronizace.md`)_
 - [ ] Krok 10: Nekonzistence a zotavení
 - [ ] Krok 11: Dokončení a předání
 - [x] Krok 12: Rozšíření I: About, piktogramy ARASAAC a kreslení ikon _(podkroky E1–E3)_
@@ -500,18 +500,20 @@ Plán postupuje po funkcionalitách (vertikální řezy přes UI, doménu i data
 ### 9.4 Spouštění a stav synchronizace
 
 **Úkoly:**
-- [ ] Synchronizace po změně v administraci (je-li síť), při startu aplikace a ručním tlačítkem.
-- [ ] Opakování po výpadku sítě na pozadí (WorkManager s omezením na síť, exponenciální backoff).
-- [ ] Stav synchronizace v administraci (probíhá, poslední úspěšná synchronizace, chyba).
-- [ ] Konfigurace se nesynchronizuje.
+- [x] Synchronizace po změně v administraci (je-li síť), při startu aplikace a ručním tlačítkem. _(`SyncTrigger` sleduje tabulky Room, série úprav se sloučí; tlačítko „Synchronizovat teď“ v administraci → Synchronizace)_
+- [x] Opakování po výpadku sítě na pozadí (WorkManager s omezením na síť, exponenciální backoff). _(`SyncWorker`: nejvýš 5 pokusů, backoff 30 s; chyby, které musí řešit uživatel, se neopakují)_
+- [x] Stav synchronizace v administraci (probíhá, poslední úspěšná synchronizace, chyba).
+- [x] Konfigurace se nesynchronizuje. _(synchronizují se jen složky, slovíčka a média; účet a stav synchronizace jsou v DataStore mimo `AppConfig` i exportní archiv)_
 
 **Kritéria splnění:**
-- [ ] Offline aplikace funguje beze změn a nahromaděné změny se po připojení odešlou.
-- [ ] Smazání na jednom zařízení se po synchronizaci projeví na druhém; úprava vs. smazání vyhrává novější změna.
-- [ ] Souběžné úpravy ze dvou zařízení nezpůsobí pád ani ztrátu celého slovníku; vyhrává poslední zápis.
-- [ ] Ruční test se dvěma zařízeními/emulátory a skutečným účtem.
+- [ ] *Algoritmus a plánování ověřeny (`SyncDictionaryUseCaseTest`, `WorkManagerSyncSchedulerTest`: úloha čeká na síť); skutečný výpadek a obnovení připojení na zařízení s Drive neověřeny.* Offline aplikace funguje beze změn a nahromaděné změny se po připojení odešlou.
+- [x] Smazání na jednom zařízení se po synchronizaci projeví na druhém; úprava vs. smazání vyhrává novější změna. _(ověřeno testem se dvěma zařízeními nad falešným Drive)_
+- [x] Souběžné úpravy ze dvou zařízení nezpůsobí pád ani ztrátu celého slovníku; vyhrává poslední zápis. _(ověřeno testem nad falešným Drive)_
+- [ ] Ruční test se dvěma zařízeními/emulátory a skutečným účtem. *Čeká na založení OAuth klienta (viz `format-synchronizace.md`).*
 
 ---
+
+*Provedení: `RunSyncUseCase` (výsledek a stav do DataStore, přerušení nenechá svítit „probíhá“), `SyncWorker` + `WorkManagerSyncScheduler` (unikátní úloha `sync`, omezení CONNECTED, REPLACE sloučí série žádostí), `SyncTrigger` (start aplikace po úklidu souborů a změny tabulek `folders`/`words`, zpoždění 5 s po 2 s ticha). WorkManager se inicializuje v `TalkativeApp` (`Configuration.Provider` s `HiltWorkerFactory`, výchozí inicializátor odebrán z manifestu). Použití vzdálených změn vyvolá jednu další prázdnou synchronizaci, která nic nezapisuje, takže smyčka skončí.*
 
 ## Krok 10: Nekonzistence a zotavení
 

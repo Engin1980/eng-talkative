@@ -30,6 +30,9 @@ enum class SyncError {
 
     /** V zařízení nejsou služby Google Play (nebo jsou zastaralé), přihlášení k Drive není možné. */
     NO_PLAY_SERVICES,
+
+    /** Nečekaná chyba. */
+    UNKNOWN,
 }
 
 class SyncException(val error: SyncError, message: String? = null, cause: Throwable? = null) : Exception(message ?: error.name, cause)

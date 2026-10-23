@@ -27,6 +27,9 @@ interface SyncStateRepository {
     suspend fun markSuccess(nowMillis: Long)
 
     suspend fun markFailed(error: SyncError)
+
+    /** Zruší příznak „běží“ bez změny výsledku (synchronizace byla přerušena). */
+    suspend fun markIdle()
 }
 
 /**

@@ -13,6 +13,8 @@ data class SyncUiState(
     val isSigningIn: Boolean = false,
     /** Chyba přihlášení; chyby samotné synchronizace jsou v [SyncState.lastError]. */
     val signInError: SyncError? = null,
+    /** Synchronizace byla vyžádána a ještě se nespustila (čeká na síť). */
+    val syncPending: Boolean = false,
 )
 
 sealed interface SyncEvent {
@@ -25,5 +27,8 @@ sealed interface SyncEvent {
     data class ConsentFinished(val result: Any?) : SyncEvent
 
     data object SignOutRequested : SyncEvent
+
+    /** Tlačítko „Synchronizovat teď“. */
+    data object SyncNowRequested : SyncEvent
     data object DismissError : SyncEvent
 }

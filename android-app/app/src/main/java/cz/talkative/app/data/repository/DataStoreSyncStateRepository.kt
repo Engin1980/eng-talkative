@@ -61,6 +61,10 @@ class DataStoreSyncStateRepository @Inject constructor(
         }
     }
 
+    override suspend fun markIdle() {
+        dataStore.edit { it[RUNNING] = false }
+    }
+
     private companion object {
         val ACCOUNT = stringPreferencesKey("sync_account")
         val LAST_SUCCESS = longPreferencesKey("sync_last_success")

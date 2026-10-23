@@ -3,6 +3,7 @@ package cz.talkative.app.testing
 import cz.talkative.app.domain.sync.AuthorizationOutcome
 import cz.talkative.app.domain.sync.SyncAuthorizer
 import cz.talkative.app.domain.sync.SyncError
+import cz.talkative.app.domain.sync.SyncScheduler
 import cz.talkative.app.domain.sync.SyncState
 import cz.talkative.app.domain.sync.SyncStateRepository
 import kotlinx.coroutines.flow.Flow
@@ -29,6 +30,10 @@ class FakeSyncStateRepository(initial: SyncState = SyncState()) : SyncStateRepos
     override suspend fun markFailed(error: SyncError) {
         flow.value = flow.value.copy(isRunning = false, lastError = error)
     }
+
+    override suspend fun markIdle() {
+        flow.value = flow.value.copy(isRunning = false)
+    }
 }
 
 /** Přihlášení řízené z testu: výsledky se nastavují předem, volání se zaznamenávají. */
@@ -53,5 +58,14 @@ class FakeSyncAuthorizer : SyncAuthorizer {
 
     override suspend fun revoke() {
         revokeCalls++
+    }
+}
+
+/** Plánovač, který jen zapisuje žádosti. */
+class FakeSyncScheduler : SyncScheduler {
+    val requests = mutableListOf<Long>()
+
+    override fun requestSync(delayMillis: Long) {
+        requests += delayMillis
     }
 }

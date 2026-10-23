@@ -137,6 +137,13 @@ fun SyncScreen(
                 Text(stringResource(if (account == null) R.string.sync_sign_in else R.string.sync_change_account))
             }
             if (account != null) {
+                Button(
+                    onClick = { onEvent(SyncEvent.SyncNowRequested) },
+                    enabled = !state.isSigningIn && !state.sync.isRunning,
+                    modifier = Modifier.heightIn(min = dimens.minTouchTarget),
+                ) {
+                    Text(stringResource(R.string.sync_now))
+                }
                 OutlinedButton(
                     onClick = { onEvent(SyncEvent.SignOutRequested) },
                     enabled = !state.isSigningIn,
@@ -146,6 +153,7 @@ fun SyncScreen(
                 }
             }
         }
+        if (state.syncPending) Text(stringResource(R.string.sync_pending), style = MaterialTheme.typography.bodyLarge)
         if (state.isSigningIn) Text(stringResource(R.string.sync_signing_in), style = MaterialTheme.typography.bodyLarge)
         if (account != null) Text(stringResource(R.string.sync_sign_out_note), style = MaterialTheme.typography.bodyMedium)
     }
@@ -161,4 +169,5 @@ private fun SyncError.messageRes(): Int = when (this) {
     SyncError.NEWER_VERSION -> R.string.sync_error_newer_version
     SyncError.LOCAL_STORAGE -> R.string.sync_error_local_storage
     SyncError.NO_PLAY_SERVICES -> R.string.sync_error_no_play_services
+    SyncError.UNKNOWN -> R.string.sync_error_unknown
 }

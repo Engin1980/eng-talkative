@@ -261,6 +261,9 @@
   <string name="sync_error_bad_response">Odpověď z Google Drive nejde přečíst.</string>
   <string name="sync_error_newer_version">Data na Disku vytvořila novější verze aplikace. Aktualizujte aplikaci.</string>
   <string name="sync_error_local_storage">Data se nepodařilo uložit v tomto zařízení (možná je plné úložiště).</string>
+  <string name="sync_error_unknown">Nečekaná chyba. Zkusí se to znovu.</string>
+  <string name="sync_now">Synchronizovat teď</string>
+  <string name="sync_pending">Synchronizace je naplánovaná. Spustí se, jakmile bude připojení k internetu.</string>
   <string name="sync_error_no_play_services">V zařízení nejsou služby Google Play, přihlášení k Disku není možné. Aplikace funguje jen lokálně.</string>
   <string name="config_section_appearance">Vzhled</string>
   <string name="config_text_scale">Velikost textu</string>

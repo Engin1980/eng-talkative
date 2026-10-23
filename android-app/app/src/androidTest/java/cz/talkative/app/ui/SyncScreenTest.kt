@@ -92,6 +92,31 @@ class SyncScreenTest {
     }
 
     @Test
+    fun syncNow_isOfferedWhenSignedIn() {
+        show(SyncUiState(sync = SyncState(account = "a@example.com")))
+        composeRule.onNodeWithText("Synchronizovat teď").assertHeightIsAtLeast(64.dp).performClick()
+        assertEquals(listOf<SyncEvent>(SyncEvent.SyncNowRequested), events)
+    }
+
+    @Test
+    fun syncNow_isDisabledWhileSyncRuns() {
+        show(SyncUiState(sync = SyncState(account = "a@example.com", isRunning = true)))
+        composeRule.onNodeWithText("Synchronizovat teď").assertIsNotEnabled()
+    }
+
+    @Test
+    fun syncNow_isNotOfferedWhenSignedOut() {
+        show(SyncUiState())
+        composeRule.onAllNodesWithText("Synchronizovat teď").assertCountEquals(0)
+    }
+
+    @Test
+    fun pendingSync_explainsItWaitsForTheNetwork() {
+        show(SyncUiState(sync = SyncState(account = "a@example.com"), syncPending = true))
+        composeRule.onNodeWithText("Synchronizace je naplánovaná", substring = true).assertIsDisplayed()
+    }
+
+    @Test
     fun backButton_callsCallback() {
         show(SyncUiState())
 
