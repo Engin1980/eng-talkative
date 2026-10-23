@@ -107,13 +107,17 @@ Nejde o převod řeči na text (rozpoznávání řeči); nahrává se přímo zv
 **Cíl:** Nahrávky se správně exportují a importují, dokumentace odpovídá a funkce je ověřena na skutečném zařízení.
 
 **Úkoly:**
-- [ ] Export/import: ověřit, že `ArchiveReader`, `ExportDictionaryUseCase` a `ImportArchiveUseCase` nepočítají s příponou `.mp3` a že import M4A prochází kontrolou z D.1; úprava `format-archivu.md` (adresář `audio/` obsahuje MP3 nebo M4A; archivy se starým obsahem zůstávají platné, verze schématu se nemění).
-- [ ] Aktualizovat `CLAUDE.md` (sekce „Current state“: záznam z mikrofonu, `AudioRecorder`, `cache/recordings`, M4A), `assignment.md` (vlastní zvuk: MP3 nebo nahrávka mikrofonem, oprávnění) a `plan.md` (odkaz na tento plán u kroku 5).
-- [ ] Dopsat k informacím o soukromí v `plan.md` krok 11.2: aplikace nahrává mikrofonem jen na výslovný pokyn administrátora.
+- [x] Export/import: ověřit, že `ArchiveReader`, `ExportDictionaryUseCase` a `ImportArchiveUseCase` nepočítají s příponou `.mp3` a že import M4A prochází kontrolou z D.1; úprava `format-archivu.md` (adresář `audio/` obsahuje MP3 nebo M4A; archivy se starým obsahem zůstávají platné, verze schématu se nemění).
+- [x] Aktualizovat `CLAUDE.md` (sekce „Current state“: záznam z mikrofonu, `AudioRecorder`, `cache/recordings`, M4A), `assignment.md` (vlastní zvuk: MP3 nebo nahrávka mikrofonem, oprávnění) a `plan.md` (odkaz na tento plán u kroku 5).
+- [x] Dopsat k informacím o soukromí v `plan.md` krok 11.2: aplikace nahrává mikrofonem jen na výslovný pokyn administrátora.
 - [ ] Ruční ověření na skutečném tabletu: žádost o oprávnění, zamítnutí a následné udělení, nahrání krátkého i minutového zvuku, poslech náhledu, přehrání ve větě poslechem (emulátor zvuk neověří), nahrání při přerušení (zamčení displeje, příchozí hovor, odchod do pozadí).
 
 **Kritéria splnění:**
-- [ ] Round-trip test: slovník s nahrávkou M4A → export → smazání → import vrátí slovo se stejným zvukem.
-- [ ] Starý archiv s MP3 se importuje beze změny.
-- [ ] Dokumentace odpovídá kódu.
+- [x] Round-trip test: slovník s nahrávkou M4A → export → smazání → import vrátí slovo se stejným zvukem.
+- [x] Starý archiv s MP3 se importuje beze změny.
+- [x] Dokumentace odpovídá kódu.
 - [ ] Ruční ověření zvuku člověkem poslechem je zapsáno do `plan.md` (stejně jako u kroku 5.3: u položek, které emulátor neověří, poznámka, co zbývá).
+
+*Provedení: `ArchiveReader`, `ExportDictionaryUseCase` a `ImportArchiveUseCase` příponu zvuku nikde nepředpokládají (název souboru se bere z manifestu), import M4A prochází `AudioStore.saveFromStream` s kontrolou z D.1; v `format-archivu.md` je popsáno, že `audio/` obsahuje MP3 nebo M4A a formát se pozná podle obsahu. Round-trip M4A: `ImportOnDeviceTest.recordedM4a_survivesExportDeleteImport_withTheSameSound`; archiv s MP3: stávající `exportDeleteImport_returnsTheSameDictionary`.*
+
+*Zbývá (člověk na skutečném zařízení, emulátor zvuk neověří): oprávnění (žádost, zamítnutí, následné udělení), nahrání krátkého i minutového zvuku, poslech náhledu a přehrání ve větě poslechem, nahrání při přerušení (zamčení displeje, příchozí hovor, odchod do pozadí). Proto zůstává krok D.4 v přehledu nezaškrtnutý; po ručním ověření se zapíše výsledek sem i do `plan.md` (u kroku 5.3).*

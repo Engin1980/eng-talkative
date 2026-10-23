@@ -265,6 +265,8 @@ Plán postupuje po funkcionalitách (vertikální řezy přes UI, doménu i data
 
 **Cíl:** Slovíčko může mít jiný text pro čtení nebo vlastní MP3 a věta se přehraje správně.
 
+*Rozšíření: nahrání zvuku mikrofonem (M4A) je v `plan-dictate.md`.* *Ruční ověření nahrávání poslechem na skutečném tabletu je zatím otevřené (viz D.4 v `plan-dictate.md`).*
+
 ### 5.1 Alternativní text a plánování úseků
 
 **Úkoly:**
@@ -560,7 +562,7 @@ Plán postupuje po funkcionalitách (vertikální řezy přes UI, doménu i data
 ### 11.2 Soukromí a release
 
 **Úkoly:**
-- [ ] Informace o soukromí (co se ukládá a kam) dostupná v administraci.
+- [ ] Informace o soukromí (co se ukládá a kam) dostupná v administraci. Součástí: aplikace může nahrávat mikrofonem, ale jen na výslovný pokyn administrátora v editaci slovíčka (nahrávka zůstává v zařízení, v exportu a případně na Drive uživatele, nikam jinam se neposílá).
 - [ ] Release build: ikona aplikace, název, verze, minifikace/ProGuard pravidla (Room, Hilt, Drive API).
 - [ ] Podpisový klíč (mimo repozitář), podepsaný release APK, návod k instalaci.
 - [ ] Ověřit OAuth klienta Drive pro release podpis (SHA-1 release klíče).

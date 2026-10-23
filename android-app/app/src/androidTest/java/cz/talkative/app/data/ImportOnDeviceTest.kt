@@ -163,6 +163,26 @@ class ImportOnDeviceTest {
     }
 
     @Test
+    fun recordedM4a_survivesExportDeleteImport_withTheSameSound() = runTest {
+        val (file, uri) = AudioFixtures.writeToCache(context, "src-m4a.m4a", AudioFixtures.silentM4a(context, 2.0))
+        scratch += file
+        val saved = (audioStore.saveFromUri(uri) as AudioSaveResult.Saved).fileName
+        assertTrue(saved.endsWith(".m4a"))
+        val word = repository.createWord(null, "pes", audioFile = saved)
+        exportToArchive()
+        repository.deleteItems(listOf(word.id))
+        assertTrue(audioDir.listFiles().isNullOrEmpty())
+
+        val result = doImport()
+
+        assertEquals(ImportResult.Success(folders = 0, words = 1, configImported = false), result)
+        val imported = repository.snapshot().words.single()
+        assertEquals("pes", imported.title)
+        assertTrue(imported.audioFile!!.endsWith(".m4a"))
+        assertTrue(durationMillis(audioStore.resolve(imported.audioFile!!)!!) in 1_500..2_600)
+    }
+
+    @Test
     fun importingTwice_createsDuplicates_withOwnFiles_andKeepsTheOriginals() = runTest {
         buildSample()
         exportToArchive()

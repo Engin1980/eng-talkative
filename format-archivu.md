@@ -8,7 +8,7 @@ Archiv je běžný ZIP soubor. Implementace: `domain/exchange` (`ArchiveManifest
 manifest.json          popis slovníku (vždy)
 LICENSE-ARASAAC.txt    uvedení autora a licence ARASAAC (vždy, jen text pro lidi)
 images/<soubor>        obrázky slovíček (jen použité)
-audio/<soubor>         vlastní MP3 slovíček (jen použité)
+audio/<soubor>         vlastní zvuk slovíček, MP3 nebo M4A (jen použité)
 ```
 
 Názvy souborů v `images/` a `audio/` jsou holé názvy bez cesty; slovíčko na ně odkazuje z `manifest.json`.
@@ -57,6 +57,6 @@ Archiv se před zápisem čehokoli přečte a zkontroluje (`ManifestCodec.decode
 
 ## Import
 
-Import archiv nejdřív celý zkontroluje (nic nezapisuje), pak zkopíruje média do úložišť aplikace a nakonec v jedné transakci zapíše složky a slovíčka s novými ID. Každé slovíčko dostane vlastní kopii souboru, i když na stejný soubor v archivu odkazuje víc slovíček. Při jakékoli chybě se zkopírovaná média smažou a data zůstanou beze změny. Obrázky a MP3 z archivu procházejí stejnou kontrolou jako při ruční volbě v administraci (čitelný obrázek, MP3 do 60 s a 5 MB). Chybějící, nečitelná nebo příliš velká položka média znamená odmítnutí celého archivu. Meze velikosti položek: manifest 8 MB, obrázek 10 MB, zvuk 5 MB, nejvýše 50 000 položek.
+Import archiv nejdřív celý zkontroluje (nic nezapisuje), pak zkopíruje média do úložišť aplikace a nakonec v jedné transakci zapíše složky a slovíčka s novými ID. Každé slovíčko dostane vlastní kopii souboru, i když na stejný soubor v archivu odkazuje víc slovíček. Při jakékoli chybě se zkopírovaná média smažou a data zůstanou beze změny. Obrázky a zvuky z archivu procházejí stejnou kontrolou jako při ruční volbě v administraci (čitelný obrázek, zvuk ve formátu MP3 nebo M4A do 60 s a 5 MB). Formát se pozná podle obsahu, ne podle přípony; archivy se zvuky `.mp3` zůstávají platné a verze schématu se nemění. Chybějící, nečitelná nebo příliš velká položka média znamená odmítnutí celého archivu. Meze velikosti položek: manifest 8 MB, obrázek 10 MB, zvuk 5 MB, nejvýše 50 000 položek.
 
 Pořadí zůstává zachované (uvnitř složky se přečísluje na 0, 1, 2, ...). Importované položky nejvyšší úrovně se přidají na konec cílové složky.

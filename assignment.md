@@ -2,7 +2,7 @@
 
 Cílem je vytvořit Android aplikaci „Talkative“, která pomáhá lidem s problémem komunikace. Aplikace umí sestavit větu z předem definovaných slov a na pokyn ji přečíst pomocí interního mluvícího systému (TTS). Aplikaci používají 2 druhy uživatelů: **administrátor** a **klient**. Obě role používají stejné zařízení a stejnou aplikaci.
 
-Administrátor do aplikace vkládá slovíčka. Slovíčka lze seskupovat do složek, složky lze libovolně zanořovat. Každé slovíčko i složka má titulek. Slovíčka mají volitelně i obrázek. Titulek slovíčka udává, jak se dané slovo bude číst. Volitelně lze ke slovíčku definovat jinou zvukovou definici, a to buď jako jiný text, nebo přímo jako vlastní MP3 zvuk. Tímto způsobem administrátor vytvoří databázi slov, kterou aplikace následně používá.
+Administrátor do aplikace vkládá slovíčka. Slovíčka lze seskupovat do složek, složky lze libovolně zanořovat. Každé slovíčko i složka má titulek. Slovíčka mají volitelně i obrázek. Titulek slovíčka udává, jak se dané slovo bude číst. Volitelně lze ke slovíčku definovat jinou zvukovou definici, a to buď jako jiný text, nebo přímo jako vlastní zvuk (MP3 soubor, nebo nahrávka mikrofonem). Tímto způsobem administrátor vytvoří databázi slov, kterou aplikace následně používá.
 
 U klienta se předpokládá nějaká forma omezení, typicky neschopnost jemné motoriky rukou a neschopnost vyjadřovat se, ale lucidní přemýšlení alespoň v nějaké oblasti. Klient dostane spuštěnou aplikaci v klientském režimu, ve kterém vidí složky, případně slovíčka. Na horní straně obrazovky je stavový řádek (věta), do kterého lze jednotlivá slovíčka postupně přidávat za sebe. Když klient větu sestaví, stiskem tlačítka ji spustí.
 
@@ -34,7 +34,7 @@ Klient téměř jistě má velmi snížené motorické i myšlenkové schopnosti
 - Ručně nastavit pořadí slovíček a složek ve složce. Rychlé seřazení podle abecedy (kolace se zadává v konfiguraci).
 - Slovíčka se nekopírují, každé slovíčko patří do jedné složky a má vlastní ID. Titulky nemusí být jedinečné.
 - Obrázek slovíčka: výběr ze zařízení nebo vyfocení. Obrázky se při uložení zmenší (například na 512 px).
-- Vlastní zvuk slovíčka: výběr MP3 souboru ze zařízení (omezená délka, řádově desítky sekund).
+- Vlastní zvuk slovíčka: výběr MP3 nebo M4A souboru ze zařízení, nebo nahrání mikrofonem přímo v editaci slovíčka (nahrávka je M4A; omezená délka, řádově desítky sekund; oprávnění k mikrofonu se žádá až při prvním nahrávání v administraci, nahrává se jen v popředí a na výslovný pokyn administrátora).
 - Náhled zvuku slovíčka v administraci.
 - Export složky nebo celého datasetu pro pozdější import.
 - Import dříve exportovaného bloku, celého nebo jen vybraných složek či podsložek.
