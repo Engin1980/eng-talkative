@@ -471,14 +471,16 @@ Plán postupuje po funkcionalitách (vertikální řezy přes UI, doménu i data
 ### 9.2 Abstrakce úložiště a model sloučení
 
 **Úkoly:**
-- [ ] Rozhraní vzdáleného úložiště (výpis, čtení, zápis, mazání) s falešnou implementací pro testy.
-- [ ] Návrh struktury na Drive: metadata jako JSON, média jako samostatné soubory; zdokumentovat.
-- [ ] Čistá logika slučování podle `updatedAt` (last write wins) včetně tombstonů a konfliktu delete-vs-edit.
-- [ ] Úklid starých tombstonů (po definované době).
+- [x] Rozhraní vzdáleného úložiště (výpis, čtení, zápis, mazání) s falešnou implementací pro testy.
+- [x] Návrh struktury na Drive: metadata jako JSON, média jako samostatné soubory; zdokumentovat. _(`format-synchronizace.md`)_
+- [x] Čistá logika slučování podle `updatedAt` (last write wins) včetně tombstonů a konfliktu delete-vs-edit.
+- [x] Úklid starých tombstonů (po definované době).
 
 **Kritéria splnění:**
-- [ ] Unit testy slučování: nová položka, úprava na jedné straně, souběžné úpravy, smazání vs. úprava (vyhrává novější), tombstone.
-- [ ] Slučování je idempotentní (opakované spuštění nic nemění).
+- [x] Unit testy slučování: nová položka, úprava na jedné straně, souběžné úpravy, smazání vs. úprava (vyhrává novější), tombstone.
+- [x] Slučování je idempotentní (opakované spuštění nic nemění).
+
+*Provedení: `domain/sync` (`SyncItem`, `MediaRef`, `SyncMerge`, `SyncCodec`, rozhraní `RemoteStore`), `FakeRemoteStore` v `sharedTest`. Slučování je navíc komutativní (ověřeno testem), při shodě času vyhrává smazání a pak pevný obsahový klíč. Tombstony se zahazují po 30 dnech, nepoužitá média na Drive po 7 dnech.*
 
 ### 9.3 Implementace Drive a přenos médií
 
