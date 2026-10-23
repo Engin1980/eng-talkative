@@ -9,7 +9,7 @@ Priorita: doplní zadavatel (např. vysoká / střední / nízká).
 | 3 | Více hlasů a poskytovatelů | Další hlasy a generátory hlasů za rozhraním `SpeechProvider`. | |
 | 4 | Nastavení vzhledu | Změna velikosti písma, barev a dalších vizuálních prvků. | |
 | 5 | Scroll místo stránkování | Posuvný seznam jako alternativa ke stránkované mřížce, volitelný v konfiguraci. | |
-| 6 | Knihovna symbolů | Externí knihovna obrázků/symbolů, nutno řešit licence. Piktogramy ARASAAC jsou hotové (hledání a výběr v editaci slovíčka, uvedení autora v „O aplikaci“ a v exportu, viz `plan-extensions-I.md`); případné další knihovny zůstávají odložené. | |
+| 6 | Knihovna symbolů | Externí knihovna obrázků/symbolů, nutno řešit licence. Piktogramy ARASAAC jsou hotové (hledání a výběr v editaci slovíčka, uvedení autora v „O aplikaci“ a v exportu, viz krok 12 v `plan.md`); případné další knihovny zůstávají odložené. | |
 | 7 | Kopírování složek | Kopírování celých složek (slovíčka se nekopírují). | |
 | 8 | Rozšířená přístupnost | TalkBack, spínačové ovládání (switch access), skenování. Pokud není součástí základní verze. | |
 | 9 | Kiosk režim | Uzamčení klientského režimu (screen pinning / kiosk), aby klient nemohl opustit aplikaci. | |
