@@ -58,10 +58,12 @@ class NavigationTest {
                             onOpenConfig = navigation.openConfig,
                             onOpenExchange = navigation.openExchange,
                             onOpenAbout = navigation.openAbout,
+                            onOpenSync = navigation.openSync,
                         )
                     },
                     config = { back -> ConfigScreen(ConfigUiState(isLoading = false), onEvent = {}, onBack = back) },
                     about = { back -> AboutScreen(versionName = "1.2.3", onBack = back, onOpenLink = {}) },
+                    sync = { back -> cz.talkative.app.ui.sync.SyncScreen(cz.talkative.app.ui.sync.SyncUiState(), onEvent = {}, onBack = back) },
                     exchange = { back ->
                         ExchangeScreen(ExchangeUiState(), onEvent = {}, onBack = back, onChooseExportFile = {}, onChooseArchive = {})
                     },
@@ -133,6 +135,26 @@ class NavigationTest {
 
         composeRule.onNodeWithText("Zpět do administrace").performClick()
         assertEquals(Routes.ADMIN, navController.currentBackStackEntry?.destination?.route)
+    }
+
+    @Test
+    fun adminOpensSync_andBackReturnsToAdmin() {
+        setUpNavHost()
+        composeRule.runOnUiThread { navController.navigate(Routes.ADMIN) }
+
+        composeRule.onNodeWithText("Synchronizace").performClick()
+        assertEquals(Routes.SYNC, navController.currentBackStackEntry?.destination?.route)
+        composeRule.onNodeWithText("Přihlásit účet Google").assertIsDisplayed()
+
+        composeRule.onNodeWithText("Zpět do administrace").performClick()
+        assertEquals(Routes.ADMIN, navController.currentBackStackEntry?.destination?.route)
+    }
+
+    @Test
+    fun client_doesNotOfferSync() {
+        setUpNavHost()
+
+        composeRule.onAllNodesWithText("Synchronizace").assertCountEquals(0)
     }
 
     @Test

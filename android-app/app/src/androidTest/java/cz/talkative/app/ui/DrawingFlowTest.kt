@@ -133,6 +133,7 @@ class DrawingFlowTest {
                                 onOpenConfig = navigation.openConfig,
                                 onOpenExchange = navigation.openExchange,
                                 onOpenAbout = navigation.openAbout,
+                                onOpenSync = {},
                                 onOpenArasaac = navigation.openArasaac,
                                 onOpenDraw = navigation.openDraw,
                                 pickedImageUri = navigation.pickedImageUri,

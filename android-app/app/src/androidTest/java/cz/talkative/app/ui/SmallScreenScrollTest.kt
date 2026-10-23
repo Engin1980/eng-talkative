@@ -175,6 +175,24 @@ class SmallScreenScrollTest {
     }
 
     @Test
+    fun sync_signOutButtonIsReachable() {
+        var events = emptyList<cz.talkative.app.ui.sync.SyncEvent>()
+        showSmall {
+            cz.talkative.app.ui.sync.SyncScreen(
+                state = cz.talkative.app.ui.sync.SyncUiState(
+                    sync = cz.talkative.app.domain.sync.SyncState(account = "uzivatel@example.com", lastError = cz.talkative.app.domain.sync.SyncError.NO_NETWORK),
+                ),
+                onEvent = { events = events + it },
+                onBack = {},
+            )
+        }
+
+        composeRule.onNodeWithText(string(R.string.sync_sign_out_note)).performScrollTo().assertIsDisplayed()
+        composeRule.onNodeWithText(string(R.string.sync_sign_out)).performScrollTo().performClick()
+        assertEquals(listOf<cz.talkative.app.ui.sync.SyncEvent>(cz.talkative.app.ui.sync.SyncEvent.SignOutRequested), events)
+    }
+
+    @Test
     fun scrollableColumn_lastDialogButtonIsReachable() {
         var clicks = 0
         showSmall {

@@ -17,6 +17,7 @@ import cz.talkative.app.ui.client.ClientRoute
 import cz.talkative.app.ui.config.ConfigRoute
 import cz.talkative.app.ui.draw.DrawRoute
 import cz.talkative.app.ui.exchange.ExchangeRoute
+import cz.talkative.app.ui.sync.SyncRoute
 
 object Routes {
     const val CLIENT = "client"
@@ -24,6 +25,7 @@ object Routes {
     const val CONFIG = "config"
     const val EXCHANGE = "exchange"
     const val ABOUT = "about"
+    const val SYNC = "sync"
     const val DRAW = "draw"
     const val ARASAAC = "arasaac?$ARASAAC_QUERY_ARG={$ARASAAC_QUERY_ARG}"
 
@@ -40,6 +42,7 @@ class AdminNavigation(
     val openConfig: () -> Unit,
     val openExchange: () -> Unit,
     val openAbout: () -> Unit,
+    val openSync: () -> Unit,
     val openArasaac: (query: String) -> Unit,
     val openDraw: () -> Unit,
     val pickedImageUri: String?,
@@ -60,6 +63,7 @@ fun TalkativeNavHost(
             onOpenConfig = navigation.openConfig,
             onOpenExchange = navigation.openExchange,
             onOpenAbout = navigation.openAbout,
+            onOpenSync = navigation.openSync,
             onOpenArasaac = navigation.openArasaac,
             onOpenDraw = navigation.openDraw,
             pickedImageUri = navigation.pickedImageUri,
@@ -69,6 +73,7 @@ fun TalkativeNavHost(
     config: @Composable (back: () -> Unit) -> Unit = { back -> ConfigRoute(onBack = back) },
     exchange: @Composable (back: () -> Unit) -> Unit = { back -> ExchangeRoute(onBack = back) },
     about: @Composable (back: () -> Unit) -> Unit = { back -> AboutRoute(onBack = back) },
+    sync: @Composable (back: () -> Unit) -> Unit = { back -> SyncRoute(onBack = back) },
     draw: @Composable (onSaved: (String) -> Unit, close: () -> Unit) -> Unit =
         { onSaved, close -> DrawRoute(onSaved = onSaved, onClose = close) },
     arasaac: @Composable (onPicked: (String) -> Unit, openAbout: () -> Unit, back: () -> Unit) -> Unit =
@@ -87,6 +92,7 @@ fun TalkativeNavHost(
                     openConfig = { navController.navigate(Routes.CONFIG) },
                     openExchange = { navController.navigate(Routes.EXCHANGE) },
                     openAbout = { navController.navigate(Routes.ABOUT) },
+                    openSync = { navController.navigate(Routes.SYNC) },
                     openArasaac = { query -> navController.navigate(Routes.arasaac(query)) },
                     openDraw = { navController.navigate(Routes.DRAW) },
                     pickedImageUri = picked,
@@ -102,6 +108,9 @@ fun TalkativeNavHost(
         }
         composable(Routes.ABOUT) {
             about { navController.popBackStack() }
+        }
+        composable(Routes.SYNC) {
+            sync { navController.popBackStack() }
         }
         composable(Routes.DRAW) {
             draw(

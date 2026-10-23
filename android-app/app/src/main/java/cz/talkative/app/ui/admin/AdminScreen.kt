@@ -95,6 +95,7 @@ fun AdminRoute(
     onOpenConfig: () -> Unit,
     onOpenExchange: () -> Unit,
     onOpenAbout: () -> Unit,
+    onOpenSync: () -> Unit,
     onOpenArasaac: (String) -> Unit,
     onOpenDraw: () -> Unit,
     pickedImageUri: String?,
@@ -116,6 +117,7 @@ fun AdminRoute(
         onOpenConfig = onOpenConfig,
         onOpenExchange = onOpenExchange,
         onOpenAbout = onOpenAbout,
+        onOpenSync = onOpenSync,
         onFindPictogram = onOpenArasaac,
         onDraw = onOpenDraw,
     )
@@ -132,6 +134,7 @@ fun AdminScreen(
     onOpenConfig: () -> Unit = {},
     onOpenExchange: () -> Unit = {},
     onOpenAbout: () -> Unit = {},
+    onOpenSync: () -> Unit = {},
     onFindPictogram: (String) -> Unit = {},
     onDraw: () -> Unit = {},
 ) {
@@ -178,6 +181,9 @@ fun AdminScreen(
                 }
                 OutlinedButton(onClick = onOpenConfig, modifier = Modifier.heightIn(min = dimens.minTouchTarget)) {
                     Text(stringResource(R.string.admin_open_config))
+                }
+                OutlinedButton(onClick = onOpenSync, modifier = Modifier.heightIn(min = dimens.minTouchTarget)) {
+                    Text(stringResource(R.string.admin_open_sync))
                 }
                 OutlinedButton(onClick = onOpenAbout, modifier = Modifier.heightIn(min = dimens.minTouchTarget)) {
                     Text(stringResource(R.string.admin_open_about))

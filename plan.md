@@ -460,13 +460,15 @@ Plán postupuje po funkcionalitách (vertikální řezy přes UI, doménu i data
 ### 9.1 Příprava a přihlášení
 
 **Úkoly:**
-- [ ] Založit/ověřit Google Cloud projekt, povolit Drive API, nastavit OAuth klienta pro `cz.talkative.app` a SHA-1 debug klíče (postup zapsat do dokumentace).
-- [ ] Výběr Google účtu systémovým dialogem při prvním spuštění nebo v administraci.
-- [ ] Bez účtu aplikace běží jen lokálně; odhlášení/změna účtu v administraci.
+- [ ] Založit/ověřit Google Cloud projekt, povolit Drive API, nastavit OAuth klienta pro `cz.talkative.app` a SHA-1 debug klíče (postup zapsat do dokumentace). *Postup je zapsaný v `format-synchronizace.md` (včetně SHA-1 debug klíče z tohoto počítače); projekt a OAuth klienta musí založit vlastník, nedá se udělat ani ověřit z kódu.*
+- [ ] Výběr Google účtu systémovým dialogem při prvním spuštění nebo v administraci. *Hotovo v administraci (Synchronizace → Přihlásit účet Google, `GoogleAuthorizer`, `SyncViewModel`, `SyncScreen`); s ostrým účtem zatím nevyzkoušeno, protože chybí OAuth klient.*
+- [x] Bez účtu aplikace běží jen lokálně; odhlášení/změna účtu v administraci.
 
 **Kritéria splnění:**
-- [ ] Po výběru účtu aplikace získá oprávnění `drive.appdata` a zapamatuje si účet.
-- [ ] Odmítnutí přihlášení nezpůsobí pád a aplikace dál funguje lokálně.
+- [ ] *Neověřeno s ostrým účtem.* Po výběru účtu aplikace získá oprávnění `drive.appdata` a zapamatuje si účet.
+- [x] Odmítnutí přihlášení nezpůsobí pád a aplikace dál funguje lokálně. *(ověřeno testy view modelu a obrazovky: zrušení souhlasu, chyba, chybějící služby Google Play; reálný dialog neověřen)*
+
+*Provedení: služby Google Play přes `play-services-auth` 22.0.0 (Authorization API, `minSdk` knihovny 24, tedy pod 26; WorkManager 2.12.0 má 24, `hilt-work` 23). Stav (účet, poslední výsledek) je v DataStore pod vlastními klíči, ne v `AppConfig` ani v exportu. `ConsentRequest` je obecný obal na `IntentSender`, který otevírá jen obrazovka (`SyncRoute`). Bez služeb Google Play nebo bez souhlasu se synchronizace nespustí a aplikace běží lokálně.*
 
 ### 9.2 Abstrakce úložiště a model sloučení
 

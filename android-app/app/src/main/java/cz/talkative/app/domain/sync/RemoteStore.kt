@@ -27,6 +27,9 @@ enum class SyncError {
 
     /** Selhal zápis do místního úložiště (např. plný disk). */
     LOCAL_STORAGE,
+
+    /** V zařízení nejsou služby Google Play (nebo jsou zastaralé), přihlášení k Drive není možné. */
+    NO_PLAY_SERVICES,
 }
 
 class SyncException(val error: SyncError, message: String? = null, cause: Throwable? = null) : Exception(message ?: error.name, cause)
