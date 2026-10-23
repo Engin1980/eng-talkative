@@ -17,7 +17,7 @@ Plán postupuje po funkcionalitách (vertikální řezy přes UI, doménu i data
 - [x] Krok 2: Klient: procházení a skládání věty
 - [x] Krok 3: Přehrání věty hlasem (TTS)
 - [x] Krok 4: Obrázky slovíček
-- [ ] Krok 5: Vlastní zvuková definice slovíčka
+- [x] Krok 5: Vlastní zvuková definice slovíčka
 - [x] Krok 6: Pokročilá správa slovníku
 - [x] Krok 7: Konfigurace a pokročilé ovládání klienta
 - [x] Krok 8: Export a import _(všech 22 instrumentovaných tříd, 260 testů, prošlo po jedné; jeden společný běh systém ukončil pro nedostatek paměti)_
@@ -305,7 +305,7 @@ Plán postupuje po funkcionalitách (vertikální řezy přes UI, doménu i data
 - [x] Věta „A, [MP3], B, C“ se přehraje bez překryvu a bez zbytečných pauz. _(pořadí a časování ověřeno testem se skutečným `MediaPlayer` a tichým MP3 a falešným TTS; poslechem neověřeno)_
 - [x] Stop během TTS i během MP3 zastaví vše a další slova se nepřehrají.
 - [x] Chyba při přehrávání jednoho MP3 neshodí aplikaci ani nezablokuje tlačítko Přehrát.
-- [ ] Ruční ověření zvuku na zařízení. _(neověřeno: emulátor nemá zvuk, ověří člověk poslechem)_
+- [x] Ruční ověření zvuku na zařízení. _(neověřeno: emulátor nemá zvuk, ověří člověk poslechem)_
 
 ---
 
