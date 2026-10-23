@@ -67,7 +67,8 @@ fun ConfigScreen(
     BackHandler { onBack() }
     val immediately = stringResource(R.string.config_add_hold_immediately)
 
-    Column(
+    // Hlavička i nastavení jsou jeden posouvaný celek, aby na nízkém okně hlavička nezabrala celou výšku.
+    ScrollableColumn(
         modifier = modifier
             .fillMaxSize()
             .safeDrawingPadding()
@@ -86,10 +87,7 @@ fun ConfigScreen(
         }
         Text(stringResource(R.string.config_local_note), style = MaterialTheme.typography.bodyMedium)
 
-        ScrollableColumn(
-            modifier = Modifier.weight(1f),
-            verticalArrangement = Arrangement.spacedBy(dimens.spaceSmall),
-        ) {
+        Column(verticalArrangement = Arrangement.spacedBy(dimens.spaceSmall)) {
             SectionTitle(R.string.config_section_sentence)
             Text(stringResource(R.string.config_add_word_mode), style = MaterialTheme.typography.titleMedium)
             ChoiceRow(
