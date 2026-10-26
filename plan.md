@@ -575,6 +575,7 @@ Plán postupuje po funkcionalitách (vertikální řezy přes UI, doménu i data
 
 **Úkoly:**
 - [ ] Informace o soukromí (co se ukládá a kam) dostupná v administraci. Součástí: aplikace může nahrávat mikrofonem, ale jen na výslovný pokyn administrátora v editaci slovíčka (nahrávka zůstává v zařízení, v exportu a případně na Drive uživatele, nikam jinam se neposílá).
+- [ ] Informace o soukromí a Google Drive (krok 9): po přihlášení k účtu Google se slovník (názvy, pořadí, texty, obrázky, zvuky i nahrávky z mikrofonu) ukládá do skryté složky aplikace (`appDataFolder`) na Disku Google uživatele, kam má přístup jen tato aplikace (oprávnění `drive.appdata`); aplikace nevidí ostatní soubory na Disku. Bez přihlášení zůstává vše jen v zařízení. Žádný vlastní server, žádné sdílení s třetími stranami. Konfigurace zařízení se nesynchronizuje. Smazání účtu v aplikaci (odhlášení) data na Disku nemaže; smazat je lze v nastavení Disku Google (Správa aplikací). Smazané položky zůstávají na Disku jako záznamy o smazání nejvýše 30 dní, nepoužité soubory se mažou po 7 dnech. Informace se zobrazí na obrazovce v administraci (např. v „O aplikaci“ nebo „Synchronizace“) a uvede se v ní i ARASAAC (viz E3).
 - [ ] Release build: ikona aplikace, název, verze, minifikace/ProGuard pravidla (Room, Hilt, Drive API).
 - [ ] Podpisový klíč (mimo repozitář), podepsaný release APK, návod k instalaci.
 - [ ] Ověřit OAuth klienta Drive pro release podpis (SHA-1 release klíče).
