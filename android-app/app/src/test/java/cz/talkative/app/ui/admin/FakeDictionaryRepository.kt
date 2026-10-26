@@ -76,6 +76,8 @@ class FakeDictionaryRepository : DictionaryRepository {
         words.value = words.value.map { if (it.id == id) it.copy(audioFile = audioFile) else it }
     }
 
+    override suspend fun recoverOrphans(folderTitle: String) = 0
+
     override suspend fun cleanUpOrphanFiles() = Unit
 
     override suspend fun importItems(

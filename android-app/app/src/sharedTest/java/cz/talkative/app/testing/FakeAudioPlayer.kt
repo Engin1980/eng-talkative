@@ -23,6 +23,11 @@ class FakeAudioPlayer : AudioPlayer {
     var holdPlayback = true
     private var current: CompletableDeferred<Unit>? = null
 
+    /** Názvy souborů, které v „úložišti“ chybí. */
+    val missingFiles = mutableSetOf<String>()
+
+    override fun isAvailable(fileName: String) = fileName !in missingFiles
+
     override suspend fun play(fileName: String) {
         played += fileName
         failWith?.let { throw it }

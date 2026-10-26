@@ -18,6 +18,7 @@ import androidx.compose.ui.test.performTextInput
 import androidx.compose.ui.test.performScrollTo
 import androidx.compose.ui.unit.dp
 import androidx.test.ext.junit.runners.AndroidJUnit4
+import cz.talkative.app.domain.integrity.ItemProblem
 import cz.talkative.app.domain.model.DictionaryItem
 import cz.talkative.app.domain.model.Folder
 import cz.talkative.app.domain.model.Word
@@ -647,5 +648,37 @@ class AdminScreenTest {
     fun moveButtons_areHiddenInSelectionMode() {
         show(selectingState(emptySet()))
         assertEquals(0, composeRule.onAllNodesWithContentDescription("Posunout Chci nahoru").fetchSemanticsNodes().size)
+    }
+
+    // ---- výkřičník u položky s problémem (krok 10.2)
+
+    @Test
+    fun wordWithProblem_showsWarning_thatOpensExplanation() {
+        val item = word("w1", "Chci")
+        show(state(item).copy(problems = mapOf("w1" to setOf(ItemProblem.MISSING_IMAGE))))
+
+        composeRule.onNodeWithContentDescription("Upozornění u položky Chci")
+            .assertHeightIsAtLeast(64.dp).assertWidthIsAtLeast(64.dp).performClick()
+
+        assertEquals(listOf<AdminEvent>(AdminEvent.ShowProblems(item)), events)
+    }
+
+    @Test
+    fun wordWithoutProblem_hasNoWarning() {
+        show(state(word("w1", "Chci")))
+
+        assertEquals(0, composeRule.onAllNodesWithContentDescription("Upozornění u položky Chci").fetchSemanticsNodes().size)
+    }
+
+    @Test
+    fun problemsDialog_explainsEachProblem() {
+        val item = word("w1", "Chci")
+        show(state(item, dialog = AdminDialog.ShowProblems(item, setOf(ItemProblem.MISSING_IMAGE, ItemProblem.MISSING_AUDIO))))
+
+        composeRule.onNodeWithText("Chybí soubor obrázku.", substring = true).assertIsDisplayed()
+        composeRule.onNodeWithText("Chybí soubor vlastního zvuku.", substring = true).assertIsDisplayed()
+        composeRule.onNodeWithText("Rozumím").assertHeightIsAtLeast(64.dp).performClick()
+
+        assertEquals(listOf<AdminEvent>(AdminEvent.DismissDialog), events)
     }
 }

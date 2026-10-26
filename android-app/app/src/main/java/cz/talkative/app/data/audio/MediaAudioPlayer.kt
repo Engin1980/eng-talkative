@@ -19,6 +19,8 @@ class MediaAudioPlayer @Inject constructor(
     private val store: AudioStore,
 ) : AudioPlayer {
 
+    override fun isAvailable(fileName: String): Boolean = store.resolve(fileName) != null
+
     override suspend fun play(fileName: String) {
         val file = store.resolve(fileName) ?: throw AudioPlaybackException("Soubor $fileName neexistuje")
         withContext(Dispatchers.Main.immediate) {

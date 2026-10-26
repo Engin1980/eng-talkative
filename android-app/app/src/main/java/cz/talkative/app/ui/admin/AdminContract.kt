@@ -1,6 +1,7 @@
 package cz.talkative.app.ui.admin
 
 import cz.talkative.app.domain.model.DictionaryItem
+import cz.talkative.app.domain.integrity.ItemProblem
 import cz.talkative.app.domain.model.Folder
 
 enum class ItemKind { FOLDER, WORD }
@@ -87,6 +88,9 @@ sealed interface AdminDialog {
         val problem: MoveProblem? = null,
     ) : AdminDialog
 
+    /** Vysvětlení výkřičníku u položky [item]: co je s ní v nepořádku a jak to opravit. */
+    data class ShowProblems(val item: DictionaryItem, val problems: Set<ItemProblem>) : AdminDialog
+
     /** Potvrzení abecedního řazení: přepíše ručně nastavené pořadí a nelze ho vrátit. */
     data object ConfirmSort : AdminDialog
 
@@ -110,6 +114,8 @@ data class AdminUiState(
     /** Režim výběru více položek v aktuální složce; [selectedIds] jsou označené položky. */
     val isSelecting: Boolean = false,
     val selectedIds: Set<String> = emptySet(),
+    /** Problémy slovíček aktuální složky podle ID; slovíčka bez problému v mapě nejsou. */
+    val problems: Map<String, Set<ItemProblem>> = emptyMap(),
 )
 
 sealed interface AdminEvent {
@@ -125,6 +131,9 @@ sealed interface AdminEvent {
     data class DeleteItem(val item: DictionaryItem) : AdminEvent
     data object ConfirmDelete : AdminEvent
     data object DismissDialog : AdminEvent
+
+    /** Klepnutí na výkřičník: ukáže, co je s položkou v nepořádku. */
+    data class ShowProblems(val item: DictionaryItem) : AdminEvent
 
     /** Systémový výběr (galerie nebo fotoaparát) vrátil obrázek ([uri]) ke zpracování. */
     data class ImagePicked(val uri: String) : AdminEvent

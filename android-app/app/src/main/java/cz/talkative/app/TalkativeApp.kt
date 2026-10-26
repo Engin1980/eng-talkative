@@ -5,6 +5,7 @@ import androidx.hilt.work.HiltWorkerFactory
 import androidx.work.Configuration
 import cz.talkative.app.data.sync.SyncTrigger
 import cz.talkative.app.domain.usecase.CleanUpOrphanFilesUseCase
+import cz.talkative.app.domain.usecase.RecoverOrphansUseCase
 import dagger.hilt.android.HiltAndroidApp
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -18,6 +19,9 @@ class TalkativeApp : Application(), Configuration.Provider {
 
     @Inject
     lateinit var cleanUpOrphanFiles: CleanUpOrphanFilesUseCase
+
+    @Inject
+    lateinit var recoverOrphans: RecoverOrphansUseCase
 
     @Inject
     lateinit var workerFactory: HiltWorkerFactory
@@ -41,6 +45,7 @@ class TalkativeApp : Application(), Configuration.Provider {
             runCatching { File(cacheDir, "recordings").deleteRecursively() }
             runCatching { File(cacheDir, "sync").deleteRecursively() }
             runCatching { cleanUpOrphanFiles() }
+            runCatching { recoverOrphans(getString(R.string.recovered_folder_title)) }
             // Synchronizace až po úklidu, aby úklid osiřelých souborů nesmazal právě stažená média.
             runCatching { syncTrigger.start(scope) }
         }

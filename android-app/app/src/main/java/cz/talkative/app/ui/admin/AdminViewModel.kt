@@ -23,6 +23,7 @@ import cz.talkative.app.domain.usecase.SaveRecordingUseCase
 import cz.talkative.app.domain.usecase.DeleteItemsUseCase
 import cz.talkative.app.domain.usecase.DeleteWordUseCase
 import cz.talkative.app.domain.usecase.DiscardImageUseCase
+import cz.talkative.app.domain.usecase.FindWordProblemsUseCase
 import cz.talkative.app.domain.usecase.GetFolderPathUseCase
 import cz.talkative.app.domain.usecase.MoveItemInOrderUseCase
 import cz.talkative.app.domain.usecase.MoveItemsUseCase
@@ -67,6 +68,7 @@ class AdminViewModel @Inject constructor(
     private val audioPlayer: AudioPlayer,
     private val audioRecorder: AudioRecorder,
     private val saveRecording: SaveRecordingUseCase,
+    private val findWordProblems: FindWordProblemsUseCase,
 ) : ViewModel() {
 
     private val currentFolderId = MutableStateFlow<String?>(null)
@@ -77,7 +79,7 @@ class AdminViewModel @Inject constructor(
     private var recordJob: Job? = null
 
     private val browsing = currentFolderId.flatMapLatest { folderId ->
-        observeItems(folderId).map { items -> AdminUiState(path = getPath(folderId), items = items, isLoading = false) }
+        observeItems(folderId).map { items -> AdminUiState(path = getPath(folderId), items = items, isLoading = false, problems = findWordProblems(items.filterIsInstance<Word>())) }
     }
 
     val uiState: StateFlow<AdminUiState> = combine(browsing, dialog, selection) { browsingState, openDialog, selected ->
@@ -97,6 +99,7 @@ class AdminViewModel @Inject constructor(
             is AdminEvent.DeleteItem -> requestDelete(event)
             AdminEvent.ConfirmDelete -> confirmDelete()
             AdminEvent.DismissDialog -> dismissDialog()
+            is AdminEvent.ShowProblems -> dialog.value = AdminDialog.ShowProblems(event.item, uiState.value.problems[event.item.id].orEmpty())
             is AdminEvent.ImagePicked -> processPickedImage(event.uri)
             AdminEvent.RemoveImage -> removeImage()
             is AdminEvent.ImageSelectionFailed -> updateEditDialog { it.copy(imageProblem = event.problem) }

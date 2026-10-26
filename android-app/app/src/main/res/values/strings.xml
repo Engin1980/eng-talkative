@@ -219,6 +219,13 @@
   <string name="move_problem_into_itself">Složku nelze přesunout do sebe samé ani do její podsložky.
     Nic se nepřesunulo.</string>
   <string name="move_problem_missing">Cílová složka už neexistuje. Nic se nepřesunulo.</string>
+  <string name="admin_problem_icon">Upozornění u položky %1$s</string>
+  <string name="admin_problem_title">Problém: %1$s</string>
+  <string name="admin_problem_missing_image">Chybí soubor obrázku. Slovíčko se v klientovi zobrazí jen jako text.</string>
+  <string name="admin_problem_missing_audio">Chybí soubor vlastního zvuku. V klientovi se přečte titulek slovíčka.</string>
+  <string name="admin_problem_missing_folder">Položka je ve složce, která neexistuje.</string>
+  <string name="admin_problem_how_to_fix">Oprava: otevřete úpravu slovíčka a vyberte soubor znovu, nebo slovíčko smažte. Je-li soubor na Disku Google, obnoví se při další synchronizaci sám.</string>
+  <string name="recovered_folder_title">Nalezené</string>
   <string name="sort_title">Seřadit podle abecedy?</string>
   <string name="sort_message">Obsah této složky se seřadí podle abecedy. Dosavadní ruční pořadí se
     přepíše a nelze ho vrátit zpět.</string>

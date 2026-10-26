@@ -480,6 +480,21 @@ class ClientViewModelTest {
     }
 
     @Test
+    fun missingMp3File_readsTheTitle_andTheSentenceKeepsPlaying() = runVmTest {
+        subscribe()
+        audioPlayer.missingFiles += "chybi.mp3"
+        pick("A")
+        pick("zvonek", audioFile = "chybi.mp3")
+        pick("B")
+
+        viewModel.onEvent(ClientEvent.TogglePlayback)
+
+        assertEquals(listOf("A zvonek B"), speech.spoken)
+        assertTrue(audioPlayer.played.isEmpty())
+        assertNull(viewModel.uiState.value.speechError)
+    }
+
+    @Test
     fun viewModelRelease_stopsRunningMp3() = runVmTest {
         subscribe()
         pick("zvonek", audioFile = "zvonek.mp3")

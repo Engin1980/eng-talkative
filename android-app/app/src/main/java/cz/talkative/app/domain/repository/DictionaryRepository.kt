@@ -98,6 +98,13 @@ interface DictionaryRepository {
     /** Celý slovník najednou (pro export); smazané položky v něm nejsou. */
     suspend fun snapshot(): DictionarySnapshot
 
+    /**
+     * Přesune položky, ke kterým se nedá dostat z kořene (rodič neexistuje nebo je smazaný, složky v cyklu), do složky
+     * [folderTitle] v kořeni (vytvoří ji, nebo oživí smazanou; má pevné ID, takže se zařízení shodnou). Vrací počet
+     * přesunutých položek; když není co přesouvat, nezmění nic.
+     */
+    suspend fun recoverOrphans(folderTitle: String): Int
+
     /** Smaže soubory obrázků a MP3, které nepatří žádnému slovíčku (po přerušeném mazání nebo zrušené úpravě). */
     suspend fun cleanUpOrphanFiles()
 }

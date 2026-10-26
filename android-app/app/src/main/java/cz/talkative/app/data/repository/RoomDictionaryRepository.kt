@@ -7,6 +7,7 @@ import cz.talkative.app.data.local.WordFiles
 import cz.talkative.app.data.local.toDomain
 import cz.talkative.app.domain.audio.AudioStore
 import cz.talkative.app.domain.image.ImageStore
+import cz.talkative.app.domain.integrity.DictionaryIntegrity
 import cz.talkative.app.domain.model.DictionaryItem
 import cz.talkative.app.domain.model.Folder
 import cz.talkative.app.domain.model.Profile
@@ -141,6 +142,16 @@ class RoomDictionaryRepository @Inject constructor(
             dao.allFolders(profileId).map { it.toDomain() },
             dao.allWords(profileId).map { it.toDomain() },
         )
+
+    override suspend fun recoverOrphans(folderTitle: String): Int {
+        val folders = dao.allFolders(profileId).map { it.toDomain() }
+        val words = dao.allWords(profileId).map { it.toDomain() }
+        val moves = DictionaryIntegrity.recoveryMoves(folders, words)
+        if (moves.isEmpty()) return 0
+        return dao.moveToRecovered(profileId, recoveredFolderId(), folderTitle, moves, clock.nowMillis())
+    }
+
+    private fun recoveredFolderId() = "lost-and-found-$profileId"
 
     override suspend fun cleanUpOrphanFiles() {
         imageStore.deleteAllExcept(dao.allImageFiles(profileId).toSet())

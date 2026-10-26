@@ -105,6 +105,22 @@ class SyncDictionaryUseCaseTest {
     }
 
     @Test
+    fun missingLocalFile_isDownloadedAgainFromDrive_withoutChangingMetadata() {
+        a.put(word("w", image = "w.png"))
+        a.media.put(image("w.png"), byteArrayOf(9, 8))
+        sync(a)
+        sync(b)
+        b.media.files.remove(image("w.png")) // soubor zmizel ze zařízení B
+        val writes = remote.metadataWrites
+
+        val outcome = sync(b)
+
+        assertEquals(1, outcome.mediaDownloaded)
+        assertEquals(listOf<Byte>(9, 8), b.media.files[image("w.png")]!!.toList())
+        assertEquals(writes, remote.metadataWrites)
+    }
+
+    @Test
     fun deletionPropagates_andTheOrphanFileIsCleanedOnTheOtherDevice() {
         a.put(word("w", image = "w.png"))
         a.media.put(image("w.png"))

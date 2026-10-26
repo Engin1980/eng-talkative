@@ -10,4 +10,7 @@ interface AudioPlayer {
      * @throws AudioPlaybackException když se přehrání nepodaří
      */
     suspend fun play(fileName: String)
+
+    /** `false`, když soubor [fileName] v úložišti není (pak se místo něj čte titulek slovíčka). */
+    fun isAvailable(fileName: String): Boolean = true
 }

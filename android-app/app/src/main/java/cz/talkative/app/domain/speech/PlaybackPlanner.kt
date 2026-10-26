@@ -17,8 +17,9 @@ object PlaybackPlanner {
     /**
      * Sousední slova čtená TTS se spojí do jednoho úseku (mezera mezi nimi), slovo s vlastním MP3 tvoří samostatný úsek.
      * TTS slovo čte jiný text slovíčka, je-li vyplněný, jinak titulek; prázdná slova se vynechají.
+     * Slovo, jehož MP3 soubor chybí ([hasAudio] vrátí `false`), se čte jako běžné TTS slovo: věta se nezastaví.
      */
-    fun plan(sentence: List<SentenceEntry>): List<PlaybackSegment> {
+    fun plan(sentence: List<SentenceEntry>, hasAudio: (String) -> Boolean = { true }): List<PlaybackSegment> {
         val segments = mutableListOf<PlaybackSegment>()
         val pending = mutableListOf<String>()
 
@@ -29,7 +30,7 @@ object PlaybackPlanner {
 
         for (entry in sentence) {
             val word = entry.word
-            if (word.audioFile != null) {
+            if (word.audioFile != null && hasAudio(word.audioFile)) {
                 flushText()
                 segments += PlaybackSegment.Audio(word.audioFile)
             } else {

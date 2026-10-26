@@ -139,6 +139,7 @@ class PictogramFlowTest {
             FakeAudioPlayer(),
             cz.talkative.app.testing.FakeAudioRecorder(),
             cz.talkative.app.domain.usecase.SaveRecordingUseCase(audioStore),
+            cz.talkative.app.domain.usecase.FindWordProblemsUseCase(imageStore, audioStore),
         )
         search.result = PictogramSearchResult.Found(listOf(house))
         composeRule.setContent {

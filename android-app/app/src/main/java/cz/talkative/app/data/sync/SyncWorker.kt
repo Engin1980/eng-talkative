@@ -10,9 +10,11 @@ import androidx.work.NetworkType
 import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.WorkManager
 import androidx.work.WorkerParameters
+import cz.talkative.app.R
 import cz.talkative.app.domain.sync.RunSyncUseCase
 import cz.talkative.app.domain.sync.SyncRunResult
 import cz.talkative.app.domain.sync.SyncScheduler
+import cz.talkative.app.domain.usecase.RecoverOrphansUseCase
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedInject
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -25,11 +27,18 @@ class SyncWorker @AssistedInject constructor(
     @Assisted context: Context,
     @Assisted params: WorkerParameters,
     private val runSync: RunSyncUseCase,
+    private val recoverOrphans: RecoverOrphansUseCase,
 ) : CoroutineWorker(context, params) {
 
-    override suspend fun doWork(): Result = when (runSync()) {
+    override suspend fun doWork(): Result = when (val result = runSync()) {
         is SyncRunResult.Retry -> if (runAttemptCount < MAX_ATTEMPTS) Result.retry() else Result.success()
-        else -> Result.success()
+        else -> {
+            // Sloučení mohlo vytvořit položku ve složce, kterou jiné zařízení mezitím smazalo; ta se přesune do „Nalezené“.
+            if (result is SyncRunResult.Success) {
+                runCatching { recoverOrphans(applicationContext.getString(R.string.recovered_folder_title)) }
+            }
+            Result.success()
+        }
     }
 
     companion object {

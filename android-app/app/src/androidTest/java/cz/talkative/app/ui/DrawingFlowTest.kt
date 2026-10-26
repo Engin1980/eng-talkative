@@ -119,6 +119,7 @@ class DrawingFlowTest {
             FakeAudioPlayer(),
             cz.talkative.app.testing.FakeAudioRecorder(),
             cz.talkative.app.domain.usecase.SaveRecordingUseCase(audioStore),
+            cz.talkative.app.domain.usecase.FindWordProblemsUseCase(imageStore, audioStore),
         )
         composeRule.setContent {
             navController = TestNavHostController(LocalContext.current).apply { navigatorProvider.addNavigator(ComposeNavigator()) }

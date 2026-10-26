@@ -101,6 +101,7 @@ class AdminFlowTest {
             audioPlayer,
             audioRecorder,
             cz.talkative.app.domain.usecase.SaveRecordingUseCase(audioStore),
+            cz.talkative.app.domain.usecase.FindWordProblemsUseCase(imageStore, audioStore),
         )
         composeRule.setContent {
             TalkativeTheme {

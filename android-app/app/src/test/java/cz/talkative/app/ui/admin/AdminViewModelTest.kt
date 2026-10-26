@@ -24,6 +24,8 @@ import cz.talkative.app.domain.audio.AudioPlaybackException
 import cz.talkative.app.domain.usecase.DiscardAudioUseCase
 import cz.talkative.app.domain.usecase.SaveAudioUseCase
 import kotlinx.coroutines.CompletableDeferred
+import cz.talkative.app.domain.integrity.ItemProblem
+import cz.talkative.app.domain.usecase.FindWordProblemsUseCase
 import cz.talkative.app.domain.usecase.GetFolderPathUseCase
 import cz.talkative.app.domain.usecase.ObserveFolderItemsUseCase
 import cz.talkative.app.domain.usecase.SaveFolderUseCase
@@ -77,6 +79,7 @@ class AdminViewModelTest {
             audioPlayer,
             audioRecorder,
             SaveRecordingUseCase(audioStore),
+            FindWordProblemsUseCase(imageStore, audioStore),
         )
     }
 
@@ -273,6 +276,41 @@ class AdminViewModelTest {
 
         assertEquals(image, imageOf("jablko"))
         assertEquals(setOf(image), imageStore.files) // soubor zůstal, je přiřazen slovíčku
+    }
+
+    @Test
+    fun wordWithMissingImageFile_showsProblem_andItGoesAwayAfterFix() = runVmTest {
+        subscribe()
+        viewModel.onEvent(AdminEvent.AddWord)
+        viewModel.onEvent(AdminEvent.TitleChanged("jablko"))
+        viewModel.onEvent(AdminEvent.ImagePicked("content://foto"))
+        viewModel.onEvent(AdminEvent.ConfirmEdit)
+        val word = viewModel.uiState.value.items.single()
+        assertTrue(viewModel.uiState.value.problems.isEmpty())
+
+        imageStore.files.clear() // soubor někdo smazal
+        repository.updateWordTitle(word.id, "jablko 2") // změna dat vyvolá nový výpočet
+        assertEquals(setOf(ItemProblem.MISSING_IMAGE), viewModel.uiState.value.problems[word.id])
+
+        viewModel.onEvent(AdminEvent.ShowProblems(viewModel.uiState.value.items.single()))
+        val dialog = viewModel.uiState.value.dialog as AdminDialog.ShowProblems
+        assertEquals(setOf(ItemProblem.MISSING_IMAGE), dialog.problems)
+        viewModel.onEvent(AdminEvent.DismissDialog)
+        assertNull(viewModel.uiState.value.dialog)
+
+        repository.updateWordImage(word.id, null) // oprava: obrázek odebrán
+        assertTrue(viewModel.uiState.value.problems.isEmpty())
+    }
+
+    @Test
+    fun wordWithMissingAudioFile_showsProblem_andItGoesAwayWhenTheFileReturns() = runVmTest {
+        subscribe()
+        val word = repository.createWord(null, "hudba", audioFile = "chybi.m4a")
+        assertEquals(setOf(ItemProblem.MISSING_AUDIO), viewModel.uiState.value.problems[word.id])
+
+        audioStore.add("chybi.m4a")
+        repository.updateWordTitle(word.id, "hudba 2")
+        assertTrue(viewModel.uiState.value.problems.isEmpty())
     }
 
     @Test

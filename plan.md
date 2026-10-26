@@ -22,7 +22,7 @@ Plán postupuje po funkcionalitách (vertikální řezy přes UI, doménu i data
 - [x] Krok 7: Konfigurace a pokročilé ovládání klienta
 - [x] Krok 8: Export a import _(všech 22 instrumentovaných tříd, 260 testů, prošlo po jedné; jeden společný běh systém ukončil pro nedostatek paměti)_
 - [ ] Krok 9: Synchronizace s Google Drive _(kód, testy a dokumentace hotové; zbývá založit OAuth klienta v Google Cloud a ručně ověřit s ostrým účtem na dvou zařízeních, viz `format-synchronizace.md`)_
-- [ ] Krok 10: Nekonzistence a zotavení
+- [x] Krok 10: Nekonzistence a zotavení
 - [ ] Krok 11: Dokončení a předání
 - [x] Krok 12: Rozšíření I: About, piktogramy ARASAAC a kreslení ikon _(podkroky E1–E3)_
 - [x] Krok 13: Nahrání vlastního zvuku mikrofonem _(podkroky D.1–D.4; zbývá ruční ověření nahrávání poslechem na skutečném tabletu, viz D.4)_
@@ -524,35 +524,35 @@ Plán postupuje po funkcionalitách (vertikální řezy přes UI, doménu i data
 ### 10.1 Detekce nekonzistencí
 
 **Úkoly:**
-- [ ] Detekce chybějícího souboru obrázku nebo MP3.
-- [ ] Detekce slovíčka/složky odkazující na neexistující složku.
-- [ ] Označení nevyřešitelného konfliktu při synchronizaci.
-- [ ] Doménový model „problému“ slovíčka (seznam důvodů) vystavený UI.
+- [x] Detekce chybějícího souboru obrázku nebo MP3 (`DictionaryIntegrity.fileProblems`, `FindWordProblemsUseCase`).
+- [x] Detekce slovíčka/složky odkazující na neexistující složku (`unreachableIds`: rodič chybí, je smazaný, nebo jsou složky v cyklu).
+- [x] Označení nevyřešitelného konfliktu při synchronizaci. Slučování last-write-wins vždy vybere vítěze (shody času řeší deterministicky), takže „nevyřešitelný“ konflikt jako takový nevzniká. Skutečné následky souběhu jsou jiné a zachytí je předchozí bod: slovo přidané do složky, kterou druhé zařízení smazalo, a cyklus složek vzniklý tím, že si dvě zařízení přesunula složky do sebe. Obojí se zobrazí v „Nalezené“ (10.3).
+- [x] Doménový model problému (`ItemProblem`: `MISSING_IMAGE`, `MISSING_AUDIO`, `MISSING_FOLDER`) vystavený UI přes `AdminUiState.problems`.
 
 **Kritéria splnění:**
-- [ ] Testy pro každou ze tří situací (chybějící soubor, neexistující rodič, konflikt).
+- [x] Testy pro každou situaci (`DictionaryIntegrityTest`: chybějící soubor, neexistující rodič, cyklus; `SyncDictionaryUseCaseTest`).
 
 ### 10.2 Zobrazení a bezpečné chování
 
 **Úkoly:**
-- [ ] Výkřičník u dotčeného slovíčka v administraci (s vysvětlením po klepnutí).
-- [ ] Klient: chybějící obrázek se zobrazí jako text, chybějící MP3 se přečte titulek.
+- [x] Výkřičník u dotčeného slovíčka v administraci (s vysvětlením po klepnutí, `AdminDialog.ShowProblems`).
+- [x] Klient: chybějící obrázek se zobrazí jako text (`WordImage` vrací `false`), chybějící MP3 se přečte titulek (`PlaybackPlanner.plan(hasAudio)`, `AudioPlayer.isAvailable`; platí i pro čtení slova po klepnutí).
 
 **Kritéria splnění:**
-- [ ] Ručně smazaný soubor obrázku/MP3 nebo uměle rozbitá reference vede k výkřičníku, nikoli k pádu ani prázdné obrazovce.
-- [ ] Klient s poškozenými daty dál skládá a přehrává věty.
+- [x] Ručně smazaný soubor obrázku/MP3 vede k výkřičníku, nikoli k pádu ani prázdné obrazovce (testy `AdminViewModelTest`, `AdminScreenTest`, `ClientViewModelTest`). Výkřičník se přepočítává při změně dat složky; soubor obnovený synchronizací bez změny databáze se projeví po opětovném otevření složky.
+- [x] Klient s poškozenými daty dál skládá a přehrává věty (`ClientViewModelTest.missingMp3File_readsTheTitle_andTheSentenceKeepsPlaying`).
 
 ### 10.3 Zotavení
 
 **Úkoly:**
-- [ ] Osiřelé položky se zobrazí na dohledatelném místě (např. speciální složka „Nalezené“), aby je šlo opravit nebo smazat.
-- [ ] Po opravě (nahrání souboru, přesun, smazání) výkřičník zmizí.
-- [ ] Pokus o opětovné stažení chybějících souborů z Drive při další synchronizaci.
+- [x] Osiřelé položky se přesunou do složky „Nalezené“ v kořeni (`RecoverOrphansUseCase`, `DictionaryRepository.recoverOrphans`, pevné ID `lost-and-found-<profil>`, takže se zařízení shodnou). Spouští se při startu aplikace a po úspěšné synchronizaci. Z cyklu se přesune složka s nejmenším ID (výsledek je na všech zařízeních stejný). Smazaná složka „Nalezené“ se oživí.
+- [x] Po opravě (nahrání souboru, přesun, smazání) výkřičník zmizí (`AdminViewModelTest`).
+- [x] Pokus o opětovné stažení chybějících souborů z Drive při další synchronizaci (platilo už od 9.3: stahuje se vše, co slovíčka potřebují a lokálně chybí; `SyncDictionaryUseCaseTest.missingLocalFile_isDownloadedAgainFromDrive_withoutChangingMetadata`).
 
 **Kritéria splnění:**
-- [ ] Osiřelé položky nejsou nikde „ztracené“ a lze je přesunout nebo smazat.
-- [ ] Po opravě administrátorem výkřičník zmizí.
-- [ ] Chybějící soubor, který je na Drive, se při další synchronizaci obnoví.
+- [x] Osiřelé položky nejsou nikde „ztracené“ a lze je přesunout nebo smazat (`RecoverOrphansTest` na skutečné databázi).
+- [x] Po opravě administrátorem výkřičník zmizí.
+- [x] Chybějící soubor, který je na Drive, se při další synchronizaci obnoví.
 
 ---
 

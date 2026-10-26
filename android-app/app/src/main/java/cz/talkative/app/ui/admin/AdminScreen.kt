@@ -23,6 +23,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
@@ -78,6 +79,7 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import cz.talkative.app.R
 import cz.talkative.app.domain.audio.AudioLimits
+import cz.talkative.app.domain.integrity.ItemProblem
 import cz.talkative.app.domain.model.DictionaryItem
 import cz.talkative.app.domain.model.Folder
 import cz.talkative.app.domain.model.Word
@@ -248,6 +250,8 @@ fun AdminScreen(
                     onMoveDown = { onEvent(AdminEvent.MoveItemDown(item.id)) },
                     isSelecting = state.isSelecting,
                     isSelected = item.id in state.selectedIds,
+                    hasProblem = state.problems[item.id].orEmpty().isNotEmpty(),
+                    onShowProblems = { onEvent(AdminEvent.ShowProblems(item)) },
                     onClick = {
                         when {
                             state.isSelecting -> onEvent(AdminEvent.ToggleSelected(item.id))
@@ -383,6 +387,8 @@ private fun ItemRow(
     onMoveDown: () -> Unit,
     isSelecting: Boolean,
     isSelected: Boolean,
+    hasProblem: Boolean,
+    onShowProblems: () -> Unit,
     onClick: () -> Unit,
     onEdit: () -> Unit,
     onDelete: () -> Unit,
@@ -421,6 +427,15 @@ private fun ItemRow(
                     contentDescription = null,
                     modifier = Modifier.size(dimens.iconSize),
                 )
+            }
+            if (hasProblem) {
+                IconButton(onClick = onShowProblems, modifier = Modifier.size(dimens.minTouchTarget)) {
+                    Icon(
+                        imageVector = Icons.Filled.Warning,
+                        contentDescription = stringResource(R.string.admin_problem_icon, item.title),
+                        tint = MaterialTheme.colorScheme.error,
+                    )
+                }
             }
             if (isSelecting) return@Row
             IconButton(onClick = onMoveUp, enabled = !isFirst, modifier = Modifier.size(dimens.minTouchTarget)) {
@@ -463,6 +478,7 @@ private fun AdminDialogHost(
         is AdminDialog.Edit -> EditDialog(dialog, onEvent, onFindPictogram, onDraw)
         is AdminDialog.ConfirmDelete -> ConfirmDeleteDialog(dialog, onEvent)
         is AdminDialog.ConfirmDeleteSelected -> ConfirmDeleteSelectedDialog(dialog, onEvent)
+        is AdminDialog.ShowProblems -> ProblemsDialog(dialog, onEvent)
         AdminDialog.ConfirmSort -> ConfirmSortDialog(onEvent)
         is AdminDialog.MoveTarget -> MoveTargetDialog(dialog, currentFolderId, onEvent)
     }
@@ -940,6 +956,37 @@ private fun MoveTargetDialog(dialog: AdminDialog.MoveTarget, currentFolderId: St
             }
         },
     )
+}
+
+@Composable
+private fun ProblemsDialog(dialog: AdminDialog.ShowProblems, onEvent: (AdminEvent) -> Unit) {
+    val dimens = TalkativeTheme.dimens
+    AlertDialog(
+        onDismissRequest = { onEvent(AdminEvent.DismissDialog) },
+        title = { Text(stringResource(R.string.admin_problem_title, dialog.item.title)) },
+        text = {
+            ScrollableColumn {
+                dialog.problems.forEach { problem ->
+                    Text(stringResource(problem.messageRes()), modifier = Modifier.padding(bottom = dimens.spaceSmall))
+                }
+                Text(stringResource(R.string.admin_problem_how_to_fix))
+            }
+        },
+        confirmButton = {
+            Button(
+                onClick = { onEvent(AdminEvent.DismissDialog) },
+                modifier = Modifier.heightIn(min = dimens.minTouchTarget),
+            ) {
+                Text(stringResource(R.string.dialog_ok))
+            }
+        },
+    )
+}
+
+private fun ItemProblem.messageRes(): Int = when (this) {
+    ItemProblem.MISSING_IMAGE -> R.string.admin_problem_missing_image
+    ItemProblem.MISSING_AUDIO -> R.string.admin_problem_missing_audio
+    ItemProblem.MISSING_FOLDER -> R.string.admin_problem_missing_folder
 }
 
 @Composable

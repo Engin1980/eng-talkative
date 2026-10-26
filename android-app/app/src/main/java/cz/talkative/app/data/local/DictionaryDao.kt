@@ -100,6 +100,37 @@ abstract class DictionaryDao {
     @Insert
     abstract suspend fun insertWord(entity: WordEntity)
 
+    @Query("UPDATE folders SET parentId = :parentId, sortOrder = :sortOrder, updatedAt = :now WHERE profileId = :profileId AND id = :id AND deleted = 0")
+    abstract suspend fun reparentFolder(profileId: String, id: String, parentId: String?, sortOrder: Int, now: Long)
+
+    @Query("UPDATE words SET parentId = :parentId, sortOrder = :sortOrder, updatedAt = :now WHERE profileId = :profileId AND id = :id AND deleted = 0")
+    abstract suspend fun reparentWord(profileId: String, id: String, parentId: String?, sortOrder: Int, now: Long)
+
+    /**
+     * Přesune nesmazané položky [ids] na konec složky [recoveredId] v kořeni; ta se přitom vytvoří, nebo oživí, když byla
+     * smazaná. Vrací počet skutečně přesunutých položek. Vše v jedné transakci.
+     */
+    @Transaction
+    open suspend fun moveToRecovered(profileId: String, recoveredId: String, title: String, ids: Collection<String>, now: Long): Int {
+        val existing = getFolderIncludingDeleted(profileId, recoveredId)
+        if (existing == null || existing.deleted) {
+            upsertFolders(listOf(FolderEntity(recoveredId, profileId, title, null, nextSortOrder(profileId, null), now)))
+        }
+        var moved = 0
+        for (id in ids.sorted()) {
+            if (id == recoveredId) continue
+            val order = nextSortOrder(profileId, recoveredId)
+            if (getFolder(profileId, id) != null) {
+                reparentFolder(profileId, id, recoveredId, order, now)
+                moved++
+            } else if (getWord(profileId, id) != null) {
+                reparentWord(profileId, id, recoveredId, order, now)
+                moved++
+            }
+        }
+        return moved
+    }
+
     @Query("UPDATE folders SET title = :title, updatedAt = :now WHERE profileId = :profileId AND id = :id AND deleted = 0")
     abstract suspend fun updateFolderTitle(profileId: String, id: String, title: String, now: Long)
 

@@ -42,6 +42,18 @@ class PlaybackPlannerTest {
     }
 
     @Test
+    fun mp3WithMissingFile_isReadAsItsTitle_andMergedWithNeighbours() {
+        val segments = PlaybackPlanner.plan(sentenceOf(text("A"), mp3("M", "chybi.mp3"), text("B")), hasAudio = { false })
+        assertEquals(listOf<PlaybackSegment>(Tts("A M B")), segments)
+    }
+
+    @Test
+    fun mp3WithMissingFile_usesAlternateTextWhenPresent() {
+        val word = Word("w", "default", "KD", null, 0, 0, alternateText = "ká dé", audioFile = "chybi.mp3")
+        assertEquals(listOf<PlaybackSegment>(Tts("ká dé")), PlaybackPlanner.plan(sentenceOf(word), hasAudio = { false }))
+    }
+
+    @Test
     fun mp3AtTheStart_isFollowedByTts() {
         assertEquals(listOf(Audio("m.mp3"), Tts("A B")), plan(mp3("M", "m.mp3"), text("A"), text("B")))
     }

@@ -35,7 +35,7 @@ class ClientViewModel @Inject constructor(
     observeConfig: ObserveConfigUseCase,
     /** Instance patří tomuto view modelu a uvolní se v [onCleared]. */
     speech: SpeechProvider,
-    audioPlayer: AudioPlayer,
+    private val audioPlayer: AudioPlayer,
 ) : ViewModel() {
 
     /** Věta se přehrává po úsecích (TTS a MP3); drží se tu kvůli jednomu hlasu na obrazovku a uvolnění v [onCleared]. */
@@ -99,7 +99,7 @@ class ClientViewModel @Inject constructor(
     private fun onWordTapped(word: Word) {
         val entry = SentenceEntry(nextEntryId++, word)
         if (config.value.addWordMode == AddWordMode.TAP) sentence.value += entry
-        if (config.value.speakWordOnTap) player.play(PlaybackPlanner.plan(listOf(entry)))
+        if (config.value.speakWordOnTap) player.play(PlaybackPlanner.plan(listOf(entry), audioPlayer::isAvailable))
     }
 
     /** Přetažení slova do věty přidává jen v režimu tažení; v režimu klepnutí se ignoruje. */
@@ -119,7 +119,7 @@ class ClientViewModel @Inject constructor(
         if (player.isPlaying) {
             player.stop()
         } else {
-            player.play(PlaybackPlanner.plan(sentence.value)) {
+            player.play(PlaybackPlanner.plan(sentence.value, audioPlayer::isAvailable)) {
                 // Jen po dohrání celé věty: po Stopu nebo chybě věta zůstane.
                 if (config.value.autoClearAfterPlayback) sentence.value = emptyList()
             }
